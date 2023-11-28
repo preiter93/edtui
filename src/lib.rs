@@ -39,7 +39,7 @@ pub mod editor;
 pub mod input;
 pub mod lines;
 
-pub use buffer::TextBuffer;
-pub use editor::{theme::EditorTheme, view::ViewState, Editor, StatusLine};
+pub use buffer::{mode::Mode, EditorBuffer};
+pub use editor::{state::EditorState, theme::EditorTheme, Editor, StatusLine};
 pub use input::Input;
 pub use lines::{Line, Lines};
