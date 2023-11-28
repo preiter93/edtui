@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{buffer::mode::Mode, TextBuffer};
+use crate::{buffer::mode::Mode, EditorBuffer};
 
 use super::key::Key;
 
@@ -65,10 +65,10 @@ pub struct RegisterKey {
     pub mode: Mode,
 }
 
-pub type RegisterCB = fn(&mut TextBuffer);
+pub type RegisterCB = fn(&mut EditorBuffer);
 
 #[derive(Clone, Debug)]
-pub struct RegisterVal(pub fn(&mut TextBuffer));
+pub struct RegisterVal(pub fn(&mut EditorBuffer));
 
 impl RegisterKey {
     pub fn new<T>(key: T, mode: Mode) -> Self

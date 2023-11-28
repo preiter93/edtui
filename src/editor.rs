@@ -1,23 +1,23 @@
+pub mod state;
 pub mod status_line;
 pub mod theme;
-pub mod view;
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::StatusLine;
 
-use crate::buffer::{position::Position, TextBuffer};
+use crate::buffer::{position::Position, EditorBuffer};
 
-use self::{theme::EditorTheme, view::ViewState};
+use self::{state::EditorState, theme::EditorTheme};
 
-pub struct Editor<'a, 'b> {
-    pub(crate) buffer: &'a TextBuffer,
-    pub(crate) state: &'a mut ViewState,
-    pub(crate) theme: EditorTheme<'b>,
+pub struct Editor<'a, 'b, 'c> {
+    pub(crate) buffer: &'a EditorBuffer,
+    pub(crate) state: &'b mut EditorState,
+    pub(crate) theme: EditorTheme<'c>,
 }
 
-impl<'a, 'b> Editor<'a, 'b> {
+impl<'a, 'b, 'c> Editor<'a, 'b, 'c> {
     /// Creates a new instance of [`Editor`].
     #[must_use]
-    pub fn new(buffer: &'a TextBuffer, state: &'a mut ViewState) -> Self {
+    pub fn new(buffer: &'a EditorBuffer, state: &'b mut EditorState) -> Self {
         Self {
             buffer,
             state,
@@ -28,26 +28,33 @@ impl<'a, 'b> Editor<'a, 'b> {
     /// This method allows you to pass a custome theme to the [`Editor`]
     /// See [`EditorTheme`] for the customizable parameters.
     #[must_use]
-    pub fn theme(mut self, theme: EditorTheme<'b>) -> Self {
+    pub fn theme(mut self, theme: EditorTheme<'c>) -> Self {
         self.theme = theme;
         self
     }
 
     /// Returns a reference to the text buffer
     #[must_use]
-    pub fn get_buffer(&self) -> &'a TextBuffer {
+    pub fn get_buffer(&self) -> &'a EditorBuffer {
         self.buffer
+    }
+
+    /// Returns a reference to the editor state.
+    #[must_use]
+    pub fn get_state(&'b self) -> &'b EditorState {
+        self.state
+    }
+
+    /// Returns a mutable reference to the editor state.
+    #[must_use]
+    pub fn get_state_mut(&'b mut self) -> &'b mut EditorState {
+        self.state
     }
 }
 
-impl Widget for Editor<'_, '_> {
+impl Widget for Editor<'_, '_, '_> {
     // type State = ViewState;
-    fn render(
-        self,
-        area: ratatui::layout::Rect,
-        buf: &mut ratatui::buffer::Buffer,
-        // state: &mut Self::State,
-    ) {
+    fn render(self, area: Rect, buf: &mut Buffer) {
         // Draw the border.
         buf.set_style(area, self.theme.base);
         let area = match &self.theme.block {

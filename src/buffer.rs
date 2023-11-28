@@ -7,7 +7,7 @@ use self::{mode::Mode, position::Position, selection::Selection, undo::Stack};
 use crate::lines::{Line, Lines};
 
 #[derive(Clone)]
-pub struct TextBuffer {
+pub struct EditorBuffer {
     pub lines: Lines,
     pub cursor: Position,
     pub mode: Mode,
@@ -16,16 +16,16 @@ pub struct TextBuffer {
     redo: Stack,
 }
 
-impl Default for TextBuffer {
+impl Default for EditorBuffer {
     fn default() -> Self {
-        TextBuffer::new()
+        EditorBuffer::new()
     }
 }
 
-impl TextBuffer {
+impl EditorBuffer {
     /// Create a new empty Buffer.
-    pub fn new() -> TextBuffer {
-        TextBuffer {
+    pub fn new() -> EditorBuffer {
+        EditorBuffer {
             lines: Lines::new(),
             cursor: Position::new(0, 0),
             mode: Mode::Normal,
@@ -442,7 +442,7 @@ mod tests {
 
     #[test]
     fn test_move_cursor_left() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(0, 3);
         buffer.push("Line 1");
 
@@ -461,7 +461,7 @@ mod tests {
 
     #[test]
     fn test_move_cursor_right() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(0, 4);
         buffer.push("Line 1");
 
@@ -477,7 +477,7 @@ mod tests {
 
     #[test]
     fn test_move_cursor_up() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(2, 3);
         buffer.push("Line 1");
         buffer.push("Line 2");
@@ -495,7 +495,7 @@ mod tests {
 
     #[test]
     fn test_move_cursor_down() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(1, 3);
         buffer.push("Line 1");
         buffer.push("Line 2");
@@ -510,7 +510,7 @@ mod tests {
 
     #[test]
     fn test_move_cursor_to_beginning_of_line() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(1, 3);
         buffer.push("Line 1");
         buffer.push("Line 2");
@@ -522,7 +522,7 @@ mod tests {
 
     #[test]
     fn test_move_cursor_to_end_of_line() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(1, 3);
         buffer.push("Line 1");
         buffer.push("Line 2");
@@ -534,7 +534,7 @@ mod tests {
 
     #[test]
     fn test_set_cursor_position() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.push("Line 1");
         buffer.push("Line 2");
         buffer.push("Line 3");
@@ -550,7 +550,7 @@ mod tests {
 
     #[test]
     fn test_move_one_word_right() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(0, 0);
         buffer.push("Hello, world!");
         buffer.push(" Boom.");
@@ -579,7 +579,7 @@ mod tests {
 
     #[test]
     fn test_move_one_word_left() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(0, 18);
         buffer.push("Hello, world! Boom.");
 
@@ -604,7 +604,7 @@ mod tests {
 
     #[test]
     fn test_remove_char() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         let mut expect;
         buffer.set_cursor_position(0, 4);
         buffer.push("Line 1");
@@ -622,7 +622,7 @@ mod tests {
 
     #[test]
     fn test_delete_char() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         let mut expect;
         buffer.push("Line 1");
         buffer.push("");
@@ -654,12 +654,12 @@ mod tests {
 
     #[test]
     fn test_delete_line() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(1, 0);
         buffer.push("Line 1");
         buffer.push("Line 2");
         buffer.push("Line 3");
-        let mut buffer_exp = TextBuffer::new();
+        let mut buffer_exp = EditorBuffer::new();
 
         buffer.delete_line();
         buffer_exp.push("Line 1");
@@ -690,14 +690,14 @@ mod tests {
 
     #[test]
     fn test_delete_selection() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.push("Line 1");
         buffer.push("Line 2");
         buffer.selection = Some(Selection {
             start: Position { line: 0, column: 0 },
             end: Position { line: 1, column: 2 },
         });
-        let mut buffer_exp = TextBuffer::new();
+        let mut buffer_exp = EditorBuffer::new();
         buffer_exp.push("e 2");
 
         buffer.delete_selection();
@@ -706,7 +706,7 @@ mod tests {
 
     #[test]
     fn test_is_cursor_at_end_of_line() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.push("Line 1");
         buffer.set_cursor_position(0, 5);
         assert!(buffer.is_cursor_at_end_of_line());
@@ -714,13 +714,13 @@ mod tests {
         buffer.set_cursor_position(0, 2);
         assert!(!buffer.is_cursor_at_end_of_line());
 
-        let empty_buffer = TextBuffer::new();
+        let empty_buffer = EditorBuffer::new();
         assert!(empty_buffer.is_cursor_at_end_of_line());
     }
 
     #[test]
     fn test_is_cursor_at_last_line() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.push("Line 1");
         buffer.push("Line 2");
         buffer.set_cursor_position(1, 5);
@@ -729,13 +729,13 @@ mod tests {
         buffer.set_cursor_position(0, 5);
         assert!(!buffer.is_cursor_at_last_line());
 
-        let empty_buffer = TextBuffer::new();
+        let empty_buffer = EditorBuffer::new();
         assert!(empty_buffer.is_cursor_at_last_line());
     }
 
     #[test]
     fn test_is_cursor_at_end() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.push("Line 1");
         buffer.push("Line 2");
         buffer.set_cursor_position(1, 5);
@@ -747,13 +747,13 @@ mod tests {
         buffer.set_cursor_position(1, 2);
         assert!(!buffer.is_cursor_at_end());
 
-        let empty_buffer = TextBuffer::new();
+        let empty_buffer = EditorBuffer::new();
         assert!(empty_buffer.is_cursor_at_end());
     }
 
     #[test]
     fn test_insert_char() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.push("Line 1");
 
         buffer.set_cursor_position(0, 1);
@@ -766,7 +766,7 @@ mod tests {
 
     #[test]
     fn test_insert_newline() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(0, 1);
         buffer.push("Line 1");
 
@@ -780,7 +780,7 @@ mod tests {
 
     #[test]
     fn test_select_between() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.set_cursor_position(0, 4);
         buffer.push("L \"ine\" 1");
         buffer.select_between_delimiters(&vec!['"']);
@@ -800,14 +800,14 @@ mod tests {
 
     #[test]
     fn test_text_between_selection() {
-        let mut buffer = TextBuffer::new();
+        let mut buffer = EditorBuffer::new();
         buffer.push("Line 1");
         buffer.push("Line 2");
         buffer.selection = Some(Selection {
             start: Position { line: 0, column: 2 },
             end: Position { line: 1, column: 3 },
         });
-        let mut buffer_exp = TextBuffer::new();
+        let mut buffer_exp = EditorBuffer::new();
         buffer_exp.push("e 2");
 
         let text = buffer.text_between_selection();

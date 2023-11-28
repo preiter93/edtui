@@ -4,7 +4,7 @@
 //! While this approach works for basic undo/redo needs, it may not be efficient for more
 //! complex usage. In the long run, this should be replaced with an action-based mechanism.
 use super::position::Position;
-use crate::{Lines, TextBuffer};
+use crate::{EditorBuffer, Lines};
 
 #[derive(Debug, Clone)]
 pub(crate) struct Stack {
@@ -46,7 +46,7 @@ pub(crate) struct EditorState {
     cursor: Position,
 }
 
-impl TextBuffer {
+impl EditorBuffer {
     pub(crate) fn capture(&mut self) {
         let editor_state = EditorState {
             lines: self.lines.clone(),
