@@ -27,19 +27,19 @@ impl ViewState {
         );
         // scroll left
         if cursor.0 < self.x {
-            self.x = cursor.0
+            self.x = cursor.0;
         }
         // scroll right
         if cursor.0 > bottom_right.0 {
-            self.x += cursor.0.saturating_sub(size.0)
+            self.x += cursor.0.saturating_sub(size.0);
         }
         // scroll up
         if cursor.1 < self.y {
-            self.y = cursor.1
+            self.y = cursor.1;
         }
         // scroll down
         if cursor.1 > bottom_right.1 {
-            self.y += cursor.1.saturating_sub(bottom_right.1)
+            self.y += cursor.1.saturating_sub(bottom_right.1);
         }
         (self.x, self.y)
     }

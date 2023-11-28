@@ -14,6 +14,7 @@ pub struct Input {
 }
 
 impl Default for Input {
+    #[allow(clippy::too_many_lines)]
     fn default() -> Self {
         let mut register = Register::new();
 

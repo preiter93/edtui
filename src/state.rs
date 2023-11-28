@@ -27,6 +27,7 @@ impl Default for EditorState {
 
 impl EditorState {
     /// Create a new empty Buffer.
+    #[must_use]
     pub fn new() -> EditorState {
         EditorState {
             lines: Lines::new(),
@@ -65,6 +66,7 @@ impl EditorState {
     }
 
     /// Returns the text in the buffer as a vector of lines
+    #[must_use]
     pub fn lines(&self) -> &[Line] {
         &self.lines
     }
@@ -78,12 +80,12 @@ impl EditorState {
 
     /// Appends a line to the back of the buffer.
     pub fn push<T: Into<Line>>(&mut self, line: T) {
-        self.lines.push(line.into())
+        self.lines.push(line.into());
     }
 
     /// Inserts a line to the back of the buffer.
     pub fn insert<T: Into<Line>>(&mut self, index: usize, line: T) {
-        self.lines.insert(index, line.into())
+        self.lines.insert(index, line.into());
     }
 
     /// Inserts a single character at the current cursor position
@@ -92,7 +94,7 @@ impl EditorState {
             self.lines.push("");
         }
         if ch == '\n' {
-            self.insert_newline()
+            self.insert_newline();
         } else {
             let line = &mut self.lines[self.cursor.line];
             line.insert(self.cursor.column, ch);
@@ -338,7 +340,7 @@ impl EditorState {
         let mut start: Option<Position> = None;
         let mut end: Option<Position> = None;
         let mut prev = cursor.clone();
-        for pos in self.lines.pos_iter().start(cursor.clone()) {
+        for pos in self.lines.pos_iter().start(&cursor) {
             if let Some(c) = self.lines.char_at(&pos) {
                 if delimiters.contains(c) {
                     end = Some(prev);
@@ -348,7 +350,7 @@ impl EditorState {
             prev = pos;
         }
         prev = cursor.clone();
-        for pos in self.lines.pos_iter().start(cursor).rev() {
+        for pos in self.lines.pos_iter().start(&cursor).rev() {
             if let Some(c) = self.lines.char_at(&pos) {
                 if delimiters.contains(c) {
                     start = Some(prev);
@@ -372,7 +374,7 @@ impl EditorState {
             return self
                 .lines
                 .pos_iter()
-                .start(start)
+                .start(&start)
                 .take_until(|pos| pos == &target)
                 .fold(String::new(), |mut value, pos| {
                     for _ in prev_line..pos.line {
@@ -389,11 +391,13 @@ impl EditorState {
     }
 
     /// Get the number of columns in the current line.
+    #[must_use]
     pub fn column_len(&self) -> usize {
         self.column_len_at(self.cursor.line)
     }
 
     /// Get the number of columns of a line from the line index.
+    #[must_use]
     pub fn column_len_at(&self, index: usize) -> usize {
         match self.lines.get(index) {
             Some(line) => line.len(),
@@ -402,37 +406,44 @@ impl EditorState {
     }
 
     /// Get the curently selected character.
+    #[must_use]
     pub fn char(&self) -> Option<&char> {
         let line = &self.lines[self.cursor.line];
         line.iter().nth(self.cursor.column)
     }
 
     /// Wwhether the cursor is at the of the current line.
+    #[must_use]
     pub fn is_cursor_at_end_of_line(&self) -> bool {
         self.column_len() <= self.cursor.column + 1
     }
 
     /// Wwhether the cursor is at the of the current line.
+    #[must_use]
     pub fn is_cursor_at_start_of_line(&self) -> bool {
         self.cursor.column == 0
     }
 
     /// Wwhether the cursor is at the last line.
+    #[must_use]
     pub fn is_cursor_at_last_line(&self) -> bool {
         self.lines.len() <= self.cursor.line + 1
     }
 
     /// Whether the cursor is at the end of the buffer.
+    #[must_use]
     pub fn is_cursor_at_end(&self) -> bool {
         self.is_cursor_at_end_of_line() && self.is_cursor_at_last_line()
     }
 
     /// Whether the cursor is at the beginning of the buffer.
+    #[must_use]
     pub fn is_cursor_at_start(&self) -> bool {
         self.cursor.line == 0 && self.cursor.column == 0
     }
 
     /// Whether two characters are considered of the same class.
+    #[must_use]
     fn is_same_word_class(a: char, b: char) -> bool {
         a.is_ascii_alphanumeric() && b.is_ascii_alphanumeric()
             || (a.is_ascii_punctuation() && b.is_ascii_punctuation())

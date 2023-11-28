@@ -38,6 +38,7 @@ impl StatusLine {
     ///
     /// This method allows you to customize the appearance of the
     /// status lines content.
+    #[must_use]
     pub fn style_text(mut self, style: Style) -> Self {
         self.style_text = style;
         self
@@ -47,6 +48,7 @@ impl StatusLine {
     ///
     /// This method allows you to customize the appearance of the
     /// status line.
+    #[must_use]
     pub fn style_line(mut self, style: Style) -> Self {
         self.style_line = style;
         self
@@ -55,6 +57,7 @@ impl StatusLine {
     /// Overwrite the content for the status line.
     ///
     /// This method is used internally to dynamically set the editors mode.
+    #[must_use]
     pub(crate) fn content(mut self, content: String) -> Self {
         self.text = content;
         self
@@ -63,6 +66,7 @@ impl StatusLine {
     /// Set the alignment for the status line content.
     ///
     /// Set to true to align content to the left, false to align to the right.
+    #[must_use]
     pub fn align_left(mut self, align_left: bool) -> Self {
         self.align_left = align_left;
         self

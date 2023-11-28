@@ -7,6 +7,7 @@ pub struct Selection {
 }
 
 impl Selection {
+    #[must_use]
     pub fn within(&self, pos: &Position) -> bool {
         let (start_line, start_column) = (self.start.line, self.start.column);
         let (end_line, end_column) = (self.end.line, self.end.column);
@@ -22,6 +23,7 @@ impl Selection {
         }
     }
 
+    #[must_use]
     pub fn start(&self) -> Position {
         if self.reverse() {
             return self.end.clone();
@@ -29,6 +31,7 @@ impl Selection {
         self.start.clone()
     }
 
+    #[must_use]
     pub fn end(&self) -> Position {
         if self.reverse() {
             return self.start.clone();
@@ -36,6 +39,7 @@ impl Selection {
         self.end.clone()
     }
 
+    #[must_use]
     fn reverse(&self) -> bool {
         self.start.line > self.end.line
             || self.start.line == self.end.line && self.start.column > self.end.column
