@@ -21,10 +21,7 @@ impl ViewState {
         size: (usize, usize),
         cursor: (usize, usize),
     ) -> (usize, usize) {
-        let bottom_right = (
-            self.x + size.0.saturating_sub(1),
-            self.y + size.1.saturating_sub(1),
-        );
+        let bottom_right = (self.x + size.0, self.y + size.1);
         // scroll left
         if cursor.0 < self.x {
             self.x = cursor.0;
