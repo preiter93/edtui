@@ -6,9 +6,8 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use crate::buffer::position::Position;
-
 pub use self::iterator::LinesIterator;
+use crate::state::position::Position;
 
 /// We use a vector of characters instead of a string. The problem with
 /// strings is that they cannot be unambigously indexed, which is
@@ -353,7 +352,7 @@ impl Lines {
 
 #[cfg(test)]
 mod tests {
-    use crate::buffer::position::Position;
+    use crate::state::position::Position;
 
     use super::*;
 

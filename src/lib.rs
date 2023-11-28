@@ -33,13 +33,13 @@
 //!
 //! <img align="center" src="https://github.com/preiter93/tui-vim-editor/blob/main/resources/screenshot.png?raw=true" width="750"/>
 #![allow(dead_code)]
-pub mod buffer;
 mod debug;
-pub mod editor;
 pub mod input;
 pub mod lines;
+pub mod state;
+pub mod view;
 
-pub use buffer::{mode::Mode, EditorBuffer};
-pub use editor::{state::EditorState, theme::EditorTheme, Editor, StatusLine};
 pub use input::Input;
 pub use lines::{Line, Lines};
+pub use state::{mode::EditorMode, EditorState};
+pub use view::{theme::EditorTheme, EditorView, StatusLine};

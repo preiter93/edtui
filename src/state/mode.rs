@@ -1,13 +1,13 @@
 /// The editor mode.
 #[derive(Default, Debug, Clone, Copy, Eq, Hash, PartialEq)]
-pub enum Mode {
+pub enum EditorMode {
     #[default]
     Normal,
     Insert,
     Visual,
 }
 
-impl Mode {
+impl EditorMode {
     /// Returns the name of the [`Mode`] as a string.
     pub fn name(&self) -> String {
         match self {
