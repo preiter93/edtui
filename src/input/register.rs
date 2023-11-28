@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{buffer::mode::Mode, EditorBuffer};
+use crate::{EditorMode, EditorState};
 
 use super::key::Key;
 
@@ -32,7 +32,7 @@ impl Register {
     /// If there is an exact match or if none of the keys in the registry
     /// starts with the current sequence, the lookup sequence is reset.
     #[must_use]
-    pub fn get(&mut self, c: Key, mode: Mode) -> Option<RegisterCB> {
+    pub fn get(&mut self, c: Key, mode: EditorMode) -> Option<RegisterCB> {
         let key = self.create_register_key(c, mode);
 
         match self
@@ -53,7 +53,7 @@ impl Register {
         }
     }
 
-    fn create_register_key(&mut self, c: Key, mode: Mode) -> RegisterKey {
+    fn create_register_key(&mut self, c: Key, mode: EditorMode) -> RegisterKey {
         self.lookup.push(c);
         RegisterKey::new(self.lookup.clone(), mode)
     }
@@ -62,16 +62,16 @@ impl Register {
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct RegisterKey {
     pub keys: Vec<Key>,
-    pub mode: Mode,
+    pub mode: EditorMode,
 }
 
-pub type RegisterCB = fn(&mut EditorBuffer);
+pub type RegisterCB = fn(&mut EditorState);
 
 #[derive(Clone, Debug)]
-pub struct RegisterVal(pub fn(&mut EditorBuffer));
+pub struct RegisterVal(pub fn(&mut EditorState));
 
 impl RegisterKey {
-    pub fn new<T>(key: T, mode: Mode) -> Self
+    pub fn new<T>(key: T, mode: EditorMode) -> Self
     where
         T: Into<Vec<Key>>,
     {
@@ -85,21 +85,21 @@ impl RegisterKey {
     where
         T: Into<Vec<Key>>,
     {
-        Self::new(key.into(), Mode::Normal)
+        Self::new(key.into(), EditorMode::Normal)
     }
 
     pub fn v<T>(key: T) -> Self
     where
         T: Into<Vec<Key>>,
     {
-        Self::new(key.into(), Mode::Visual)
+        Self::new(key.into(), EditorMode::Visual)
     }
 
     pub fn i<T>(key: T) -> Self
     where
         T: Into<Vec<Key>>,
     {
-        Self::new(key.into(), Mode::Insert)
+        Self::new(key.into(), EditorMode::Insert)
     }
 }
 

@@ -1,58 +1,49 @@
-pub mod state;
 pub mod status_line;
 pub mod theme;
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::StatusLine;
 
-use crate::buffer::{position::Position, EditorBuffer};
+use crate::state::{position::Position, EditorState};
 
-use self::{state::EditorState, theme::EditorTheme};
+use self::theme::EditorTheme;
 
-pub struct Editor<'a, 'b, 'c> {
-    pub(crate) buffer: &'a EditorBuffer,
-    pub(crate) state: &'b mut EditorState,
-    pub(crate) theme: EditorTheme<'c>,
+pub struct EditorView<'a, 'b> {
+    pub(crate) state: &'a mut EditorState,
+    pub(crate) theme: EditorTheme<'b>,
 }
 
-impl<'a, 'b, 'c> Editor<'a, 'b, 'c> {
-    /// Creates a new instance of [`Editor`].
+impl<'a, 'b> EditorView<'a, 'b> {
+    /// Creates a new instance of [`EditorView`].
     #[must_use]
-    pub fn new(buffer: &'a EditorBuffer, state: &'b mut EditorState) -> Self {
+    pub fn new(state: &'a mut EditorState) -> Self {
         Self {
-            buffer,
             state,
             theme: EditorTheme::default(),
         }
     }
 
-    /// This method allows you to pass a custome theme to the [`Editor`]
+    /// Set the theme for the [`EditorView`]
     /// See [`EditorTheme`] for the customizable parameters.
     #[must_use]
-    pub fn theme(mut self, theme: EditorTheme<'c>) -> Self {
+    pub fn theme(mut self, theme: EditorTheme<'b>) -> Self {
         self.theme = theme;
         self
     }
 
-    /// Returns a reference to the text buffer
+    /// Returns a reference to the [`EditorState`].
     #[must_use]
-    pub fn get_buffer(&self) -> &'a EditorBuffer {
-        self.buffer
-    }
-
-    /// Returns a reference to the editor state.
-    #[must_use]
-    pub fn get_state(&'b self) -> &'b EditorState {
+    pub fn get_state(&'a self) -> &'a EditorState {
         self.state
     }
 
-    /// Returns a mutable reference to the editor state.
+    /// Returns a mutable reference to the [`EditorState`].
     #[must_use]
-    pub fn get_state_mut(&'b mut self) -> &'b mut EditorState {
+    pub fn get_state_mut(&'a mut self) -> &'a mut EditorState {
         self.state
     }
 }
 
-impl Widget for Editor<'_, '_, '_> {
+impl Widget for EditorView<'_, '_> {
     // type State = ViewState;
     fn render(self, area: Rect, buf: &mut Buffer) {
         // Draw the border.
@@ -86,19 +77,19 @@ impl Widget for Editor<'_, '_, '_> {
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let size = (width, height);
-        let cursor = (self.buffer.cursor.column, self.buffer.cursor.line);
-        let (x_off, y_off) = self.state.update_offset(size, cursor);
+        let cursor = (self.state.cursor.column, self.state.cursor.line);
+        let (x_off, y_off) = self.state.view.update_offset(size, cursor);
 
         // Rendering of the cursor. Speficially not rendered in the loop below,
         // as the cursor may be outside the text in input mode.
-        let cursor = &self.buffer.cursor;
+        let cursor = &self.state.cursor;
         let x_cursor = (main.left() as usize) + width.min(cursor.column.saturating_sub(x_off));
         let y_cursor = (main.top() as usize) + cursor.line.saturating_sub(y_off);
         buf.get_mut(x_cursor as u16, y_cursor as u16)
             .set_style(self.theme.cursor_style);
 
         // Rendering the text and the selection.
-        let lines = &self.buffer.lines;
+        let lines = &self.state.lines;
         for (i, line) in lines.iter().skip(y_off).take(height).enumerate() {
             let y = (main.top() as usize) as u16 + i as u16;
             for (j, char) in line.iter().skip(x_off).take(width).enumerate() {
@@ -108,7 +99,7 @@ impl Widget for Editor<'_, '_, '_> {
                 buf.get_mut(x, y).set_symbol(&char.to_string());
 
                 // Selection
-                if let Some(selection) = &self.buffer.selection {
+                if let Some(selection) = &self.state.selection {
                     let position = Position::new(x_off + i, y_off + j);
                     if selection.within(&position) {
                         buf.get_mut(x, y).set_style(self.theme.selection_style);
@@ -119,7 +110,7 @@ impl Widget for Editor<'_, '_, '_> {
 
         // Render the status line.
         if let Some(s) = self.theme.status_line {
-            s.content(self.buffer.mode.name()).render(foot, buf);
+            s.content(self.state.mode.name()).render(foot, buf);
         }
     }
 }

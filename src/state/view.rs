@@ -1,22 +1,22 @@
 /// Represents the (x, y) offset of the editor's viewport.
 /// It represents the top-left local editor coordinate.
 #[derive(Default, Debug, Clone)]
-pub struct EditorState {
+pub struct ViewState {
     /// The x-coordinate offset of the viewport.
     x: usize,
     /// The y-coordinate offset of the viewport.
     y: usize,
 }
 
-impl EditorState {
+impl ViewState {
     /// Instantiates a new [`ViewOffset`] with specified x and y coordinates.
-    pub fn new(x: usize, y: usize) -> Self {
+    pub(crate) fn new(x: usize, y: usize) -> Self {
         Self { x, y }
     }
 
     /// Updates the view's offset and returns the new offset.
     /// This method is used internally to modify the view's offset coordinates.
-    pub(super) fn update_offset(
+    pub(crate) fn update_offset(
         &mut self,
         size: (usize, usize),
         cursor: (usize, usize),
@@ -74,7 +74,7 @@ mod tests {
 
     update_view_offset_test!(
         scroll_left: {
-            view: EditorState::new(2, 0),
+            view: ViewState::new(2, 0),
             size: (2, 1),
             cursor: (1, 0),
             expected: (1, 0)
@@ -83,7 +83,7 @@ mod tests {
 
     update_view_offset_test!(
         scroll_right: {
-            view: EditorState::new(1, 0),
+            view: ViewState::new(1, 0),
             size: (2, 1),
             cursor: (3, 0),
             expected: (2, 0)
@@ -92,7 +92,7 @@ mod tests {
 
     update_view_offset_test!(
         scroll_up: {
-            view: EditorState::new(0, 2),
+            view: ViewState::new(0, 2),
             size: (1, 2),
             cursor: (0, 1),
             expected: (0, 1)
@@ -101,7 +101,7 @@ mod tests {
 
     update_view_offset_test!(
         scroll_down: {
-            view: EditorState::new(0, 1),
+            view: ViewState::new(0, 1),
             size: (1, 2),
             cursor: (0, 3),
             expected: (0, 2)

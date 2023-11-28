@@ -2,7 +2,7 @@ use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use edtui::{Editor, EditorTheme, Input, TextBuffer, ViewState};
+use edtui::{EditorState, EditorTheme, EditorView, Input};
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout},
@@ -57,17 +57,15 @@ fn reset_terminal() -> Result<()> {
 }
 
 pub struct App {
-    buffer: TextBuffer,
-    state: ViewState,
+    state: EditorState,
 }
 
 impl App {
     pub fn new() -> App {
-        let mut buffer = TextBuffer::new();
-        buffer.push("\"Hello\", world");
-        buffer.push("This is a light-weight vim inspired TUI editor.");
-        let state = ViewState::default();
-        App { buffer, state }
+        let mut state = EditorState::new();
+        state.push("\"Hello\", world");
+        state.push("This is a light-weight vim inspired TUI editor.");
+        App { state }
     }
 }
 
@@ -80,7 +78,7 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
             if key.kind == KeyEventKind::Press {
                 match key.code {
                     KeyCode::Char('q') => return Ok(()),
-                    _ => input.on_key(key, &mut app.buffer),
+                    _ => input.on_key(key, &mut app.state),
                 }
             }
         }
@@ -102,7 +100,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         )
         .base(EditorTheme::default().base.bold());
 
-    let editor = Editor::new(&app.buffer, &mut app.state).theme(theme);
+    let editor = EditorView::new(&mut app.state).theme(theme);
 
     f.render_widget(editor, chunks[0]);
 }

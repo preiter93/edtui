@@ -1,6 +1,6 @@
 use std::iter::FusedIterator;
 
-use crate::{buffer::position::Position, Lines};
+use crate::{state::position::Position, Lines};
 
 /// An iterator for [`Lines`] that yields [`Position`] objects.
 #[derive(Clone, Debug)]
@@ -138,7 +138,7 @@ impl<'a, P> FusedIterator for LinesTakeUntilIterator<'a, P> where
 
 #[cfg(test)]
 mod tests {
-    use crate::buffer::position::Position;
+    use crate::state::position::Position;
 
     use super::*;
 
