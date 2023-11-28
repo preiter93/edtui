@@ -1,0 +1,16 @@
+[package]
+name = "edtui"
+version = "0.1.0"
+edition = "2021"
+repository = "https://github.com/preiter93/edtui"
+keywords = ["ratatui", "tui", "editor", "text", "vim"]
+description = "A TUI based vim inspired editor"
+authors = ["preiter <phil.reiter93@gmail.com>"]
+license = "MIT"
+
+[dependencies]
+crossterm = "0.27"
+ratatui = "0.24"
+
+[[example]]
+name = "app"
