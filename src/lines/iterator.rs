@@ -12,7 +12,8 @@ pub struct LinesIterator<'a> {
 
 impl<'a> LinesIterator<'a> {
     /// A [`LinesIterator`] that starts from a given position.
-    pub fn start(self, pos: Position) -> Self {
+    #[must_use]
+    pub fn start(self, pos: &Position) -> Self {
         Self {
             lines: self.lines,
             line: pos.line as isize,
@@ -175,7 +176,7 @@ mod tests {
         lines.push("He");
         lines.push("");
         lines.push("B");
-        let cursors: Vec<Position> = lines.pos_iter().start(start.clone()).rev().collect();
+        let cursors: Vec<Position> = lines.pos_iter().start(&start).rev().collect();
 
         assert_eq!(
             cursors,
@@ -190,7 +191,7 @@ mod tests {
         lines.push("H");
         lines.push("");
         lines.push("");
-        let cursors: Vec<Position> = lines.pos_iter().start(start).rev().collect();
+        let cursors: Vec<Position> = lines.pos_iter().start(&start).rev().collect();
 
         assert_eq!(cursors, vec![Position::new(2, 0), Position::new(0, 0),]);
     }
@@ -203,7 +204,7 @@ mod tests {
         lines.push("Wo");
         let cursors: Vec<Position> = lines
             .pos_iter()
-            .start(Position::new(0, 1))
+            .start(&Position::new(0, 1))
             .take_until(|pos| *pos == Position::new(2, 0))
             .collect();
 

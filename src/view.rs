@@ -62,11 +62,7 @@ impl Widget for EditorView<'_, '_> {
             .direction(Direction::Vertical)
             .constraints([
                 Constraint::Min(0),
-                Constraint::Length(if self.theme.status_line.is_some() {
-                    1
-                } else {
-                    0
-                }),
+                Constraint::Length(u16::from(self.theme.status_line.is_some())),
             ])
             .split(area);
         let (main, foot) = (area[0], area[1]);

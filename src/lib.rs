@@ -1,13 +1,13 @@
-//! ## EdTUI
+//! ## `EdTUI`
 //!
 //! ### Overview
-//! EdTUI is a text editor widget for the [Ratatui](https://github.com/ratatui-org/ratatui) ecosystem. It is designed to provide a light-weight user experience inspired by Vim. Note that it's not intended to be a full fletched editor.
+//! `EdTUI` is a text editor widget for the [Ratatui](https://github.com/ratatui-org/ratatui) ecosystem. It is designed to provide a light-weight user experience inspired by Vim. Note that it's not intended to be a full fletched editor.
 //!
 //! ## Features
 //! - Vim-like keybindings and editing modes for efficient text manipulation.
 //! - Normal, Insert and Visual mode.
 //! ## Keybindings
-//! EdTUI offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
+//! `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
 //!
 //! #### Normal Mode:
 //!
@@ -32,7 +32,11 @@
 //! ## Demo
 //!
 //! <img align="center" src="https://github.com/preiter93/tui-vim-editor/blob/main/resources/screenshot.png?raw=true" width="750"/>
-#![allow(dead_code)]
+#![allow(
+    dead_code,
+    clippy::module_name_repetitions,
+    clippy::cast_possible_truncation
+)]
 mod debug;
 pub mod input;
 pub mod lines;

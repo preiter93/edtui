@@ -9,6 +9,7 @@ pub enum EditorMode {
 
 impl EditorMode {
     /// Returns the name of the [`Mode`] as a string.
+    #[must_use]
     pub fn name(&self) -> String {
         match self {
             Self::Normal => "Normal".to_string(),

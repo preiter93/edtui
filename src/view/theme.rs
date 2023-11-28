@@ -47,6 +47,7 @@ impl<'a> EditorTheme<'a> {
     }
 
     /// Returns the base style.
+    #[must_use]
     pub fn base_style(&self) -> Style {
         self.base
     }

@@ -64,12 +64,16 @@ impl<'a> From<&'a Line> for Cow<'a, str> {
     }
 }
 
+impl std::fmt::Display for Line {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let data: String = self.into();
+        write!(f, "{data}")
+    }
+}
+
 impl Line {
     pub fn push_chars(&mut self, chars: &Line) {
         self.0.extend_from_slice(chars);
-    }
-    pub fn to_string(&self) -> String {
-        self.into()
     }
 }
 
@@ -154,6 +158,18 @@ impl Line {
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Lines(Vec<Line>);
 
+impl std::fmt::Display for Lines {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let data = self
+            .0
+            .iter()
+            .map(Line::to_string)
+            .collect::<Vec<String>>()
+            .join("\n");
+        write!(f, "{data}")
+    }
+}
+
 impl Deref for Lines {
     type Target = Vec<Line>;
 
@@ -176,11 +192,7 @@ impl From<String> for Lines {
 
 impl From<&str> for Lines {
     fn from(s: &str) -> Self {
-        Self(
-            s.lines()
-                .map(|line| Line::from(line))
-                .collect::<Vec<Line>>(),
-        )
+        Self(s.lines().map(Line::from).collect::<Vec<Line>>())
     }
 }
 
@@ -195,16 +207,6 @@ impl Lines {
     #[must_use]
     pub fn new() -> Self {
         Self(Vec::new())
-    }
-    /// Returns [`Lines`] as a string object
-    #[must_use]
-    pub fn to_string(&self) -> String {
-        self.0
-            .iter()
-            .map(|x| x.to_string())
-            .collect::<Vec<String>>()
-            .join("\n")
-        // self.0.join("\n")
     }
 
     /// Appends a line to the back of the buffer.
@@ -230,16 +232,17 @@ impl Lines {
     /// Returns a newly allocated vector containing the elements in the range
     /// `[at, len)`. After the call, the original vector will be left containing
     /// the elements `[0, at)` with its previous capacity unchanged.
+    #[must_use]
     pub fn split_off(&mut self, at: &Position) -> Self {
         if at.column == 0 {
-            return self.0.split_off(at.line).into();
+            self.0.split_off(at.line).into()
         } else {
             let a = self.0.remove(at.line);
             let (left, right) = a.split_at(at.column);
             let mut last = self.0.split_off(at.line);
             self.0.push(Line::from(left));
             last.insert(0, Line::from(right));
-            return last.into();
+            last.into()
         }
     }
 
@@ -279,6 +282,7 @@ impl Lines {
 
     /// Removes the text between two positions. Returns the deleted
     /// object as a new [`Lines`].
+    #[must_use]
     pub fn drain(&mut self, start: &Position, end: &Position) -> Self {
         // If start and end are both at the beginning of the line, we
         // can simply drain the llines.
@@ -291,7 +295,7 @@ impl Lines {
         let mut b = self.split_off(start);
         let mut c = b.split_off(end);
         self.append(&mut c);
-        return b;
+        b
     }
 
     /// If the cursor is at the end of the line, this method wraps it to the next
@@ -313,7 +317,7 @@ impl Lines {
 
     // Whether the cursor is at the start of the line
     #[must_use]
-    fn is_start_of_line(&self, pos: &Position) -> bool {
+    fn is_start_of_line(pos: &Position) -> bool {
         pos.column == 0
     }
 
