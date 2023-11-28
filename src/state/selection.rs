@@ -9,8 +9,13 @@ pub struct Selection {
 impl Selection {
     #[must_use]
     pub fn within(&self, pos: &Position) -> bool {
-        let (start_line, start_column) = (self.start.line, self.start.column);
-        let (end_line, end_column) = (self.end.line, self.end.column);
+        let (start, end) = if self.start < self.end {
+            (&self.start, &self.end)
+        } else {
+            (&self.end, &self.start)
+        };
+        let (start_line, start_column) = (start.line, start.column);
+        let (end_line, end_column) = (end.line, end.column);
 
         match (pos.line, pos.column) {
             (line, _) if line > start_line && line < end_line => true,
