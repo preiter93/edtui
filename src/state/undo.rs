@@ -20,11 +20,11 @@ impl Stack {
         }
     }
 
-    fn pop(&mut self) -> Option<UndoState> {
+    pub(crate) fn pop(&mut self) -> Option<UndoState> {
         self.inner.pop()
     }
 
-    fn push(&mut self, value: UndoState) {
+    pub(crate) fn push(&mut self, value: UndoState) {
         self.inner.push(value);
         if self.len() > self.max_size {
             self.remove(0);
@@ -50,7 +50,7 @@ impl EditorState {
     pub(crate) fn capture(&mut self) {
         let editor_state = UndoState {
             lines: self.lines.clone(),
-            cursor: self.cursor.clone(),
+            cursor: self.cursor,
         };
         self.undo.push(editor_state);
     }
@@ -59,7 +59,7 @@ impl EditorState {
         if let Some(prev) = self.undo.pop() {
             let current = UndoState {
                 lines: self.lines.clone(),
-                cursor: self.cursor.clone(),
+                cursor: self.cursor,
             };
             self.lines = prev.lines;
             self.cursor = prev.cursor;
@@ -71,7 +71,7 @@ impl EditorState {
         if let Some(prev) = self.redo.pop() {
             let current = UndoState {
                 lines: self.lines.clone(),
-                cursor: self.cursor.clone(),
+                cursor: self.cursor,
             };
             self.lines = prev.lines;
             self.cursor = prev.cursor;

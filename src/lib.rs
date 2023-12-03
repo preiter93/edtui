@@ -37,13 +37,15 @@
     clippy::module_name_repetitions,
     clippy::cast_possible_truncation
 )]
+pub mod actions;
 mod debug;
 pub mod input;
-pub mod lines;
 pub mod state;
 pub mod view;
 
 pub use input::Input;
-pub use lines::{Line, Lines};
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorView, StatusLine};
+
+use jagged::Jagged;
+pub(crate) type Lines = Jagged<char>;

@@ -80,14 +80,32 @@ name = "edtui"
 version = "0.1.1"
 dependencies = [
  "crossterm",
+ "edtui-jagged",
+ "enum_dispatch",
  "ratatui",
 ]
+
+[[package]]
+name = "edtui-jagged"
+version = "0.1.0"
 
 [[package]]
 name = "either"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
+
+[[package]]
+name = "enum_dispatch"
+version = "0.3.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f33313078bb8d4d05a2733a94ac4c2d8a0df9a2b84424ebf4f33bfc224a890e"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "hashbrown"
