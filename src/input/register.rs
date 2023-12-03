@@ -1,13 +1,14 @@
 use std::collections::HashMap;
 
-use crate::{EditorMode, EditorState};
+use crate::{actions::Action, EditorMode, EditorState};
 
 use super::key::Key;
 
 #[derive(Clone, Debug, Default)]
 pub struct Register {
     lookup: Vec<Key>,
-    register: HashMap<RegisterKey, RegisterVal>,
+    // register: HashMap<RegisterKey, RegisterVal>,
+    register: HashMap<RegisterKey, Action>,
 }
 
 impl Register {
@@ -17,13 +18,19 @@ impl Register {
         Self {
             lookup: Vec::new(),
             register: HashMap::new(),
+            // actions: HashMap::new(),
         }
     }
 
     /// Insert a new callback to the registry
-    pub fn insert(&mut self, k: RegisterKey, v: RegisterVal) {
-        self.register.insert(k, v);
+    pub fn insert<T: Into<Action>>(&mut self, k: RegisterKey, v: T) {
+        self.register.insert(k, v.into());
     }
+
+    // /// Insert a new action to the registry
+    // pub fn insert_action(&mut self, k: RegisterKey, a: Action) {
+    //     self.actions.insert(k, a);
+    // }
 
     /// Returns a callback for a specific register key, if present.
     /// Returns a callback only if there is an exact match. If there
@@ -32,7 +39,7 @@ impl Register {
     /// If there is an exact match or if none of the keys in the registry
     /// starts with the current sequence, the lookup sequence is reset.
     #[must_use]
-    pub fn get(&mut self, c: Key, mode: EditorMode) -> Option<RegisterCB> {
+    pub fn get(&mut self, c: Key, mode: EditorMode) -> Option<Action> {
         let key = self.create_register_key(c, mode);
 
         match self
@@ -45,9 +52,9 @@ impl Register {
                 self.lookup.clear();
                 None
             }
-            1 => self.register.get(&key).map(|cb| {
+            1 => self.register.get(&key).map(|action| {
                 self.lookup.clear();
-                cb.0
+                action.clone()
             }),
             _ => None,
         }

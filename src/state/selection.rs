@@ -31,17 +31,17 @@ impl Selection {
     #[must_use]
     pub fn start(&self) -> Position {
         if self.reverse() {
-            return self.end.clone();
+            return self.end;
         }
-        self.start.clone()
+        self.start
     }
 
     #[must_use]
     pub fn end(&self) -> Position {
         if self.reverse() {
-            return self.start.clone();
+            return self.start;
         }
-        self.end.clone()
+        self.end
     }
 
     #[must_use]
