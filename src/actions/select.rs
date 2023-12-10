@@ -1,14 +1,7 @@
-use enum_dispatch::enum_dispatch;
 use jagged::Index2;
 
 use super::Execute;
 use crate::{state::selection::Selection, EditorMode, EditorState};
-
-#[enum_dispatch(Execute)]
-#[derive(Clone, Debug, Copy)]
-pub enum Select {
-    Between(SelectBetween),
-}
 
 /// Selects text between specified delimiter characters.
 ///

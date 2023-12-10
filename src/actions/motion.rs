@@ -1,16 +1,5 @@
-use enum_dispatch::enum_dispatch;
-
 use super::Execute;
 use crate::{EditorMode, EditorState};
-
-#[enum_dispatch(Execute)]
-#[derive(Clone, Debug, Copy)]
-pub enum Move {
-    Forward(MoveForward),
-    Backward(MoveBackward),
-    Up(MoveUp),
-    Down(MoveDown),
-}
 
 #[derive(Clone, Debug, Copy)]
 pub struct MoveForward(pub usize);
@@ -79,5 +68,47 @@ impl Execute for MoveDown {
         if state.mode == EditorMode::Visual {
             state.set_selection_end(state.cursor);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{state::position::Position, Lines};
+
+    use super::*;
+    fn test_state() -> EditorState {
+        let mut state = EditorState::new();
+        let mut data = Lines::from("Hello World!\n\n123.");
+        state.lines.append(&mut data);
+        state
+    }
+
+    #[test]
+    fn test_move_forward() {
+        let mut state = test_state();
+
+        MoveForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 1));
+
+        MoveForward(10).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 11));
+
+        MoveForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 11));
+    }
+
+    #[test]
+    fn test_move_backward() {
+        let mut state = test_state();
+        state.set_cursor_position(0, 11);
+
+        MoveBackward(1).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 10));
+
+        MoveBackward(10).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 0));
+
+        MoveBackward(1).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 0));
     }
 }

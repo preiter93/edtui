@@ -1,17 +1,7 @@
-use enum_dispatch::enum_dispatch;
 use jagged::index::RowIndex;
 
 use super::{Execute, SwitchMode};
 use crate::{EditorMode, EditorState};
-
-#[enum_dispatch(Execute)]
-#[derive(Clone, Debug, Copy)]
-pub enum Delete {
-    Char(DeleteChar),
-    Line(DeleteLine),
-    Selection(DeleteSelection),
-    Remove(Remove),
-}
 
 /// Deletes a character at the current cursor position. Does not
 /// move the cursor position unless it is at the end of the line

@@ -1,14 +1,5 @@
-use enum_dispatch::enum_dispatch;
-
 use super::Execute;
 use crate::EditorState;
-
-#[enum_dispatch(Execute)]
-#[derive(Clone, Debug, Copy)]
-pub enum Insert {
-    Char(InsertChar),
-    Newline(InsertNewline),
-}
 
 #[derive(Clone, Debug, Copy)]
 pub struct InsertChar(pub char);
