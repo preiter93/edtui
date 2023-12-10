@@ -5,20 +5,27 @@ pub mod select;
 use crate::{EditorMode, EditorState};
 use enum_dispatch::enum_dispatch;
 
-pub use self::delete::{Delete, DeleteChar, DeleteLine, DeleteSelection, Remove};
-pub use self::insert::{Insert, InsertChar, InsertNewline};
-pub use self::motion::{Move, MoveBackward, MoveDown, MoveForward, MoveUp};
-pub use self::select::{Select, SelectBetween};
+pub use self::delete::{DeleteChar, DeleteLine, DeleteSelection, Remove};
+pub use self::insert::{InsertChar, InsertNewline};
+pub use self::motion::{MoveBackward, MoveDown, MoveForward, MoveUp};
+pub use self::select::SelectBetween;
 
 #[enum_dispatch(Execute)]
 #[derive(Clone, Debug)]
 pub enum Action {
     SwitchMode(SwitchMode),
     Append(Append),
-    Motion(Move),
-    Insert(Insert),
-    Delete(Delete),
-    Select(Select),
+    MoveForward(MoveForward),
+    MoveBackward(MoveBackward),
+    MoveUp(MoveUp),
+    MoveDown(MoveDown),
+    InsertChar(InsertChar),
+    InsertNewline(InsertNewline),
+    DeleteChar(DeleteChar),
+    DeleteLine(DeleteLine),
+    DeleteSelection(DeleteSelection),
+    Remove(Remove),
+    SelectBetween(SelectBetween),
     Undo(Undo),
     Redo(Redo),
 }
