@@ -63,8 +63,8 @@ pub struct App {
 impl App {
     pub fn new() -> App {
         let state = EditorState::new(Lines::from(
-            "\"Hello\" word
-        This is a light-weight vim inspired TUI editor.",
+            "\"Hello\",
+This is a light-weight vim inspired TUI editor.",
         ));
         App { state }
     }
