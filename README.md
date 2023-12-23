@@ -36,3 +36,10 @@ For more keybindings and customization options, refer to the code.
 <img align="center" src="https://github.com/preiter93/tui-vim-editor/blob/main/resources/screenshot.png?raw=true" width="750"/>
 
 License: MIT
+
+### Roadmap
+
+- [ ] Display editor lines
+- [ ] User can remap keybindings
+- [ ] Editor lines
+- [ ] Copy+Paste
