@@ -48,4 +48,4 @@ pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorView, StatusLine};
 
 use jagged::Jagged;
-pub(crate) type Lines = Jagged<char>;
+pub type Lines = Jagged<char>;

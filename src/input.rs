@@ -2,8 +2,10 @@ pub mod key;
 pub mod register;
 
 use crate::actions::{
-    Append, DeleteChar, DeleteLine, DeleteSelection, Execute, InsertChar, InsertNewline,
-    MoveBackward, MoveDown, MoveForward, MoveUp, Redo, Remove, SelectBetween, SwitchMode, Undo,
+    Append, AppendNewline, Composed, DeleteChar, DeleteLine, DeleteSelection, Execute, InsertChar,
+    InsertNewline, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst,
+    MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Redo, RemoveChar, SelectBetween,
+    SwitchMode, Undo,
 };
 use crate::{EditorMode, EditorState};
 
@@ -65,11 +67,40 @@ impl Default for Input {
         r.insert(RegisterKey::v(vec![Key::Char('j')]), MoveDown(1));
         r.insert(RegisterKey::i(vec![Key::Down]), MoveDown(1));
 
-        // Insert new line
-        r.insert(RegisterKey::i(vec![Key::Enter]), InsertNewline(1));
+        // Move one word forward/backward
+        r.insert(RegisterKey::n(vec![Key::Char('w')]), MoveWordForward(1));
+        r.insert(RegisterKey::n(vec![Key::Char('b')]), MoveWordBackward(1));
+
+        // Move cursor to start/first/last position
+        r.insert(RegisterKey::n(vec![Key::Char('0')]), MoveToStart());
+        r.insert(RegisterKey::n(vec![Key::Char('_')]), MoveToFirst());
+        r.insert(RegisterKey::n(vec![Key::Char('$')]), MoveToEnd());
+
+        // Move cursor to start/first/last position and enter insert mode
+        r.insert(
+            RegisterKey::n(vec![Key::Char('I')]),
+            Composed::new(MoveToFirst()).chain(SwitchMode(EditorMode::Insert)),
+        );
+        r.insert(
+            RegisterKey::n(vec![Key::Char('A')]),
+            Composed::new(MoveToEnd()).chain(Append),
+        );
+
+        // Append/insert new line and switch into insert mode
+        r.insert(
+            RegisterKey::n(vec![Key::Char('o')]),
+            Composed::new(AppendNewline(1)).chain(SwitchMode(EditorMode::Insert)),
+        );
+        r.insert(
+            RegisterKey::n(vec![Key::Char('O')]),
+            Composed::new(InsertNewline(1)).chain(SwitchMode(EditorMode::Insert)),
+        );
+
+        // Insert a line break
+        r.insert(RegisterKey::i(vec![Key::Enter]), LineBreak(1));
 
         // Remove the current character
-        r.insert(RegisterKey::n(vec![Key::Char('x')]), Remove(1));
+        r.insert(RegisterKey::n(vec![Key::Char('x')]), RemoveChar(1));
 
         // Delete the previous character
         r.insert(RegisterKey::i(vec![Key::Backspace]), DeleteChar(1));
@@ -98,165 +129,6 @@ impl Default for Input {
         Self { register: r }
     }
 }
-
-// impl Default for Input {
-//     #[allow(clippy::too_many_lines)]
-//     fn default() -> Self {
-//         let mut register = Register::new();
-//
-//         // Go into normal mode
-//         register.insert(
-//             RegisterKey::i(vec![Key::Esc]),
-//             RegisterVal(EditorState::normal_mode),
-//         );
-//         register.insert(
-//             RegisterKey::v(vec![Key::Esc]),
-//             RegisterVal(EditorState::normal_mode),
-//         );
-//
-//         // Go into insert mode
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('i')]),
-//             RegisterVal(EditorState::insert_mode),
-//         );
-//
-//         // Go into visual mode
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('v')]),
-//             RegisterVal(EditorState::visual_mode),
-//         );
-//
-//         // Go into insert mode and move one char forward
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('a')]),
-//             RegisterVal(EditorState::append_mode),
-//         );
-//
-//         // Create a new line below and switch to insert mode
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('o')]),
-//             RegisterVal(EditorState::new_line_below_and_insert_mode),
-//         );
-//
-//         // Create a new line above and switch to insert mode
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('O')]),
-//             RegisterVal(EditorState::new_line_above_and_insert_mode),
-//         );
-//
-//         // Move cursor left
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('h')]),
-//             RegisterVal(EditorState::move_cursor_left),
-//         );
-//         register.insert(
-//             RegisterKey::v(vec![Key::Char('h')]),
-//             RegisterVal(EditorState::move_cursor_left),
-//         );
-//         register.insert(
-//             RegisterKey::i(vec![Key::Left]),
-//             RegisterVal(EditorState::move_cursor_left),
-//         );
-//
-//         // Move cursor right
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('l')]),
-//             RegisterVal(EditorState::move_cursor_right),
-//         );
-//         register.insert(
-//             RegisterKey::v(vec![Key::Char('l')]),
-//             RegisterVal(EditorState::move_cursor_right),
-//         );
-//         register.insert(
-//             RegisterKey::i(vec![Key::Right]),
-//             RegisterVal(EditorState::move_cursor_right),
-//         );
-//
-//         // Move cursor up
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('k')]),
-//             RegisterVal(EditorState::move_cursor_up),
-//         );
-//         register.insert(
-//             RegisterKey::v(vec![Key::Char('k')]),
-//             RegisterVal(EditorState::move_cursor_up),
-//         );
-//         register.insert(
-//             RegisterKey::i(vec![Key::Up]),
-//             RegisterVal(EditorState::move_cursor_up),
-//         );
-//
-//         // Move cursor down
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('j')]),
-//             RegisterVal(EditorState::move_cursor_down),
-//         );
-//         register.insert(
-//             RegisterKey::v(vec![Key::Char('j')]),
-//             RegisterVal(EditorState::move_cursor_down),
-//         );
-//         register.insert(
-//             RegisterKey::i(vec![Key::Down]),
-//             RegisterVal(EditorState::move_cursor_down),
-//         );
-//
-//         // Insert new line
-//         register.insert(
-//             RegisterKey::i(vec![Key::Enter]),
-//             RegisterVal(EditorState::insert_newline),
-//         );
-//
-//         // Remove the current character
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('x')]),
-//             RegisterVal(EditorState::remove_char),
-//         );
-//
-//         // Delete the previous character
-//         register.insert(
-//             RegisterKey::i(vec![Key::Backspace]),
-//             RegisterVal(EditorState::delete_char),
-//         );
-//
-//         // Delete the current line
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('d'), Key::Char('d')]),
-//             RegisterVal(EditorState::delete_line),
-//         );
-//
-//         // Delete the current selection
-//         register.insert(
-//             RegisterKey::v(vec![Key::Char('d')]),
-//             RegisterVal(|b: &mut EditorState| {
-//                 b.delete_selection();
-//                 b.normal_mode();
-//             }),
-//         );
-//
-//         // Select inner word between delimiters
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('c'), Key::Char('w')]),
-//             RegisterVal(|b: &mut EditorState| {
-//                 b.select_between_delimiters(&['"']);
-//                 b.mode = EditorMode::Visual;
-//             }),
-//         );
-//
-//         // Undo
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('u')]),
-//             RegisterVal(EditorState::undo),
-//         );
-//
-//         // Redo
-//         register.insert(
-//             RegisterKey::n(vec![Key::Char('r')]),
-//             RegisterVal(EditorState::redo),
-//         );
-//
-//         Self { register }
-//     }
-// }
 
 impl Input {
     pub fn on_key<T>(&mut self, key: T, state: &mut EditorState)

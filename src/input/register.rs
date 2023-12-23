@@ -7,7 +7,6 @@ use super::key::Key;
 #[derive(Clone, Debug, Default)]
 pub struct Register {
     lookup: Vec<Key>,
-    // register: HashMap<RegisterKey, RegisterVal>,
     register: HashMap<RegisterKey, Action>,
 }
 
@@ -18,7 +17,6 @@ impl Register {
         Self {
             lookup: Vec::new(),
             register: HashMap::new(),
-            // actions: HashMap::new(),
         }
     }
 
@@ -27,13 +25,8 @@ impl Register {
         self.register.insert(k, v.into());
     }
 
-    // /// Insert a new action to the registry
-    // pub fn insert_action(&mut self, k: RegisterKey, a: Action) {
-    //     self.actions.insert(k, a);
-    // }
-
-    /// Returns a callback for a specific register key, if present.
-    /// Returns a callback only if there is an exact match. If there
+    /// Returns an action for a specific register key, if present.
+    /// Returns an action only if there is an exact match. If there
     /// are multiple matches or an inexact match, the specified key
     /// is appended to the lookup vector.
     /// If there is an exact match or if none of the keys in the registry
@@ -108,11 +101,4 @@ impl RegisterKey {
     {
         Self::new(key.into(), EditorMode::Insert)
     }
-}
-
-pub enum Find {
-    NoMatch,
-    MultipleMatches,
-    PartialMatch,
-    ExactMatch(RegisterCB),
 }
