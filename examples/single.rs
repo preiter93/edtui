@@ -2,7 +2,7 @@ use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use edtui::{EditorState, EditorTheme, EditorView, Input};
+use edtui::{EditorState, EditorTheme, EditorView, Input, Lines};
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     layout::{Constraint, Direction, Layout},
@@ -62,9 +62,10 @@ pub struct App {
 
 impl App {
     pub fn new() -> App {
-        let mut state = EditorState::new();
-        state.push("\"Hello\", world");
-        state.push("This is a light-weight vim inspired TUI editor.");
+        let state = EditorState::new(Lines::from(
+            "\"Hello\" word
+        This is a light-weight vim inspired TUI editor.",
+        ));
         App { state }
     }
 }

@@ -9,10 +9,10 @@ authors = ["preiter <phil.reiter93@gmail.com>"]
 license = "MIT"
 
 [dependencies]
-crossterm = "0.27"
-ratatui = "0.24"
+ratatui = "0.25"
 jagged = { package = "edtui-jagged", path = "../edtui-jagged", version = "0.1" }
 enum_dispatch = "0.3.12"
+crossterm = "0.27"
 
 [[example]]
 name = "app"

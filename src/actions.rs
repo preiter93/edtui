@@ -5,9 +5,12 @@ pub mod select;
 use crate::{EditorMode, EditorState};
 use enum_dispatch::enum_dispatch;
 
-pub use self::delete::{DeleteChar, DeleteLine, DeleteSelection, Remove};
-pub use self::insert::{InsertChar, InsertNewline};
-pub use self::motion::{MoveBackward, MoveDown, MoveForward, MoveUp};
+pub use self::delete::{DeleteChar, DeleteLine, DeleteSelection, RemoveChar};
+pub use self::insert::{AppendNewline, InsertChar, InsertNewline, InsertString, LineBreak};
+pub use self::motion::{
+    MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
+    MoveWordBackward, MoveWordForward,
+};
 pub use self::select::SelectBetween;
 
 #[enum_dispatch(Execute)]
@@ -19,15 +22,24 @@ pub enum Action {
     MoveBackward(MoveBackward),
     MoveUp(MoveUp),
     MoveDown(MoveDown),
+    MoveWordForward(MoveWordForward),
+    MoveWordBackward(MoveWordBackward),
+    MoveToStart(MoveToStart),
+    MoveToFirst(MoveToFirst),
+    MoveToEnd(MoveToEnd),
     InsertChar(InsertChar),
+    InsertString(InsertString),
+    LineBreak(LineBreak),
+    AppendNewline(AppendNewline),
     InsertNewline(InsertNewline),
     DeleteChar(DeleteChar),
     DeleteLine(DeleteLine),
     DeleteSelection(DeleteSelection),
-    Remove(Remove),
+    Remove(RemoveChar),
     SelectBetween(SelectBetween),
     Undo(Undo),
     Redo(Redo),
+    Composed(Composed),
 }
 
 #[enum_dispatch]
@@ -42,7 +54,7 @@ impl Execute for SwitchMode {
     fn execute(&mut self, state: &mut EditorState) {
         match self.0 {
             EditorMode::Normal => {
-                state.clear_selection();
+                state.selection = None;
                 state.cursor.column = state.cursor.column.min(state.len_col().saturating_sub(1));
             }
             EditorMode::Visual => state.set_selection(state.cursor, state.cursor),
@@ -78,5 +90,52 @@ pub struct Redo;
 impl Execute for Redo {
     fn execute(&mut self, state: &mut EditorState) {
         state.redo();
+    }
+}
+
+/// Executes multiple actions one after the other.
+#[derive(Clone, Debug)]
+pub struct Composed(pub Vec<Action>);
+
+impl Composed {
+    #[must_use]
+    pub fn new<A: Into<Action>>(action: A) -> Self {
+        Self(vec![action.into()])
+    }
+
+    #[must_use]
+    pub fn chain<A: Into<Action>>(mut self, action: A) -> Self {
+        self.0.push(action.into());
+        self
+    }
+}
+
+impl Execute for Composed {
+    fn execute(&mut self, state: &mut EditorState) {
+        for action in &mut self.0 {
+            action.execute(state);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Lines;
+
+    use super::*;
+    fn test_state() -> EditorState {
+        EditorState::new(Lines::from("Hello World!\n\n123."))
+    }
+
+    #[test]
+    fn test_switch_mode() {
+        let mut state = test_state();
+        assert_eq!(state.mode, EditorMode::Normal);
+
+        SwitchMode(EditorMode::Insert).execute(&mut state);
+        assert_eq!(state.mode, EditorMode::Insert);
+
+        SwitchMode(EditorMode::Visual).execute(&mut state);
+        assert_eq!(state.mode, EditorMode::Visual);
     }
 }

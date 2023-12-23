@@ -6,9 +6,9 @@ use crate::{EditorMode, EditorState};
 /// Deletes a character at the current cursor position. Does not
 /// move the cursor position unless it is at the end of the line
 #[derive(Clone, Debug, Copy)]
-pub struct Remove(pub usize);
+pub struct RemoveChar(pub usize);
 
-impl Execute for Remove {
+impl Execute for RemoveChar {
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         for _ in 0..self.0 {
@@ -21,8 +21,8 @@ impl Execute for Remove {
     }
 }
 
-/// Deletes a character to the left of the current cursor. Does not
-/// move the cursor position unless it is at the end of the line.
+/// Deletes a character to the left of the current cursor. Deletes
+/// the line break if the the cursor is in column zero.
 #[derive(Clone, Debug, Copy)]
 pub struct DeleteChar(pub usize);
 
@@ -49,7 +49,7 @@ impl Execute for DeleteChar {
                 state.lines.merge(&mut rest);
             } else {
                 move_left(state);
-                Remove(1).execute(state);
+                let _ = state.lines.remove(state.cursor.as_index());
             }
         }
     }
@@ -82,12 +82,52 @@ impl Execute for DeleteSelection {
     fn execute(&mut self, state: &mut EditorState) {
         if let Some(selection) = state.selection.take() {
             state.cursor = selection.end();
-            Remove(1).execute(state);
+            RemoveChar(1).execute(state);
             while state.cursor != selection.start() {
                 DeleteChar(1).execute(state);
             }
         }
-        state.clear_selection();
+        state.selection = None;
         SwitchMode(EditorMode::Normal).execute(state);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{state::position::Position, Lines};
+
+    use super::*;
+    fn test_state() -> EditorState {
+        EditorState::new(Lines::from("Hello World!\n\n123."))
+    }
+
+    #[test]
+    fn test_remove() {
+        let mut state = test_state();
+
+        state.set_cursor_position(0, 4);
+        RemoveChar(1).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 4));
+        assert_eq!(state.lines, Lines::from("Hell World!\n\n123."));
+
+        state.set_cursor_position(0, 10);
+        RemoveChar(1).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 9));
+        assert_eq!(state.lines, Lines::from("Hell World\n\n123."));
+    }
+
+    #[test]
+    fn test_delete_char() {
+        let mut state = test_state();
+
+        state.set_cursor_position(0, 5);
+        DeleteChar(1).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 4));
+        assert_eq!(state.lines, Lines::from("Hell World!\n\n123."));
+
+        state.set_cursor_position(0, 11);
+        DeleteChar(1).execute(&mut state);
+        assert_eq!(state.cursor, Position::new(0, 10));
+        assert_eq!(state.lines, Lines::from("Hell World\n\n123."));
     }
 }
