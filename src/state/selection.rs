@@ -7,6 +7,7 @@ pub struct Selection {
 }
 
 impl Selection {
+    #[must_use]
     pub fn new(start: Index2, end: Index2) -> Self {
         Self { start, end }
     }

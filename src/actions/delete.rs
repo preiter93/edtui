@@ -1,7 +1,7 @@
 use jagged::index::RowIndex;
 
 use super::Execute;
-use crate::{helper::len_col, EditorMode, EditorState};
+use crate::{EditorMode, EditorState, Index2, Lines};
 
 /// Deletes a character at the current cursor position. Does not
 /// move the cursor position unless it is at the end of the line
@@ -12,11 +12,13 @@ impl Execute for RemoveChar {
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         for _ in 0..self.0 {
-            if len_col(&state) == 0 {
-                break;
+            let lines = &mut state.lines;
+            let index = &mut state.cursor;
+            if lines.len_col(index.row) == 0 {
+                return;
             }
-            let _ = state.lines.remove(state.cursor);
-            state.cursor.col = state.cursor.col.min(len_col(&state).saturating_sub(1));
+            let _ = lines.remove(*index);
+            index.col = index.col.min(lines.len_col(index.row).saturating_sub(1));
         }
     }
 }
@@ -28,30 +30,34 @@ pub struct DeleteChar(pub usize);
 
 impl Execute for DeleteChar {
     fn execute(&mut self, state: &mut EditorState) {
-        fn move_left(state: &mut EditorState) {
-            if state.cursor.col > 0 {
-                state.cursor.col -= 1;
-            } else if state.cursor.row > 0 {
-                state.cursor.row -= 1;
-                state.cursor.col = len_col(&state);
-            }
-        }
-
         state.capture();
         for _ in 0..self.0 {
-            if state.cursor.col == 0 && state.cursor.row == 0 {
-                break;
-            }
-
-            if state.cursor.col == 0 {
-                let mut rest = state.lines.split_off(state.cursor);
-                move_left(state);
-                state.lines.merge(&mut rest);
-            } else {
-                move_left(state);
-                let _ = state.lines.remove(state.cursor);
-            }
+            delete_char(&mut state.lines, &mut state.cursor);
         }
+    }
+}
+
+fn delete_char(lines: &mut Lines, index: &mut Index2) {
+    fn move_left(lines: &Lines, index: &mut Index2) {
+        if index.col > 0 {
+            index.col -= 1;
+        } else if index.row > 0 {
+            index.row -= 1;
+            index.col = lines.len_col(index.row);
+        }
+    }
+
+    if index.col == 0 && index.row == 0 {
+        return;
+    }
+
+    if index.col == 0 {
+        let mut rest = lines.split_off(*index);
+        move_left(lines, index);
+        lines.merge(&mut rest);
+    } else {
+        move_left(lines, index);
+        let _ = lines.remove(*index);
     }
 }
 
@@ -74,18 +80,19 @@ impl Execute for DeleteLine {
 }
 
 /// Deletes the current selection.
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug)]
 pub struct DeleteSelection;
 
 impl Execute for DeleteSelection {
     // TODO: Implement a better way to delete a selection,
     // possibly using a drain iterator.
     fn execute(&mut self, state: &mut EditorState) {
+        state.capture();
         if let Some(selection) = state.selection.take() {
             state.cursor = selection.end();
-            RemoveChar(1).execute(state);
+            state.cursor.col += 1;
             while state.cursor != selection.start() {
-                DeleteChar(1).execute(state);
+                delete_char(&mut state.lines, &mut state.cursor);
             }
         }
         state.selection = None;
@@ -95,6 +102,7 @@ impl Execute for DeleteSelection {
 
 #[cfg(test)]
 mod tests {
+    use crate::state::selection::Selection;
     use crate::Index2;
     use crate::Lines;
 
@@ -131,5 +139,35 @@ mod tests {
         DeleteChar(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 10));
         assert_eq!(state.lines, Lines::from("Hell World\n\n123."));
+    }
+
+    #[test]
+    fn test_delete_line() {
+        let mut state = test_state();
+        state.cursor = Index2::new(2, 3);
+
+        DeleteLine(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(1, 0));
+        assert_eq!(state.lines, Lines::from("Hello World!\n"));
+
+        DeleteLine(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.lines, Lines::from("Hello World!"));
+
+        DeleteLine(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.lines, Lines::from(""));
+    }
+
+    #[test]
+    fn test_delete_selection() {
+        let mut state = test_state();
+        let st = Index2::new(0, 1);
+        let en = Index2::new(2, 0);
+        state.selection = Some(Selection::new(st, en));
+
+        DeleteSelection.execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 1));
+        assert_eq!(state.lines, Lines::from("H23."));
     }
 }

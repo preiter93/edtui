@@ -1,23 +1,39 @@
 use jagged::index::RowIndex;
 
-use crate::{state::selection::Selection, EditorState, Index2, Lines};
+use crate::{state::selection::Selection, EditorMode, EditorState, Index2, Lines};
 
-/// Checks whether an index is the last column in a row.
-/// Returns true if the rows index is out of bounds.
-pub(crate) fn is_last_col(lines: &Lines, index: Index2) -> bool {
-    index.col >= lines.len_col(index.row).saturating_sub(1)
+/// Returns the maximum permissible column value. In normal or visual
+/// mode the limit is len() - 1, in insert mode the limit is len().
+pub(crate) fn max_col(lines: &Lines, index: &Index2, mode: EditorMode) -> usize {
+    if mode == EditorMode::Insert {
+        lines.len_col(index.row)
+    } else {
+        lines.len_col(index.row).saturating_sub(1)
+    }
 }
 
-/// Checks whether an index is the last row.
-/// Returns true if the rows index is out of bounds.
-pub(crate) fn is_last_row(lines: &Lines, index: Index2) -> bool {
-    index.row >= lines.len().saturating_sub(1)
+/// Returns the maximum permissible column value. In normal or visual
+/// mode the limit is len() - 1, in insert mode the limit is len().
+pub(crate) fn max_row(state: &EditorState) -> usize {
+    if state.mode == EditorMode::Insert {
+        state.lines.len()
+    } else {
+        state.lines.len().saturating_sub(1)
+    }
+}
+
+/// Clamps the column of the cursor if the cursor is out of bounds.
+/// In normal or visual mode, clamps on col = len() - 1, in insert
+/// mode on col = len().
+pub(crate) fn clamp_column(state: &mut EditorState) {
+    let max_col = max_col(&state.lines, &state.cursor, state.mode);
+    state.cursor.col = state.cursor.col.min(max_col);
 }
 
 /// Set the selections end positions
 pub(crate) fn set_selection(selection: &mut Option<Selection>, end: Index2) {
     if let Some(start) = selection.as_ref().map(|x| x.start) {
-        *selection = Some(Selection::new(start, end.into()));
+        *selection = Some(Selection::new(start, end));
     }
 }
 

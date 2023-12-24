@@ -35,10 +35,7 @@ impl Execute for SelectBetween {
             prev = index;
         }
         if let (Some(start), Some(end)) = (start, end) {
-            state.selection = Some(Selection {
-                start: start.into(),
-                end: end.into(),
-            });
+            state.selection = Some(Selection { start, end });
             state.mode = EditorMode::Visual;
         }
     }
