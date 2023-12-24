@@ -7,6 +7,10 @@ pub struct Selection {
 }
 
 impl Selection {
+    pub fn new(start: Position, end: Position) -> Self {
+        Self { start, end }
+    }
+
     #[must_use]
     pub fn within(&self, pos: &Position) -> bool {
         let (start, end) = if self.start < self.end {

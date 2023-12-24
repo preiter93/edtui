@@ -1,5 +1,8 @@
 use super::Execute;
-use crate::{EditorMode, EditorState};
+use crate::{
+    helper::{is_last_index, len_col, set_selection, skip_whitespace, skip_whitespace_rev},
+    EditorMode, EditorState,
+};
 
 #[derive(Clone, Debug, Copy)]
 pub struct MoveForward(pub usize);
@@ -7,13 +10,13 @@ pub struct MoveForward(pub usize);
 impl Execute for MoveForward {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if state.cursor.column >= state.len_col().saturating_sub(1) {
+            if is_last_index(&state.lines, state.cursor.as_index()) {
                 break;
             }
             state.cursor.column += 1;
         }
         if state.mode == EditorMode::Visual {
-            state.set_selection_end(state.cursor);
+            set_selection(&mut state.selection, state.cursor.as_index());
         }
     }
 }
@@ -30,7 +33,7 @@ impl Execute for MoveBackward {
             state.cursor.column -= 1;
         }
         if state.mode == EditorMode::Visual {
-            state.set_selection_end(state.cursor);
+            set_selection(&mut state.selection, state.cursor.as_index());
         }
     }
 }
@@ -45,10 +48,10 @@ impl Execute for MoveUp {
                 break;
             }
             state.cursor.line -= 1;
-            state.cursor.column = state.cursor.column.min(state.len_col());
+            state.cursor.column = state.cursor.column.min(len_col(&state));
         }
         if state.mode == EditorMode::Visual {
-            state.set_selection_end(state.cursor);
+            set_selection(&mut state.selection, state.cursor.as_index());
         }
     }
 }
@@ -59,14 +62,14 @@ pub struct MoveDown(pub usize);
 impl Execute for MoveDown {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if state.cursor.line >= state.len().saturating_sub(1) {
+            if is_last_index(&state.lines, state.cursor.as_index()) {
                 break;
             }
             state.cursor.line += 1;
-            state.cursor.column = state.cursor.column.min(state.len_col());
+            state.cursor.column = state.cursor.column.min(len_col(&state));
         }
         if state.mode == EditorMode::Visual {
-            state.set_selection_end(state.cursor);
+            set_selection(&mut state.selection, state.cursor.as_index());
         }
     }
 }
@@ -80,14 +83,15 @@ pub struct MoveWordForward(pub usize);
 impl Execute for MoveWordForward {
     fn execute(&mut self, state: &mut EditorState) {
         fn move_word(state: &mut EditorState) {
-            let index = state.cursor.as_index();
+            let mut index = state.cursor.as_index();
+            let lines = &state.lines;
             let first_char = state.lines.get(index);
             let mut iter = state.lines.iter().from(index);
             iter.next();
             for (val, i) in iter {
-                state.cursor = i.into();
+                index = i;
                 // Break loop if it reaches the end of the line
-                if i.col >= state.len_col_at(i.row).saturating_sub(1) {
+                if is_last_index(lines, i) {
                     break;
                 }
                 // Break loop if characters don't belong to the same class
@@ -95,7 +99,10 @@ impl Execute for MoveWordForward {
                     break;
                 }
             }
-            state.skip_whitespace();
+            // Skip whitespaces moving to the right.
+            skip_whitespace(lines, &mut index);
+
+            state.cursor = index.into();
         }
 
         for _ in 0..self.0 {
@@ -113,30 +120,33 @@ pub struct MoveWordBackward(pub usize);
 impl Execute for MoveWordBackward {
     fn execute(&mut self, state: &mut EditorState) {
         fn move_word(state: &mut EditorState) {
-            if state.cursor.as_index().col == 0 {
-                state.cursor.line = state.cursor.line.saturating_sub(1);
-                state.cursor.column = state.lines.len_col(state.cursor.line).saturating_sub(1);
+            let mut index = state.cursor.as_index();
+            let lines = &state.lines;
+            if index.col == 0 {
+                index.row = index.row.saturating_sub(1);
+                index.col = lines.len_col(index.row).saturating_sub(1);
+                state.cursor = index.into();
                 return;
             }
+            index.col = index.col.saturating_sub(1);
 
-            state.cursor.column = state.cursor.column.saturating_sub(1);
+            // Skip whitespaces to the left
+            skip_whitespace_rev(lines, &mut index);
 
-            state.skip_whitespace_rev();
-            let index = state.cursor.as_index();
-            let first_char = state.lines.get(index);
-
-            for (val, i) in state.lines.iter().from(index).rev() {
+            let first_char = lines.get(index);
+            for (val, i) in lines.iter().from(index).rev() {
                 // Break loop if it reaches the start of the line
                 if i.col == 0 {
-                    state.cursor = i.into();
+                    index = i;
                     break;
                 }
                 // Break loop if characters don't belong to the same class
                 if !is_same_word_class(val, first_char) {
                     break;
                 }
-                state.cursor = i.into();
+                index = i;
             }
+            state.cursor = index.into();
         }
 
         for _ in 0..self.0 {
@@ -182,7 +192,7 @@ pub struct MoveToEnd();
 
 impl Execute for MoveToEnd {
     fn execute(&mut self, state: &mut EditorState) {
-        state.cursor.column = state.len_col().saturating_sub(1);
+        state.cursor.column = len_col(&state).saturating_sub(1);
     }
 }
 
@@ -218,7 +228,7 @@ mod tests {
     #[test]
     fn test_move_word_backward() {
         let mut state = test_state();
-        state.set_cursor_position(2, 3);
+        state.cursor = Position::new(2, 3);
 
         MoveWordBackward(1).execute(&mut state);
         assert_eq!(state.cursor, Position::new(2, 0));
@@ -253,7 +263,7 @@ mod tests {
     #[test]
     fn test_move_backward() {
         let mut state = test_state();
-        state.set_cursor_position(0, 11);
+        state.cursor = Position::new(0, 11);
 
         MoveBackward(1).execute(&mut state);
         assert_eq!(state.cursor, Position::new(0, 10));
@@ -268,7 +278,7 @@ mod tests {
     #[test]
     fn test_move_to_start() {
         let mut state = test_state();
-        state.set_cursor_position(0, 2);
+        state.cursor = Position::new(0, 2);
 
         MoveToStart().execute(&mut state);
         assert_eq!(state.cursor, Position::new(0, 0));
@@ -277,7 +287,7 @@ mod tests {
     #[test]
     fn test_move_to_end() {
         let mut state = test_state();
-        state.set_cursor_position(0, 2);
+        state.cursor = Position::new(0, 2);
 
         MoveToEnd().execute(&mut state);
         assert_eq!(state.cursor, Position::new(0, 11));

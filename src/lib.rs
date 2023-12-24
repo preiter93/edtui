@@ -39,6 +39,7 @@
 )]
 pub mod actions;
 mod debug;
+mod helper;
 pub mod input;
 pub mod state;
 pub mod view;

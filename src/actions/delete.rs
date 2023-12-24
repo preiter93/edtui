@@ -1,7 +1,7 @@
 use jagged::index::RowIndex;
 
 use super::{Execute, SwitchMode};
-use crate::{EditorMode, EditorState};
+use crate::{helper::len_col, EditorMode, EditorState};
 
 /// Deletes a character at the current cursor position. Does not
 /// move the cursor position unless it is at the end of the line
@@ -12,11 +12,11 @@ impl Execute for RemoveChar {
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         for _ in 0..self.0 {
-            if state.len_col() == 0 {
+            if len_col(&state) == 0 {
                 break;
             }
             let _ = state.lines.remove(state.cursor.as_index());
-            state.cursor.column = state.cursor.column.min(state.len_col().saturating_sub(1));
+            state.cursor.column = state.cursor.column.min(len_col(&state).saturating_sub(1));
         }
     }
 }
@@ -33,7 +33,7 @@ impl Execute for DeleteChar {
                 state.cursor.column -= 1;
             } else if state.cursor.line > 0 {
                 state.cursor.line -= 1;
-                state.cursor.column = state.len_col();
+                state.cursor.column = len_col(&state);
             }
         }
 
@@ -63,7 +63,7 @@ impl Execute for DeleteLine {
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         for _ in 0..self.0 {
-            if state.cursor.line >= state.len() {
+            if state.cursor.line >= state.lines.len() {
                 break;
             }
             state.lines.remove(RowIndex::new(state.cursor.line));
@@ -105,12 +105,12 @@ mod tests {
     fn test_remove() {
         let mut state = test_state();
 
-        state.set_cursor_position(0, 4);
+        state.cursor = Position::new(0, 4);
         RemoveChar(1).execute(&mut state);
         assert_eq!(state.cursor, Position::new(0, 4));
         assert_eq!(state.lines, Lines::from("Hell World!\n\n123."));
 
-        state.set_cursor_position(0, 10);
+        state.cursor = Position::new(0, 10);
         RemoveChar(1).execute(&mut state);
         assert_eq!(state.cursor, Position::new(0, 9));
         assert_eq!(state.lines, Lines::from("Hell World\n\n123."));
@@ -120,12 +120,12 @@ mod tests {
     fn test_delete_char() {
         let mut state = test_state();
 
-        state.set_cursor_position(0, 5);
+        state.cursor = Position::new(0, 5);
         DeleteChar(1).execute(&mut state);
         assert_eq!(state.cursor, Position::new(0, 4));
         assert_eq!(state.lines, Lines::from("Hell World!\n\n123."));
 
-        state.set_cursor_position(0, 11);
+        state.cursor = Position::new(0, 11);
         DeleteChar(1).execute(&mut state);
         assert_eq!(state.cursor, Position::new(0, 10));
         assert_eq!(state.lines, Lines::from("Hell World\n\n123."));
