@@ -113,7 +113,7 @@ mod tests {
         assert_eq!(state.cursor, Position::new(0, 1));
         assert_eq!(state.lines, Lines::from("!Hello World!\n\n123."));
 
-        state.set_cursor_position(0, 13);
+        state.cursor = Position::new(0, 13);
         InsertChar('!').execute(&mut state);
         assert_eq!(state.cursor, Position::new(0, 14));
         assert_eq!(state.lines, Lines::from("!Hello World!!\n\n123."));
@@ -123,7 +123,7 @@ mod tests {
     fn test_insert_str() {
         let mut state = test_state();
 
-        state.set_cursor_position(0, 5);
+        state.cursor = Position::new(0, 5);
         InsertString(String::from(",\nx")).execute(&mut state);
         assert_eq!(state.cursor, Position::new(1, 1));
         assert_eq!(state.lines, Lines::from("Hello,\nx World!\n\n123."));
@@ -137,7 +137,7 @@ mod tests {
         assert_eq!(state.cursor, Position::new(1, 0));
         assert_eq!(state.lines, Lines::from("\nHello World!\n\n123."));
 
-        state.set_cursor_position(1, 5);
+        state.cursor = Position::new(1, 5);
         LineBreak(1).execute(&mut state);
         assert_eq!(state.cursor, Position::new(2, 0));
         assert_eq!(state.lines, Lines::from("\nHello\n World!\n\n123."));
@@ -160,7 +160,7 @@ mod tests {
         assert_eq!(state.cursor, Position::new(0, 0));
         assert_eq!(state.lines, Lines::from("\nHello World!\n\n123."));
 
-        state.set_cursor_position(2, 1);
+        state.cursor = Position::new(2, 1);
         InsertNewline(1).execute(&mut state);
         assert_eq!(state.cursor, Position::new(2, 0));
         assert_eq!(state.lines, Lines::from("\nHello World!\n\n\n123."));

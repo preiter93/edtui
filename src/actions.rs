@@ -2,6 +2,8 @@ pub mod delete;
 pub mod insert;
 pub mod motion;
 pub mod select;
+use crate::helper::len_col;
+use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
 use enum_dispatch::enum_dispatch;
 
@@ -55,9 +57,11 @@ impl Execute for SwitchMode {
         match self.0 {
             EditorMode::Normal => {
                 state.selection = None;
-                state.cursor.column = state.cursor.column.min(state.len_col().saturating_sub(1));
+                state.cursor.column = state.cursor.column.min(len_col(&state).saturating_sub(1));
             }
-            EditorMode::Visual => state.set_selection(state.cursor, state.cursor),
+            EditorMode::Visual => {
+                state.selection = Some(Selection::new(state.cursor, state.cursor));
+            }
             EditorMode::Insert => {}
         }
         state.mode = self.0;
