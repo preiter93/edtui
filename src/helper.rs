@@ -2,10 +2,16 @@ use jagged::index::RowIndex;
 
 use crate::{state::selection::Selection, EditorState, Index2, Lines};
 
-/// Checks whether an index is the last one in a row.
+/// Checks whether an index is the last column in a row.
 /// Returns true if the rows index is out of bounds.
-pub(crate) fn is_last_index(lines: &Lines, index: Index2) -> bool {
+pub(crate) fn is_last_col(lines: &Lines, index: Index2) -> bool {
     index.col >= lines.len_col(index.row).saturating_sub(1)
+}
+
+/// Checks whether an index is the last row.
+/// Returns true if the rows index is out of bounds.
+pub(crate) fn is_last_row(lines: &Lines, index: Index2) -> bool {
+    index.row >= lines.len().saturating_sub(1)
 }
 
 /// Set the selections end positions

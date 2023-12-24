@@ -1,6 +1,8 @@
 use super::Execute;
 use crate::{
-    helper::{is_last_index, len_col, set_selection, skip_whitespace, skip_whitespace_rev},
+    helper::{
+        is_last_col, is_last_row, len_col, set_selection, skip_whitespace, skip_whitespace_rev,
+    },
     EditorMode, EditorState,
 };
 
@@ -10,7 +12,7 @@ pub struct MoveForward(pub usize);
 impl Execute for MoveForward {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if is_last_index(&state.lines, state.cursor) {
+            if is_last_col(&state.lines, state.cursor) {
                 break;
             }
             state.cursor.col += 1;
@@ -62,7 +64,7 @@ pub struct MoveDown(pub usize);
 impl Execute for MoveDown {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if is_last_index(&state.lines, state.cursor) {
+            if is_last_row(&state.lines, state.cursor) {
                 break;
             }
             state.cursor.row += 1;
@@ -91,7 +93,7 @@ impl Execute for MoveWordForward {
             for (val, i) in iter {
                 index = i;
                 // Break loop if it reaches the end of the line
-                if is_last_index(lines, i) {
+                if is_last_col(lines, i) {
                     break;
                 }
                 // Break loop if characters don't belong to the same class
@@ -206,6 +208,65 @@ mod tests {
     }
 
     #[test]
+    fn test_move_forward() {
+        let mut state = test_state();
+
+        MoveForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 1));
+
+        MoveForward(10).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 11));
+
+        MoveForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 11));
+    }
+
+    #[test]
+    fn test_move_backward() {
+        let mut state = test_state();
+        state.cursor = Index2::new(0, 11);
+
+        MoveBackward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 10));
+
+        MoveBackward(10).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+
+        MoveBackward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_move_down() {
+        let mut state = test_state();
+        state.cursor = Index2::new(0, 6);
+
+        MoveDown(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(1, 0));
+
+        MoveDown(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(2, 0));
+
+        MoveDown(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(2, 0));
+    }
+
+    #[test]
+    fn test_move_up() {
+        let mut state = test_state();
+        state.cursor = Index2::new(2, 2);
+
+        MoveUp(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(1, 0));
+
+        MoveUp(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+
+        MoveUp(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
     fn test_move_word_forward() {
         let mut state = test_state();
 
@@ -243,35 +304,6 @@ mod tests {
         assert_eq!(state.cursor, Index2::new(0, 6));
 
         MoveWordBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 0));
-    }
-
-    #[test]
-    fn test_move_forward() {
-        let mut state = test_state();
-
-        MoveForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 1));
-
-        MoveForward(10).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 11));
-
-        MoveForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 11));
-    }
-
-    #[test]
-    fn test_move_backward() {
-        let mut state = test_state();
-        state.cursor = Index2::new(0, 11);
-
-        MoveBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 10));
-
-        MoveBackward(10).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 0));
-
-        MoveBackward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 0));
     }
 
