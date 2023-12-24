@@ -1,7 +1,7 @@
-use jagged::index::RowIndex;
+use jagged::{index::RowIndex, Index2};
 
-use super::{Execute, SwitchMode};
-use crate::{EditorMode, EditorState};
+use super::Execute;
+use crate::{EditorMode, EditorState, Lines};
 
 /// Inserts a single character at the current cursor position
 #[derive(Clone, Debug, Copy)]
@@ -9,16 +9,21 @@ pub struct InsertChar(pub char);
 
 impl Execute for InsertChar {
     fn execute(&mut self, state: &mut EditorState) {
-        let ch = self.0;
-        if state.lines.is_empty() {
-            state.lines.push(Vec::new());
-        }
-        if ch == '\n' {
-            LineBreak(1).execute(state);
-        } else {
-            state.lines.insert(state.cursor.as_index(), ch);
-            state.cursor.column += 1;
-        }
+        let mut index = state.cursor.as_index();
+        insert_char(&mut state.lines, &mut index, self.0);
+        state.cursor = index.into();
+    }
+}
+
+fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char) {
+    if lines.is_empty() {
+        lines.push(Vec::new());
+    }
+    if ch == '\n' {
+        line_break(lines, index);
+    } else {
+        lines.insert(*index, ch);
+        index.col += 1;
     }
 }
 
@@ -28,9 +33,11 @@ pub struct InsertString(pub String);
 
 impl Execute for InsertString {
     fn execute(&mut self, state: &mut EditorState) {
+        let mut index = state.cursor.as_index();
         for ch in self.0.chars() {
-            InsertChar(ch).execute(state);
+            insert_char(&mut state.lines, &mut index, ch);
         }
+        state.cursor = index.into();
     }
 }
 
@@ -40,19 +47,25 @@ pub struct LineBreak(pub usize);
 
 impl Execute for LineBreak {
     fn execute(&mut self, state: &mut EditorState) {
+        let mut index = state.cursor.as_index();
         for _ in 0..self.0 {
-            if state.cursor.column == 0 {
-                state.lines.insert(RowIndex::new(state.cursor.line), vec![]);
-            } else {
-                let split_at = state.cursor.as_index();
-                let mut rest = state.lines.split_off(split_at);
-                state.lines.append(&mut rest);
-            }
-            state.cursor.line += 1;
-            state.cursor.column = 0;
+            line_break(&mut state.lines, &mut index);
         }
+        state.cursor = index.into();
     }
 }
+
+fn line_break(lines: &mut Lines, index: &mut Index2) {
+    if index.col == 0 {
+        lines.insert(RowIndex::new(index.row), vec![]);
+    } else {
+        let mut rest = lines.split_off(*index);
+        lines.append(&mut rest);
+    }
+    index.row += 1;
+    index.col = 0;
+}
+
 /// Appends a newline below the current cursor position
 /// and switches into insert mode.
 #[derive(Clone, Debug, Copy)]
@@ -65,7 +78,7 @@ impl Execute for AppendNewline {
             state.cursor.line += 1;
             state.lines.insert(RowIndex::new(state.cursor.line), vec![]);
         }
-        SwitchMode(EditorMode::Insert).execute(state);
+        state.mode = EditorMode::Insert;
     }
 }
 
@@ -80,7 +93,7 @@ impl Execute for InsertNewline {
         for _ in 0..self.0 {
             state.lines.insert(RowIndex::new(state.cursor.line), vec![]);
         }
-        SwitchMode(EditorMode::Insert).execute(state);
+        state.mode = EditorMode::Insert;
     }
 }
 
