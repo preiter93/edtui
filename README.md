@@ -39,7 +39,8 @@ License: MIT
 
 ### Roadmap
 
+- [ ] Support crossterm, termwiz and termion 
 - [ ] Display editor lines
 - [ ] User can remap keybindings
 - [ ] Editor lines
-- [ ] Copy+Paste
+- [ ] Clipboard

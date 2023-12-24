@@ -1,8 +1,6 @@
 use super::Execute;
 use crate::{
-    helper::{
-        is_last_col, is_last_row, len_col, set_selection, skip_whitespace, skip_whitespace_rev,
-    },
+    helper::{clamp_column, max_col, max_row, set_selection, skip_whitespace, skip_whitespace_rev},
     EditorMode, EditorState,
 };
 
@@ -12,7 +10,7 @@ pub struct MoveForward(pub usize);
 impl Execute for MoveForward {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if is_last_col(&state.lines, state.cursor) {
+            if state.cursor.col >= max_col(&state.lines, &state.cursor, state.mode) {
                 break;
             }
             state.cursor.col += 1;
@@ -50,7 +48,7 @@ impl Execute for MoveUp {
                 break;
             }
             state.cursor.row -= 1;
-            state.cursor.col = state.cursor.col.min(len_col(&state));
+            clamp_column(state);
         }
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
@@ -64,11 +62,11 @@ pub struct MoveDown(pub usize);
 impl Execute for MoveDown {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if is_last_row(&state.lines, state.cursor) {
+            if state.cursor.row >= max_row(state) {
                 break;
             }
             state.cursor.row += 1;
-            state.cursor.col = state.cursor.col.min(len_col(&state));
+            clamp_column(state);
         }
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
@@ -93,7 +91,7 @@ impl Execute for MoveWordForward {
             for (val, i) in iter {
                 index = i;
                 // Break loop if it reaches the end of the line
-                if is_last_col(lines, i) {
+                if state.cursor.col >= max_col(&state.lines, &state.cursor, state.mode) {
                     break;
                 }
                 // Break loop if characters don't belong to the same class
@@ -104,7 +102,7 @@ impl Execute for MoveWordForward {
             // Skip whitespaces moving to the right.
             skip_whitespace(lines, &mut index);
 
-            state.cursor = index.into();
+            state.cursor = index;
         }
 
         for _ in 0..self.0 {
@@ -127,7 +125,7 @@ impl Execute for MoveWordBackward {
             if index.col == 0 {
                 index.row = index.row.saturating_sub(1);
                 index.col = lines.len_col(index.row).saturating_sub(1);
-                state.cursor = index.into();
+                state.cursor = index;
                 return;
             }
             index.col = index.col.saturating_sub(1);
@@ -148,7 +146,7 @@ impl Execute for MoveWordBackward {
                 }
                 index = i;
             }
-            state.cursor = index.into();
+            state.cursor = index;
         }
 
         for _ in 0..self.0 {
@@ -194,7 +192,7 @@ pub struct MoveToEnd();
 
 impl Execute for MoveToEnd {
     fn execute(&mut self, state: &mut EditorState) {
-        state.cursor.col = len_col(&state).saturating_sub(1);
+        state.cursor.col = max_col(&state.lines, &state.cursor, state.mode);
     }
 }
 
