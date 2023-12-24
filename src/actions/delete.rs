@@ -1,6 +1,6 @@
 use jagged::index::RowIndex;
 
-use super::{Execute, SwitchMode};
+use super::Execute;
 use crate::{helper::len_col, EditorMode, EditorState};
 
 /// Deletes a character at the current cursor position. Does not
@@ -78,7 +78,8 @@ impl Execute for DeleteLine {
 pub struct DeleteSelection;
 
 impl Execute for DeleteSelection {
-    // TODO: Implement a better way to delete selection
+    // TODO: Implement a better way to delete a selection,
+    // possibly using a drain iterator.
     fn execute(&mut self, state: &mut EditorState) {
         if let Some(selection) = state.selection.take() {
             state.cursor = selection.end();
@@ -88,7 +89,7 @@ impl Execute for DeleteSelection {
             }
         }
         state.selection = None;
-        SwitchMode(EditorMode::Normal).execute(state);
+        state.mode = EditorMode::Normal;
     }
 }
 
