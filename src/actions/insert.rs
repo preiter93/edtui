@@ -1,7 +1,7 @@
-use jagged::{index::RowIndex, Index2};
+use jagged::index::RowIndex;
 
 use super::Execute;
-use crate::{EditorMode, EditorState, Lines};
+use crate::{EditorMode, EditorState, Index2, Lines};
 
 /// Inserts a single character at the current cursor position
 #[derive(Clone, Debug, Copy)]
@@ -9,9 +9,7 @@ pub struct InsertChar(pub char);
 
 impl Execute for InsertChar {
     fn execute(&mut self, state: &mut EditorState) {
-        let mut index = state.cursor.as_index();
-        insert_char(&mut state.lines, &mut index, self.0);
-        state.cursor = index.into();
+        insert_char(&mut state.lines, &mut state.cursor, self.0);
     }
 }
 
@@ -33,11 +31,9 @@ pub struct InsertString(pub String);
 
 impl Execute for InsertString {
     fn execute(&mut self, state: &mut EditorState) {
-        let mut index = state.cursor.as_index();
         for ch in self.0.chars() {
-            insert_char(&mut state.lines, &mut index, ch);
+            insert_char(&mut state.lines, &mut state.cursor, ch);
         }
-        state.cursor = index.into();
     }
 }
 
@@ -47,11 +43,9 @@ pub struct LineBreak(pub usize);
 
 impl Execute for LineBreak {
     fn execute(&mut self, state: &mut EditorState) {
-        let mut index = state.cursor.as_index();
         for _ in 0..self.0 {
-            line_break(&mut state.lines, &mut index);
+            line_break(&mut state.lines, &mut state.cursor);
         }
-        state.cursor = index.into();
     }
 }
 
@@ -73,10 +67,10 @@ pub struct AppendNewline(pub usize);
 
 impl Execute for AppendNewline {
     fn execute(&mut self, state: &mut EditorState) {
-        state.cursor.column = 0;
+        state.cursor.col = 0;
         for _ in 0..self.0 {
-            state.cursor.line += 1;
-            state.lines.insert(RowIndex::new(state.cursor.line), vec![]);
+            state.cursor.row += 1;
+            state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
         }
         state.mode = EditorMode::Insert;
     }
@@ -89,9 +83,9 @@ pub struct InsertNewline(pub usize);
 
 impl Execute for InsertNewline {
     fn execute(&mut self, state: &mut EditorState) {
-        state.cursor.column = 0;
+        state.cursor.col = 0;
         for _ in 0..self.0 {
-            state.lines.insert(RowIndex::new(state.cursor.line), vec![]);
+            state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
         }
         state.mode = EditorMode::Insert;
     }
@@ -111,7 +105,7 @@ impl Execute for PushLine<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{state::position::Position, Lines};
+    use crate::Lines;
 
     use super::*;
     fn test_state() -> EditorState {
@@ -123,12 +117,12 @@ mod tests {
         let mut state = test_state();
 
         InsertChar('!').execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 1));
+        assert_eq!(state.cursor, Index2::new(0, 1));
         assert_eq!(state.lines, Lines::from("!Hello World!\n\n123."));
 
-        state.cursor = Position::new(0, 13);
+        state.cursor = Index2::new(0, 13);
         InsertChar('!').execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 14));
+        assert_eq!(state.cursor, Index2::new(0, 14));
         assert_eq!(state.lines, Lines::from("!Hello World!!\n\n123."));
     }
 
@@ -136,9 +130,9 @@ mod tests {
     fn test_insert_str() {
         let mut state = test_state();
 
-        state.cursor = Position::new(0, 5);
+        state.cursor = Index2::new(0, 5);
         InsertString(String::from(",\nx")).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(1, 1));
+        assert_eq!(state.cursor, Index2::new(1, 1));
         assert_eq!(state.lines, Lines::from("Hello,\nx World!\n\n123."));
     }
 
@@ -147,12 +141,12 @@ mod tests {
         let mut state = test_state();
 
         LineBreak(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(1, 0));
+        assert_eq!(state.cursor, Index2::new(1, 0));
         assert_eq!(state.lines, Lines::from("\nHello World!\n\n123."));
 
-        state.cursor = Position::new(1, 5);
+        state.cursor = Index2::new(1, 5);
         LineBreak(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(2, 0));
+        assert_eq!(state.cursor, Index2::new(2, 0));
         assert_eq!(state.lines, Lines::from("\nHello\n World!\n\n123."));
     }
 
@@ -161,7 +155,7 @@ mod tests {
         let mut state = test_state();
 
         AppendNewline(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(1, 0));
+        assert_eq!(state.cursor, Index2::new(1, 0));
         assert_eq!(state.lines, Lines::from("Hello World!\n\n\n123."));
     }
 
@@ -170,12 +164,12 @@ mod tests {
         let mut state = test_state();
 
         InsertNewline(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 0));
+        assert_eq!(state.cursor, Index2::new(0, 0));
         assert_eq!(state.lines, Lines::from("\nHello World!\n\n123."));
 
-        state.cursor = Position::new(2, 1);
+        state.cursor = Index2::new(2, 1);
         InsertNewline(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(2, 0));
+        assert_eq!(state.cursor, Index2::new(2, 0));
         assert_eq!(state.lines, Lines::from("\nHello World!\n\n\n123."));
     }
 

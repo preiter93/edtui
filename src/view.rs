@@ -1,11 +1,9 @@
 pub mod status_line;
 pub mod theme;
+use self::theme::EditorTheme;
+use crate::{state::EditorState, Index2};
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::StatusLine;
-
-use crate::state::{position::Position, EditorState};
-
-use self::theme::EditorTheme;
 
 pub struct EditorView<'a, 'b> {
     pub(crate) state: &'a mut EditorState,
@@ -73,14 +71,14 @@ impl Widget for EditorView<'_, '_> {
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let size = (width, height);
-        let cursor = (self.state.cursor.column, self.state.cursor.line);
+        let cursor = (self.state.cursor.col, self.state.cursor.row);
         let (x_off, y_off) = self.state.view.update_offset(size, cursor);
 
         // Rendering of the cursor. Cursor is not rendered in the loop below,
         // as the cursor may be outside the text in input mode.
         let cursor = &self.state.cursor;
-        let x_cursor = (main.left() as usize) + width.min(cursor.column.saturating_sub(x_off));
-        let y_cursor = (main.top() as usize) + cursor.line.saturating_sub(y_off);
+        let x_cursor = (main.left() as usize) + width.min(cursor.col.saturating_sub(x_off));
+        let y_cursor = (main.top() as usize) + cursor.row.saturating_sub(y_off);
         buf.get_mut(x_cursor as u16, y_cursor as u16)
             .set_style(self.theme.cursor_style);
 
@@ -96,7 +94,7 @@ impl Widget for EditorView<'_, '_> {
 
                 // Selection
                 if let Some(selection) = &self.state.selection {
-                    let position = Position::new(y_off + i, x_off + j);
+                    let position = Index2::new(y_off + i, x_off + j);
                     if selection.within(&position) {
                         buf.get_mut(x, y).set_style(self.theme.selection_style);
                     }

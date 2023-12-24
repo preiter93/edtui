@@ -48,5 +48,5 @@ pub use input::Input;
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorView, StatusLine};
 
-use jagged::Jagged;
-pub type Lines = Jagged<char>;
+pub type Lines = jagged::Jagged<char>;
+pub use jagged::Index2;

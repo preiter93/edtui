@@ -1,39 +1,39 @@
-use super::position::Position;
+use crate::Index2;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
-    pub start: Position,
-    pub end: Position,
+    pub start: Index2,
+    pub end: Index2,
 }
 
 impl Selection {
-    pub fn new(start: Position, end: Position) -> Self {
+    pub fn new(start: Index2, end: Index2) -> Self {
         Self { start, end }
     }
 
     #[must_use]
-    pub fn within(&self, pos: &Position) -> bool {
+    pub fn within(&self, pos: &Index2) -> bool {
         let (start, end) = if self.start < self.end {
             (&self.start, &self.end)
         } else {
             (&self.end, &self.start)
         };
-        let (start_line, start_column) = (start.line, start.column);
-        let (end_line, end_column) = (end.line, end.column);
+        let (st_row, st_col) = (start.row, start.col);
+        let (en_row, en_col) = (end.row, end.col);
 
-        match (pos.line, pos.column) {
-            (line, _) if line > start_line && line < end_line => true,
-            (line, column) if line > start_line && line == end_line => column <= end_column,
-            (line, column) if line == start_line && line < end_line => column >= start_column,
-            (line, column) if line == start_line && line == end_line => {
-                column <= end_column && column >= start_column
+        match (pos.row, pos.col) {
+            (line, _) if line > st_row && line < en_row => true,
+            (line, column) if line > st_row && line == en_row => column <= en_col,
+            (line, column) if line == st_row && line < en_row => column >= st_col,
+            (line, column) if line == st_row && line == en_row => {
+                column <= en_col && column >= st_col
             }
             _ => false,
         }
     }
 
     #[must_use]
-    pub fn start(&self) -> Position {
+    pub fn start(&self) -> Index2 {
         if self.reverse() {
             return self.end;
         }
@@ -41,7 +41,7 @@ impl Selection {
     }
 
     #[must_use]
-    pub fn end(&self) -> Position {
+    pub fn end(&self) -> Index2 {
         if self.reverse() {
             return self.start;
         }
@@ -50,7 +50,7 @@ impl Selection {
 
     #[must_use]
     fn reverse(&self) -> bool {
-        self.start.line > self.end.line
-            || self.start.line == self.end.line && self.start.column > self.end.column
+        self.start.row > self.end.row
+            || self.start.row == self.end.row && self.start.col > self.end.col
     }
 }

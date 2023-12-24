@@ -57,7 +57,7 @@ impl Execute for SwitchMode {
         match self.0 {
             EditorMode::Normal => {
                 state.selection = None;
-                state.cursor.column = state.cursor.column.min(len_col(&state).saturating_sub(1));
+                state.cursor.col = state.cursor.col.min(len_col(&state).saturating_sub(1));
             }
             EditorMode::Visual => {
                 state.selection = Some(Selection::new(state.cursor, state.cursor));
@@ -75,7 +75,7 @@ pub struct Append;
 impl Execute for Append {
     fn execute(&mut self, state: &mut EditorState) {
         SwitchMode(EditorMode::Insert).execute(state);
-        state.cursor.column += 1;
+        state.cursor.col += 1;
     }
 }
 

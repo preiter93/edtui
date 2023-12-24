@@ -1,7 +1,5 @@
-use jagged::Index2;
-
 use super::Execute;
-use crate::{state::selection::Selection, EditorMode, EditorState};
+use crate::{state::selection::Selection, EditorMode, EditorState, Index2};
 
 /// Selects text between specified delimiter characters.
 ///
@@ -16,8 +14,8 @@ impl Execute for SelectBetween {
         let cursor = state.cursor;
         let mut start: Option<Index2> = None;
         let mut end: Option<Index2> = None;
-        let mut prev = cursor.as_index();
-        for (value, index) in state.lines.iter().from(cursor.as_index()) {
+        let mut prev = cursor;
+        for (value, index) in state.lines.iter().from(cursor) {
             if let Some(&c) = value {
                 if c == self.0 {
                     end = Some(prev);
@@ -26,8 +24,8 @@ impl Execute for SelectBetween {
             }
             prev = index;
         }
-        prev = cursor.as_index();
-        for (value, index) in state.lines.iter().from(cursor.as_index()).rev() {
+        prev = cursor;
+        for (value, index) in state.lines.iter().from(cursor).rev() {
             if let Some(&c) = value {
                 if c == self.0 {
                     start = Some(prev);

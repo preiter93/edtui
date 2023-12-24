@@ -10,13 +10,13 @@ pub struct MoveForward(pub usize);
 impl Execute for MoveForward {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if is_last_index(&state.lines, state.cursor.as_index()) {
+            if is_last_index(&state.lines, state.cursor) {
                 break;
             }
-            state.cursor.column += 1;
+            state.cursor.col += 1;
         }
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor.as_index());
+            set_selection(&mut state.selection, state.cursor);
         }
     }
 }
@@ -27,13 +27,13 @@ pub struct MoveBackward(pub usize);
 impl Execute for MoveBackward {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if state.cursor.column == 0 {
+            if state.cursor.col == 0 {
                 break;
             }
-            state.cursor.column -= 1;
+            state.cursor.col -= 1;
         }
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor.as_index());
+            set_selection(&mut state.selection, state.cursor);
         }
     }
 }
@@ -44,14 +44,14 @@ pub struct MoveUp(pub usize);
 impl Execute for MoveUp {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if state.cursor.line == 0 {
+            if state.cursor.row == 0 {
                 break;
             }
-            state.cursor.line -= 1;
-            state.cursor.column = state.cursor.column.min(len_col(&state));
+            state.cursor.row -= 1;
+            state.cursor.col = state.cursor.col.min(len_col(&state));
         }
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor.as_index());
+            set_selection(&mut state.selection, state.cursor);
         }
     }
 }
@@ -62,14 +62,14 @@ pub struct MoveDown(pub usize);
 impl Execute for MoveDown {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if is_last_index(&state.lines, state.cursor.as_index()) {
+            if is_last_index(&state.lines, state.cursor) {
                 break;
             }
-            state.cursor.line += 1;
-            state.cursor.column = state.cursor.column.min(len_col(&state));
+            state.cursor.row += 1;
+            state.cursor.col = state.cursor.col.min(len_col(&state));
         }
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor.as_index());
+            set_selection(&mut state.selection, state.cursor);
         }
     }
 }
@@ -83,7 +83,7 @@ pub struct MoveWordForward(pub usize);
 impl Execute for MoveWordForward {
     fn execute(&mut self, state: &mut EditorState) {
         fn move_word(state: &mut EditorState) {
-            let mut index = state.cursor.as_index();
+            let mut index = state.cursor;
             let lines = &state.lines;
             let first_char = state.lines.get(index);
             let mut iter = state.lines.iter().from(index);
@@ -120,7 +120,7 @@ pub struct MoveWordBackward(pub usize);
 impl Execute for MoveWordBackward {
     fn execute(&mut self, state: &mut EditorState) {
         fn move_word(state: &mut EditorState) {
-            let mut index = state.cursor.as_index();
+            let mut index = state.cursor;
             let lines = &state.lines;
             if index.col == 0 {
                 index.row = index.row.saturating_sub(1);
@@ -173,7 +173,7 @@ pub struct MoveToStart();
 
 impl Execute for MoveToStart {
     fn execute(&mut self, state: &mut EditorState) {
-        state.cursor.column = 0;
+        state.cursor.col = 0;
     }
 }
 // move to the first non-whitespace character in the line.
@@ -182,7 +182,7 @@ pub struct MoveToFirst();
 
 impl Execute for MoveToFirst {
     fn execute(&mut self, state: &mut EditorState) {
-        state.cursor.column = 0;
+        state.cursor.col = 0;
     }
 }
 
@@ -192,13 +192,13 @@ pub struct MoveToEnd();
 
 impl Execute for MoveToEnd {
     fn execute(&mut self, state: &mut EditorState) {
-        state.cursor.column = len_col(&state).saturating_sub(1);
+        state.cursor.col = len_col(&state).saturating_sub(1);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{state::position::Position, Lines};
+    use crate::{Index2, Lines};
 
     use super::*;
     fn test_state() -> EditorState {
@@ -210,40 +210,40 @@ mod tests {
         let mut state = test_state();
 
         MoveWordForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 6));
+        assert_eq!(state.cursor, Index2::new(0, 6));
 
         MoveWordForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 11));
+        assert_eq!(state.cursor, Index2::new(0, 11));
 
         MoveWordForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(1, 0));
+        assert_eq!(state.cursor, Index2::new(1, 0));
 
         MoveWordForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(2, 0));
+        assert_eq!(state.cursor, Index2::new(2, 0));
 
         MoveWordForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(2, 3));
+        assert_eq!(state.cursor, Index2::new(2, 3));
     }
 
     #[test]
     fn test_move_word_backward() {
         let mut state = test_state();
-        state.cursor = Position::new(2, 3);
+        state.cursor = Index2::new(2, 3);
 
         MoveWordBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(2, 0));
+        assert_eq!(state.cursor, Index2::new(2, 0));
 
         MoveWordBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(1, 0));
+        assert_eq!(state.cursor, Index2::new(1, 0));
 
         MoveWordBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 11));
+        assert_eq!(state.cursor, Index2::new(0, 11));
 
         MoveWordBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 6));
+        assert_eq!(state.cursor, Index2::new(0, 6));
 
         MoveWordBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 0));
+        assert_eq!(state.cursor, Index2::new(0, 0));
     }
 
     #[test]
@@ -251,45 +251,45 @@ mod tests {
         let mut state = test_state();
 
         MoveForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 1));
+        assert_eq!(state.cursor, Index2::new(0, 1));
 
         MoveForward(10).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 11));
+        assert_eq!(state.cursor, Index2::new(0, 11));
 
         MoveForward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 11));
+        assert_eq!(state.cursor, Index2::new(0, 11));
     }
 
     #[test]
     fn test_move_backward() {
         let mut state = test_state();
-        state.cursor = Position::new(0, 11);
+        state.cursor = Index2::new(0, 11);
 
         MoveBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 10));
+        assert_eq!(state.cursor, Index2::new(0, 10));
 
         MoveBackward(10).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 0));
+        assert_eq!(state.cursor, Index2::new(0, 0));
 
         MoveBackward(1).execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 0));
+        assert_eq!(state.cursor, Index2::new(0, 0));
     }
 
     #[test]
     fn test_move_to_start() {
         let mut state = test_state();
-        state.cursor = Position::new(0, 2);
+        state.cursor = Index2::new(0, 2);
 
         MoveToStart().execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 0));
+        assert_eq!(state.cursor, Index2::new(0, 0));
     }
 
     #[test]
     fn test_move_to_end() {
         let mut state = test_state();
-        state.cursor = Position::new(0, 2);
+        state.cursor = Index2::new(0, 2);
 
         MoveToEnd().execute(&mut state);
-        assert_eq!(state.cursor, Position::new(0, 11));
+        assert_eq!(state.cursor, Index2::new(0, 11));
     }
 }

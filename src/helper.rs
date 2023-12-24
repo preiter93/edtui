@@ -1,6 +1,6 @@
-use jagged::{index::RowIndex, Index2};
+use jagged::index::RowIndex;
 
-use crate::{state::selection::Selection, EditorState, Lines};
+use crate::{state::selection::Selection, EditorState, Index2, Lines};
 
 /// Checks whether an index is the last one in a row.
 /// Returns true if the rows index is out of bounds.
@@ -43,7 +43,7 @@ pub(crate) fn skip_whitespace_rev(lines: &Lines, index: &mut Index2) {
 /// Get the number of columns in the current line.
 #[must_use]
 pub(crate) fn len_col(state: &EditorState) -> usize {
-    state.lines.len_col(state.cursor.line)
+    state.lines.len_col(state.cursor.row)
 }
 
 #[cfg(test)]
