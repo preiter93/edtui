@@ -3,8 +3,7 @@
 //!
 //! While this approach works for basic undo/redo needs, it may not be efficient for more
 //! complex usage. In the long run, this should be replaced with an action-based mechanism.
-use super::position::Position;
-use crate::{EditorState, Lines};
+use crate::{EditorState, Index2, Lines};
 
 #[derive(Debug, Clone)]
 pub(crate) struct Stack {
@@ -43,7 +42,7 @@ impl Stack {
 #[derive(Debug, Clone)]
 pub(crate) struct UndoState {
     lines: Lines,
-    cursor: Position,
+    cursor: Index2,
 }
 
 impl EditorState {

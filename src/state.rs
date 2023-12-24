@@ -1,13 +1,11 @@
 pub mod mode;
-pub mod position;
 pub mod selection;
 mod undo;
 mod view;
 
 use self::view::ViewState;
-use self::{mode::EditorMode, position::Position, selection::Selection, undo::Stack};
-use crate::Lines;
-use jagged::Jagged;
+use self::{mode::EditorMode, selection::Selection, undo::Stack};
+use crate::{Index2, Lines};
 
 /// Represents the state of an editor.
 #[derive(Clone)]
@@ -16,7 +14,7 @@ pub struct EditorState {
     pub lines: Lines,
 
     /// The current cursor position in the editor.
-    pub cursor: Position,
+    pub cursor: Index2,
 
     /// The mode of the editor (insert, visual or normal mode).
     pub mode: EditorMode,
@@ -37,7 +35,7 @@ pub struct EditorState {
 impl Default for EditorState {
     /// Creates a default `EditorState` with no text.
     fn default() -> Self {
-        EditorState::new(Jagged::default())
+        EditorState::new(Lines::default())
     }
 }
 
@@ -55,7 +53,7 @@ impl EditorState {
     pub fn new(lines: Lines) -> EditorState {
         EditorState {
             lines,
-            cursor: Position::new(0, 0),
+            cursor: Index2::new(0, 0),
             mode: EditorMode::Normal,
             selection: None,
             view: ViewState::default(),
