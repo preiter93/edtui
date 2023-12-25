@@ -38,6 +38,7 @@
     clippy::cast_possible_truncation
 )]
 pub mod actions;
+pub mod clipboard;
 mod debug;
 mod helper;
 pub mod input;

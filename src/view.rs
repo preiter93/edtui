@@ -69,7 +69,7 @@ impl Widget for EditorView<'_, '_> {
 
         // Retrieve the displayed cursor position. The column of the displayed
         // cursor is clamped to the maximum line length.
-        let cursor = displayed_cursor(&self.state);
+        let cursor = displayed_cursor(self.state);
 
         // Update the view offset. Requuires the screen size and the position
         // of the cursor. Updates the view offset only if the cursor is out

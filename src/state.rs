@@ -5,6 +5,7 @@ mod view;
 
 use self::view::ViewState;
 use self::{mode::EditorMode, selection::Selection, undo::Stack};
+use crate::clipboard::Clipboard;
 use crate::{Index2, Lines};
 
 /// Represents the state of an editor.
@@ -30,6 +31,9 @@ pub struct EditorState {
 
     /// Stack for redo operations.
     pub(crate) redo: Stack,
+
+    /// Clipboard for yank and paste operations.
+    pub(crate) clip: Clipboard,
 }
 
 impl Default for EditorState {
@@ -59,6 +63,7 @@ impl EditorState {
             view: ViewState::default(),
             undo: Stack::new(),
             redo: Stack::new(),
+            clip: Clipboard::internal(),
         }
     }
 }

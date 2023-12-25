@@ -1,5 +1,7 @@
 use super::Execute;
-use crate::{state::selection::Selection, EditorMode, EditorState, Index2};
+use crate::{
+    clipboard::ClipboardTrait, state::selection::Selection, EditorMode, EditorState, Index2,
+};
 
 /// Selects text between specified delimiter characters.
 ///
@@ -37,6 +39,19 @@ impl Execute for SelectBetween {
         if let (Some(start), Some(end)) = (start, end) {
             state.selection = Some(Selection { start, end });
             state.mode = EditorMode::Visual;
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CopySelection;
+
+impl Execute for CopySelection {
+    fn execute(&mut self, state: &mut EditorState) {
+        if let Some(s) = &state.selection {
+            state.clip.set_text(s.extract(&state.lines).into());
+            state.mode = EditorMode::Normal;
+            state.selection = None;
         }
     }
 }
