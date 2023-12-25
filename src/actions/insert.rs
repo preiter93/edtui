@@ -1,6 +1,6 @@
 use jagged::index::RowIndex;
 
-use super::Execute;
+use super::{Execute, SwitchMode};
 use crate::{EditorMode, EditorState, Index2, Lines};
 
 /// Inserts a single character at the current cursor position
@@ -72,7 +72,7 @@ impl Execute for AppendNewline {
             state.cursor.row += 1;
             state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
         }
-        state.mode = EditorMode::Insert;
+        SwitchMode(EditorMode::Insert).execute(state);
     }
 }
 
@@ -87,7 +87,7 @@ impl Execute for InsertNewline {
         for _ in 0..self.0 {
             state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
         }
-        state.mode = EditorMode::Insert;
+        SwitchMode(EditorMode::Insert).execute(state);
     }
 }
 
