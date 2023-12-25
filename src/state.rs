@@ -55,6 +55,11 @@ impl EditorState {
     /// ```
     #[must_use]
     pub fn new(lines: Lines) -> EditorState {
+        let clipboard = if cfg!(feature = "arboard") {
+            Clipboard::arboard()
+        } else {
+            Clipboard::internal()
+        };
         EditorState {
             lines,
             cursor: Index2::new(0, 0),
@@ -63,7 +68,12 @@ impl EditorState {
             view: ViewState::default(),
             undo: Stack::new(),
             redo: Stack::new(),
-            clip: Clipboard::internal(),
+            clip: clipboard,
         }
+    }
+
+    /// Set a custom clipboard.
+    pub fn set_clipboard(&mut self, clipboard: Clipboard) {
+        self.clip = clipboard;
     }
 }

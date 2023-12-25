@@ -13,6 +13,11 @@ ratatui = "0.25"
 jagged = { package = "edtui-jagged", path = "../edtui-jagged", version = "0.1" }
 enum_dispatch = "0.3.12"
 crossterm = "0.27"
+arboard = { version = "3.3.0", optional = true }
 
 [[example]]
 name = "app"
+
+[features]
+default = ["arboard"]
+arboard = ["dep:arboard"]
