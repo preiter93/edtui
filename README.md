@@ -35,12 +35,16 @@ For more keybindings and customization options, refer to the code.
 
 <img align="center" src="https://github.com/preiter93/tui-vim-editor/blob/main/resources/screenshot.png?raw=true" width="750"/>
 
-License: MIT
+### Features
 
+- **"arboard" (Enabled by Default)**: Utilizes the Arboard clipboard, allowing copy-paste operations between the system clipboard and the editor. If this feature is disabled, the internal clipboard is used, which only supports copying and pasting within the editor.
+ 
 ### Roadmap
 
-- [ ] Clipboard
+- [x] Clipboard
 - [ ] Support termwiz and termion
 - [ ] Display line numbers
 - [ ] Remap keybindings
 - [ ] Soft-wrap lines
+
+License: MIT

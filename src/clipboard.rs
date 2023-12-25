@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, error::Error, rc::Rc};
 
 /// Trait defining clipboard operations.
 pub trait ClipboardTrait {
@@ -43,11 +43,23 @@ impl Clipboard {
         Clipboard(Rc::new(RefCell::new(clipboard)))
     }
 
-    /// Creates a new `Clipboard` with `InternalClipboard`. The internal clipboard
-    /// does not capture the systems clipboard.
+    /// Creates a new `Clipboard` with `InternalClipboard`.
+    /// The internal clipboard does not capture the systems clipboard.
     #[must_use]
     pub fn internal() -> Self {
         Self::new(InternalClipboard::default())
+    }
+
+    /// Creates a new `Clipboard` with `ArboardClipboard`.
+    /// The arboard clipboard captures the systems clipboard.
+    /// Falls back to internal clipboard if the arboard clipboard
+    /// could not be instantiated
+    #[must_use]
+    pub fn arboard() -> Self {
+        if let Ok(clipboard) = ArboardClipboard::new() {
+            return Self::new(clipboard);
+        }
+        Self::internal()
     }
 }
 
@@ -71,5 +83,32 @@ impl ClipboardTrait for InternalClipboard {
 
     fn get_text(&mut self) -> String {
         self.0.clone()
+    }
+}
+
+#[cfg(feature = "arboard")]
+pub struct ArboardClipboard {
+    inner: arboard::Clipboard,
+}
+
+#[cfg(feature = "arboard")]
+impl ArboardClipboard {
+    /// Instantiates a new arboard clipboard.
+    ///
+    /// ## Errors
+    /// - Platform not supported.
+    pub fn new() -> Result<Self, Box<dyn Error>> {
+        let inner = arboard::Clipboard::new()?;
+        Ok(Self { inner })
+    }
+}
+
+impl ClipboardTrait for ArboardClipboard {
+    fn set_text(&mut self, text: String) {
+        let _ = self.inner.set_text(text);
+    }
+
+    fn get_text(&mut self) -> String {
+        self.inner.get_text().unwrap_or_default()
     }
 }
