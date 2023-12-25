@@ -5,7 +5,7 @@ mod view;
 
 use self::view::ViewState;
 use self::{mode::EditorMode, selection::Selection, undo::Stack};
-use crate::clipboard::Clipboard;
+use crate::clipboard::{Clipboard, ClipboardTrait};
 use crate::{Index2, Lines};
 
 /// Represents the state of an editor.
@@ -68,7 +68,7 @@ impl EditorState {
     }
 
     /// Set a custom clipboard.
-    pub fn set_clipboard(&mut self, clipboard: Clipboard) {
-        self.clip = clipboard;
+    pub fn set_clipboard(&mut self, clipboard: impl ClipboardTrait + 'static) {
+        self.clip = Clipboard::new(clipboard);
     }
 }
