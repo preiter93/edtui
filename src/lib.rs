@@ -37,13 +37,18 @@
     clippy::module_name_repetitions,
     clippy::cast_possible_truncation
 )]
+pub mod actions;
+pub mod clipboard;
 mod debug;
+mod helper;
 pub mod input;
-pub mod lines;
 pub mod state;
 pub mod view;
 
 pub use input::Input;
-pub use lines::{Line, Lines};
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorView, StatusLine};
+
+/// A data structure that contains chars organized in rows and columns
+pub type Lines = jagged::Jagged<char>;
+pub use jagged::Index2;
