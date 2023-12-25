@@ -1,7 +1,7 @@
 use jagged::index::RowIndex;
 
 use super::Execute;
-use crate::{EditorMode, EditorState, Index2, Lines};
+use crate::{clipboard::ClipboardTrait, EditorMode, EditorState, Index2, Lines};
 
 /// Deletes a character at the current cursor position. Does not
 /// move the cursor position unless it is at the end of the line
@@ -89,6 +89,10 @@ impl Execute for DeleteSelection {
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         if let Some(selection) = state.selection.take() {
+            // Copy selection
+            state.clip.set_text(selection.extract(&state.lines).into());
+
+            // Delete selection
             state.cursor = selection.end();
             state.cursor.col += 1;
             while state.cursor != selection.start() {
