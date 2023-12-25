@@ -2,6 +2,7 @@ pub mod delete;
 pub mod insert;
 pub mod motion;
 pub mod select;
+use crate::clipboard::ClipboardTrait;
 use crate::helper::clamp_column;
 use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
@@ -13,7 +14,7 @@ pub use self::motion::{
     MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
     MoveWordBackward, MoveWordForward,
 };
-pub use self::select::SelectBetween;
+pub use self::select::{CopySelection, SelectBetween};
 
 #[enum_dispatch(Execute)]
 #[derive(Clone, Debug)]
@@ -41,6 +42,8 @@ pub enum Action {
     SelectBetween(SelectBetween),
     Undo(Undo),
     Redo(Redo),
+    Paste(Paste),
+    CopySelection(CopySelection),
     Composed(Composed),
 }
 
@@ -96,6 +99,16 @@ pub struct Redo;
 impl Execute for Redo {
     fn execute(&mut self, state: &mut EditorState) {
         state.redo();
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Paste;
+
+impl Execute for Paste {
+    fn execute(&mut self, state: &mut EditorState) {
+        let text = state.clip.get_text();
+        InsertString(text).execute(state);
     }
 }
 

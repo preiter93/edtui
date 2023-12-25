@@ -2,10 +2,10 @@ pub mod key;
 pub mod register;
 
 use crate::actions::{
-    Append, AppendNewline, Composed, DeleteChar, DeleteLine, DeleteSelection, Execute, InsertChar,
-    InsertNewline, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst,
-    MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Redo, RemoveChar, SelectBetween,
-    SwitchMode, Undo,
+    Append, AppendNewline, Composed, CopySelection, DeleteChar, DeleteLine, DeleteSelection,
+    Execute, InsertChar, InsertNewline, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd,
+    MoveToFirst, MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar,
+    SelectBetween, SwitchMode, Undo,
 };
 use crate::{EditorMode, EditorState};
 
@@ -125,6 +125,13 @@ impl Default for Input {
 
         // Redo
         r.insert(RegisterKey::n(vec![Key::Char('r')]), Redo);
+
+        // Copy
+        r.insert(RegisterKey::v(vec![Key::Char('y')]), CopySelection);
+
+        // Paste
+        r.insert(RegisterKey::n(vec![Key::Char('p')]), Paste);
+        r.insert(RegisterKey::v(vec![Key::Char('p')]), Paste);
 
         Self { register: r }
     }

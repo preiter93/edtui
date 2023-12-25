@@ -1,4 +1,4 @@
-use crate::Index2;
+use crate::{Index2, Lines};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
@@ -53,5 +53,30 @@ impl Selection {
     fn reverse(&self) -> bool {
         self.start.row > self.end.row
             || self.start.row == self.end.row && self.start.col > self.end.col
+    }
+
+    /// Extracts a selection from `Lines`.
+    #[must_use]
+    pub fn extract(&self, lines: &Lines) -> Lines {
+        lines.iter().from(self.start()).to(self.end()).collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn test_data() -> Lines {
+        Lines::from(
+            "Hello\n\
+            World",
+        )
+    }
+
+    #[test]
+    fn test_extract() {
+        let data = test_data();
+        let selection = Selection::new(Index2::new(0, 3), Index2::new(1, 1));
+
+        assert_eq!(selection.extract(&data), Lines::from("lo\nWo"));
     }
 }
