@@ -1,11 +1,19 @@
-//! Clipboard support for edtui.
+//! The editors clipboard
 //!
-//! ## Custom clipboard
+//! ## Default clipboard
 //!
-//! Allows you to set a custom clipboard. This is useful for example if you want to
-//! define a global clipboard:
+//! `edTUI` uses the arboard clipboard by default, which enables copy and paste
+//! operations between the system clipboard and the editor. However, if a lighter
+//! clipboard is desired, the "arboard" function flag can be deactivated. In this
+//! case, the internal clipboard is used, which only supports copying and pasting
+//! within the editor.
 //!
-//!```ignore_me
+//! ## Example: A custom global clipboard
+//!
+//! `edTUI` allows you to set a custom clipboard. This is useful if you want to
+//! define a global clipboard for example:
+//!
+//!```ignore
 //! use once_cell::sync::Lazy;
 //! use std::sync::Mutex;
 //!

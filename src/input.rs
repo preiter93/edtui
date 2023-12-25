@@ -1,3 +1,4 @@
+//! Handles key input events
 pub mod key;
 pub mod register;
 

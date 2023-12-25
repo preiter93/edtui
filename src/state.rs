@@ -1,3 +1,4 @@
+//! The editors state
 pub mod mode;
 pub mod selection;
 mod undo;

@@ -1,3 +1,4 @@
+//! The editors state
 pub mod status_line;
 pub mod theme;
 use self::theme::EditorTheme;
