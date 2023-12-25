@@ -1,3 +1,42 @@
+//! Clipboard support for edtui.
+//!
+//! ## Custom clipboard
+//!
+//! Allows you to set a custom clipboard. This is useful for example if you want to
+//! define a global clipboard:
+//!
+//!```ignore_me
+//! use once_cell::sync::Lazy;
+//! use std::sync::Mutex;
+//!
+//! static CLIPBOARD: Lazy<GlobalClipboard> = Lazy::new(|| GlobalClipboard::new());
+//!
+//! struct GlobalClipboard(Mutex<Clipboard>);
+//!
+//! impl GlobalClipboard {
+//!     pub fn new() -> Self {
+//!         Self(Mutex::new(arboard::Clipboard::new().unwrap()))
+//!     }
+//! }
+//!
+//! impl ClipboardTrait for &GlobalClipboard {
+//!     fn set_text(&mut self, text: String) {
+//!         if let Ok(mut clipboard) = self.0.lock() {
+//!             let _ = clipboard.set_text(text);
+//!         }
+//!     }
+//!
+//!     fn get_text(&mut self) -> String {
+//!         if let Ok(mut clipboard) = self.0.lock() {
+//!             return clipboard.get_text().unwrap_or_default();
+//!         }
+//!         String::new()
+//!     }
+//! }
+//!
+//! let mut state = EditorState::default();
+//! state.set_clipboard(Lazy::force(&CLIPBOARD));
+//!```
 #[cfg(feature = "arboard")]
 mod arboard;
 
