@@ -3,8 +3,7 @@
 //!
 //! While this approach works for basic undo/redo needs, it may not be efficient for more
 //! complex usage. In the long run, this should be replaced with an action-based mechanism.
-use super::position::Position;
-use crate::{EditorState, Lines};
+use crate::{EditorState, Index2, Lines};
 
 #[derive(Debug, Clone)]
 pub(crate) struct Stack {
@@ -20,11 +19,11 @@ impl Stack {
         }
     }
 
-    fn pop(&mut self) -> Option<UndoState> {
+    pub(crate) fn pop(&mut self) -> Option<UndoState> {
         self.inner.pop()
     }
 
-    fn push(&mut self, value: UndoState) {
+    pub(crate) fn push(&mut self, value: UndoState) {
         self.inner.push(value);
         if self.len() > self.max_size {
             self.remove(0);
@@ -43,14 +42,14 @@ impl Stack {
 #[derive(Debug, Clone)]
 pub(crate) struct UndoState {
     lines: Lines,
-    cursor: Position,
+    cursor: Index2,
 }
 
 impl EditorState {
     pub(crate) fn capture(&mut self) {
         let editor_state = UndoState {
             lines: self.lines.clone(),
-            cursor: self.cursor.clone(),
+            cursor: self.cursor,
         };
         self.undo.push(editor_state);
     }
@@ -59,7 +58,7 @@ impl EditorState {
         if let Some(prev) = self.undo.pop() {
             let current = UndoState {
                 lines: self.lines.clone(),
-                cursor: self.cursor.clone(),
+                cursor: self.cursor,
             };
             self.lines = prev.lines;
             self.cursor = prev.cursor;
@@ -71,7 +70,7 @@ impl EditorState {
         if let Some(prev) = self.redo.pop() {
             let current = UndoState {
                 lines: self.lines.clone(),
-                cursor: self.cursor.clone(),
+                cursor: self.cursor,
             };
             self.lines = prev.lines;
             self.cursor = prev.cursor;

@@ -6,7 +6,7 @@ use ratatui::{
 
 use super::theme::{DARK_PURPLE, LIGHT_PURPLE};
 
-/// An optional status line for [`Editor`].
+/// An optional status line for Editor.
 #[derive(Debug, Clone)]
 pub struct StatusLine {
     /// The displayed text in the status line. Used internally to

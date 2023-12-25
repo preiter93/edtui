@@ -1,47 +1,82 @@
-use super::position::Position;
+use crate::{Index2, Lines};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
-    pub start: Position,
-    pub end: Position,
+    pub start: Index2,
+    pub end: Index2,
 }
 
 impl Selection {
     #[must_use]
-    pub fn within(&self, pos: &Position) -> bool {
-        let (start_line, start_column) = (self.start.line, self.start.column);
-        let (end_line, end_column) = (self.end.line, self.end.column);
+    pub fn new(start: Index2, end: Index2) -> Self {
+        Self { start, end }
+    }
 
-        match (pos.line, pos.column) {
-            (line, _) if line > start_line && line < end_line => true,
-            (line, column) if line > start_line && line == end_line => column <= end_column,
-            (line, column) if line == start_line && line < end_line => column >= start_column,
-            (line, column) if line == start_line && line == end_line => {
-                column <= end_column && column >= start_column
+    #[must_use]
+    pub fn within(&self, pos: &Index2) -> bool {
+        let (start, end) = if self.start < self.end {
+            (&self.start, &self.end)
+        } else {
+            (&self.end, &self.start)
+        };
+        let (st_row, st_col) = (start.row, start.col);
+        let (en_row, en_col) = (end.row, end.col);
+
+        match (pos.row, pos.col) {
+            (line, _) if line > st_row && line < en_row => true,
+            (line, column) if line > st_row && line == en_row => column <= en_col,
+            (line, column) if line == st_row && line < en_row => column >= st_col,
+            (line, column) if line == st_row && line == en_row => {
+                column <= en_col && column >= st_col
             }
             _ => false,
         }
     }
 
     #[must_use]
-    pub fn start(&self) -> Position {
+    pub fn start(&self) -> Index2 {
         if self.reverse() {
-            return self.end.clone();
+            return self.end;
         }
-        self.start.clone()
+        self.start
     }
 
     #[must_use]
-    pub fn end(&self) -> Position {
+    pub fn end(&self) -> Index2 {
         if self.reverse() {
-            return self.start.clone();
+            return self.start;
         }
-        self.end.clone()
+        self.end
     }
 
     #[must_use]
     fn reverse(&self) -> bool {
-        self.start.line > self.end.line
-            || self.start.line == self.end.line && self.start.column > self.end.column
+        self.start.row > self.end.row
+            || self.start.row == self.end.row && self.start.col > self.end.col
+    }
+
+    /// Extracts a selection from `Lines`.
+    #[must_use]
+    pub fn extract(&self, lines: &Lines) -> Lines {
+        lines.iter().from(self.start()).to(self.end()).collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn test_data() -> Lines {
+        Lines::from(
+            "Hello\n\
+            World",
+        )
+    }
+
+    #[test]
+    fn test_extract() {
+        let data = test_data();
+        let selection = Selection::new(Index2::new(0, 3), Index2::new(1, 1));
+
+        assert_eq!(selection.extract(&data), Lines::from("lo\nWo"));
     }
 }

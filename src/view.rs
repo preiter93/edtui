@@ -1,11 +1,10 @@
+//! The editors state
 pub mod status_line;
 pub mod theme;
+use self::theme::EditorTheme;
+use crate::{helper::max_col, state::EditorState, Index2};
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::StatusLine;
-
-use crate::state::{position::Position, EditorState};
-
-use self::theme::EditorTheme;
 
 pub struct EditorView<'a, 'b> {
     pub(crate) state: &'a mut EditorState,
@@ -69,24 +68,26 @@ impl Widget for EditorView<'_, '_> {
         let width = main.width as usize;
         let height = main.height as usize;
 
+        // Retrieve the displayed cursor position. The column of the displayed
+        // cursor is clamped to the maximum line length.
+        let cursor = displayed_cursor(self.state);
+
         // Update the view offset. Requuires the screen size and the position
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let size = (width, height);
-        let cursor = (self.state.cursor.column, self.state.cursor.line);
         let (x_off, y_off) = self.state.view.update_offset(size, cursor);
 
-        // Rendering of the cursor. Speficially not rendered in the loop below,
+        // Rendering of the cursor. Cursor is not rendered in the loop below,
         // as the cursor may be outside the text in input mode.
-        let cursor = &self.state.cursor;
-        let x_cursor = (main.left() as usize) + width.min(cursor.column.saturating_sub(x_off));
-        let y_cursor = (main.top() as usize) + cursor.line.saturating_sub(y_off);
+        let x_cursor = (main.left() as usize) + width.min(cursor.col.saturating_sub(x_off));
+        let y_cursor = (main.top() as usize) + cursor.row.saturating_sub(y_off);
         buf.get_mut(x_cursor as u16, y_cursor as u16)
             .set_style(self.theme.cursor_style);
 
         // Rendering the text and the selection.
         let lines = &self.state.lines;
-        for (i, line) in lines.iter().skip(y_off).take(height).enumerate() {
+        for (i, line) in lines.iter_row().skip(y_off).take(height).enumerate() {
             let y = (main.top() as usize) as u16 + i as u16;
             for (j, char) in line.iter().skip(x_off).take(width).enumerate() {
                 let x = (main.left() as usize) as u16 + j as u16;
@@ -96,7 +97,7 @@ impl Widget for EditorView<'_, '_> {
 
                 // Selection
                 if let Some(selection) = &self.state.selection {
-                    let position = Position::new(x_off + i, y_off + j);
+                    let position = Index2::new(y_off + i, x_off + j);
                     if selection.within(&position) {
                         buf.get_mut(x, y).set_style(self.theme.selection_style);
                     }
@@ -109,4 +110,14 @@ impl Widget for EditorView<'_, '_> {
             s.content(self.state.mode.name()).render(foot, buf);
         }
     }
+}
+
+/// Retrieves the displayed cursor position based on the editor state.
+///
+/// Ensures that the displayed cursor position doesn't exceed the line length.
+/// If the internal cursor position exceeds the maximum column, clamp it to
+/// the maximum.
+fn displayed_cursor(state: &EditorState) -> Index2 {
+    let max_col = max_col(&state.lines, &state.cursor, state.mode);
+    Index2::new(state.cursor.row, state.cursor.col.min(max_col))
 }
