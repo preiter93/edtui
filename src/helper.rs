@@ -5,6 +5,9 @@ use crate::{state::selection::Selection, EditorMode, EditorState, Index2, Lines}
 /// Returns the maximum permissible column value. In normal or visual
 /// mode the limit is len() - 1, in insert mode the limit is len().
 pub(crate) fn max_col(lines: &Lines, index: &Index2, mode: EditorMode) -> usize {
+    if lines.len() == 0 {
+        return 0;
+    }
     if mode == EditorMode::Insert {
         lines.len_col(index.row)
     } else {
