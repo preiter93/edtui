@@ -1,3 +1,5 @@
+use crate::Index2;
+
 /// Represents the (x, y) offset of the editor's viewport.
 /// It represents the top-left local editor coordinate.
 #[derive(Default, Debug, Clone)]
@@ -18,30 +20,26 @@ impl ViewState {
     /// This method is used internally to modify the view's offset coordinates.
     /// The given cursor coordinates are assumed to be in the editors absolute
     /// coordinates.
-    pub(crate) fn update_offset(
-        &mut self,
-        size: (usize, usize),
-        cursor: (usize, usize),
-    ) -> (usize, usize) {
+    pub(crate) fn update_offset(&mut self, size: (usize, usize), cursor: Index2) -> (usize, usize) {
         let limit = (
             size.0.saturating_sub(1) + self.x,
             size.1.saturating_sub(1) + self.y,
         );
         // scroll left
-        if cursor.0 < self.x {
-            self.x = cursor.0;
+        if cursor.col < self.x {
+            self.x = cursor.col;
         }
         // scroll right
-        if cursor.0 >= limit.0 {
-            self.x += cursor.0.saturating_sub(limit.0);
+        if cursor.col >= limit.0 {
+            self.x += cursor.col.saturating_sub(limit.0);
         }
         // scroll up
-        if cursor.1 < self.y {
-            self.y = cursor.1;
+        if cursor.row < self.y {
+            self.y = cursor.row;
         }
         // scroll down
-        if cursor.1 >= limit.1 {
-            self.y += cursor.1.saturating_sub(limit.1);
+        if cursor.row >= limit.1 {
+            self.y += cursor.row.saturating_sub(limit.1);
         }
         (self.x, self.y)
     }
@@ -81,7 +79,7 @@ mod tests {
         scroll_up: {
             view: ViewState::new(0, 1),
             size: (1, 2),
-            cursor: (0, 0),
+            cursor: Index2::new(0, 0),
             expected: (0, 0)
         }
     );
@@ -93,7 +91,7 @@ mod tests {
         scroll_down: {
             view: ViewState::new(0, 0),
             size: (1, 2),
-            cursor: (0, 2),
+            cursor: Index2::new(2, 0),
             expected: (0, 1)
         }
     );
@@ -102,7 +100,7 @@ mod tests {
         scroll_left: {
             view: ViewState::new(1, 0),
             size: (2, 1),
-            cursor: (0, 0),
+            cursor: Index2::new(0, 0),
             expected: (0, 0)
         }
     );
@@ -111,7 +109,7 @@ mod tests {
         scroll_right: {
             view: ViewState::new(0, 0),
             size: (2, 1),
-            cursor: (2, 0),
+            cursor: Index2::new(0, 2),
             expected: (1, 0)
         }
     );
