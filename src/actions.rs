@@ -34,10 +34,10 @@ pub enum Action {
     LineBreak(LineBreak),
     AppendNewline(AppendNewline),
     InsertNewline(InsertNewline),
+    RemoveChar(RemoveChar),
     DeleteChar(DeleteChar),
     DeleteLine(DeleteLine),
     DeleteSelection(DeleteSelection),
-    Remove(RemoveChar),
     SelectBetween(SelectBetween),
     Undo(Undo),
     Redo(Redo),
@@ -75,7 +75,7 @@ pub struct Append;
 impl Execute for Append {
     fn execute(&mut self, state: &mut EditorState) {
         SwitchMode(EditorMode::Insert).execute(state);
-        state.cursor.col += 1;
+        MoveForward(1).execute(state);
     }
 }
 
@@ -124,6 +124,7 @@ impl Execute for Composed {
 
 #[cfg(test)]
 mod tests {
+    use crate::Index2;
     use crate::Lines;
 
     use super::*;
@@ -141,5 +142,20 @@ mod tests {
 
         SwitchMode(EditorMode::Visual).execute(&mut state);
         assert_eq!(state.mode, EditorMode::Visual);
+    }
+
+    #[test]
+    fn test_append() {
+        let mut state = test_state();
+
+        Append.execute(&mut state);
+        assert_eq!(state.mode, EditorMode::Insert);
+        assert_eq!(state.cursor, Index2::new(0, 1));
+
+        state.mode = EditorMode::Normal;
+        state.cursor = Index2::new(0, 11);
+        Append.execute(&mut state);
+        assert_eq!(state.mode, EditorMode::Insert);
+        assert_eq!(state.cursor, Index2::new(0, 12));
     }
 }
