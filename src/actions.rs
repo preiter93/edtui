@@ -3,13 +3,13 @@ pub mod insert;
 pub mod motion;
 pub mod select;
 use crate::clipboard::ClipboardTrait;
-use crate::helper::clamp_column;
+use crate::helper::{append_str, clamp_column};
 use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
 use enum_dispatch::enum_dispatch;
 
 pub use self::delete::{DeleteChar, DeleteLine, DeleteSelection, RemoveChar};
-pub use self::insert::{AppendNewline, InsertChar, InsertNewline, InsertString, LineBreak};
+pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
     MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
     MoveWordBackward, MoveWordForward,
@@ -31,7 +31,6 @@ pub enum Action {
     MoveToFirst(MoveToFirst),
     MoveToEnd(MoveToEnd),
     InsertChar(InsertChar),
-    InsertString(InsertString),
     LineBreak(LineBreak),
     AppendNewline(AppendNewline),
     InsertNewline(InsertNewline),
@@ -108,8 +107,8 @@ pub struct Paste;
 impl Execute for Paste {
     fn execute(&mut self, state: &mut EditorState) {
         clamp_column(state);
-        let text = state.clip.get_text();
-        InsertString(text).execute(state);
+        state.capture();
+        append_str(&mut state.lines, &mut state.cursor, &state.clip.get_text());
     }
 }
 
@@ -140,12 +139,15 @@ impl Execute for Composed {
 
 #[cfg(test)]
 mod tests {
+    use crate::clipboard::InternalClipboard;
     use crate::Index2;
     use crate::Lines;
 
     use super::*;
     fn test_state() -> EditorState {
-        EditorState::new(Lines::from("Hello World!\n\n123."))
+        let mut state = EditorState::new(Lines::from("Hello World!\n\n123."));
+        state.set_clipboard(InternalClipboard::default());
+        state
     }
 
     #[test]
@@ -173,5 +175,18 @@ mod tests {
         Append.execute(&mut state);
         assert_eq!(state.mode, EditorMode::Insert);
         assert_eq!(state.cursor, Index2::new(0, 12));
+    }
+
+    #[test]
+    fn test_copy_paste() {
+        let mut state = test_state();
+        let selection = Selection::new(Index2::new(0, 0), Index2::new(0, 2));
+        state.selection = Some(selection);
+
+        CopySelection.execute(&mut state);
+        Paste.execute(&mut state);
+
+        assert_eq!(state.cursor, Index2::new(0, 3));
+        assert_eq!(state.lines, Lines::from("HHelello World!\n\n123."));
     }
 }

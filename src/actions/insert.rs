@@ -1,7 +1,10 @@
 use jagged::index::RowIndex;
 
 use super::{Execute, SwitchMode};
-use crate::{EditorMode, EditorState, Index2, Lines};
+use crate::{
+    helper::{insert_char, line_break},
+    EditorMode, EditorState,
+};
 
 /// Inserts a single character at the current cursor position
 #[derive(Clone, Debug, Copy)]
@@ -10,30 +13,6 @@ pub struct InsertChar(pub char);
 impl Execute for InsertChar {
     fn execute(&mut self, state: &mut EditorState) {
         insert_char(&mut state.lines, &mut state.cursor, self.0);
-    }
-}
-
-fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char) {
-    if lines.is_empty() {
-        lines.push(Vec::new());
-    }
-    if ch == '\n' {
-        line_break(lines, index);
-    } else {
-        lines.insert(*index, ch);
-        index.col += 1;
-    }
-}
-
-/// Inserts a text at the current cursor position
-#[derive(Clone, Debug)]
-pub struct InsertString(pub String);
-
-impl Execute for InsertString {
-    fn execute(&mut self, state: &mut EditorState) {
-        for ch in self.0.chars() {
-            insert_char(&mut state.lines, &mut state.cursor, ch);
-        }
     }
 }
 
@@ -47,17 +26,6 @@ impl Execute for LineBreak {
             line_break(&mut state.lines, &mut state.cursor);
         }
     }
-}
-
-fn line_break(lines: &mut Lines, index: &mut Index2) {
-    if index.col == 0 {
-        lines.insert(RowIndex::new(index.row), vec![]);
-    } else {
-        let mut rest = lines.split_off(*index);
-        lines.append(&mut rest);
-    }
-    index.row += 1;
-    index.col = 0;
 }
 
 /// Appends a newline below the current cursor position
@@ -105,7 +73,7 @@ impl Execute for PushLine<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::Lines;
+    use crate::{Index2, Lines};
 
     use super::*;
     fn test_state() -> EditorState {
@@ -124,16 +92,6 @@ mod tests {
         InsertChar('!').execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 14));
         assert_eq!(state.lines, Lines::from("!Hello World!!\n\n123."));
-    }
-
-    #[test]
-    fn test_insert_str() {
-        let mut state = test_state();
-
-        state.cursor = Index2::new(0, 5);
-        InsertString(String::from(",\nx")).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(1, 1));
-        assert_eq!(state.lines, Lines::from("Hello,\nx World!\n\n123."));
     }
 
     #[test]
