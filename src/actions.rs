@@ -107,6 +107,7 @@ pub struct Paste;
 
 impl Execute for Paste {
     fn execute(&mut self, state: &mut EditorState) {
+        clamp_column(state);
         let text = state.clip.get_text();
         InsertString(text).execute(state);
     }
