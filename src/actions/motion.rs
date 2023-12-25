@@ -1,6 +1,6 @@
 use super::Execute;
 use crate::{
-    helper::{clamp_column, max_col, max_row, set_selection, skip_whitespace, skip_whitespace_rev},
+    helper::{max_col, max_row, set_selection, skip_whitespace, skip_whitespace_rev},
     EditorMode, EditorState,
 };
 
@@ -48,7 +48,6 @@ impl Execute for MoveUp {
                 break;
             }
             state.cursor.row -= 1;
-            clamp_column(state);
         }
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
@@ -66,7 +65,6 @@ impl Execute for MoveDown {
                 break;
             }
             state.cursor.row += 1;
-            clamp_column(state);
         }
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
@@ -240,13 +238,13 @@ mod tests {
         state.cursor = Index2::new(0, 6);
 
         MoveDown(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(1, 0));
+        assert_eq!(state.cursor, Index2::new(1, 6));
 
         MoveDown(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(2, 0));
+        assert_eq!(state.cursor, Index2::new(2, 6));
 
         MoveDown(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(2, 0));
+        assert_eq!(state.cursor, Index2::new(2, 6));
     }
 
     #[test]
@@ -255,13 +253,13 @@ mod tests {
         state.cursor = Index2::new(2, 2);
 
         MoveUp(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(1, 0));
+        assert_eq!(state.cursor, Index2::new(1, 2));
 
         MoveUp(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.cursor, Index2::new(0, 2));
 
         MoveUp(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.cursor, Index2::new(0, 2));
     }
 
     #[test]

@@ -62,7 +62,9 @@ impl Execute for SwitchMode {
             EditorMode::Visual => {
                 state.selection = Some(Selection::new(state.cursor, state.cursor));
             }
-            EditorMode::Insert => {}
+            EditorMode::Insert => {
+                clamp_column(state);
+            }
         }
         state.mode = self.0;
     }

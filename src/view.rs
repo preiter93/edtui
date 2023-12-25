@@ -1,7 +1,7 @@
 pub mod status_line;
 pub mod theme;
 use self::theme::EditorTheme;
-use crate::{state::EditorState, Index2};
+use crate::{helper::max_col, state::EditorState, Index2};
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::StatusLine;
 
@@ -67,16 +67,18 @@ impl Widget for EditorView<'_, '_> {
         let width = main.width as usize;
         let height = main.height as usize;
 
+        // Retrieve the displayed cursor position. The column of the displayed
+        // cursor is clamped to the maximum line length.
+        let cursor = displayed_cursor(&self.state);
+
         // Update the view offset. Requuires the screen size and the position
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let size = (width, height);
-        let cursor = (self.state.cursor.col, self.state.cursor.row);
         let (x_off, y_off) = self.state.view.update_offset(size, cursor);
 
         // Rendering of the cursor. Cursor is not rendered in the loop below,
         // as the cursor may be outside the text in input mode.
-        let cursor = &self.state.cursor;
         let x_cursor = (main.left() as usize) + width.min(cursor.col.saturating_sub(x_off));
         let y_cursor = (main.top() as usize) + cursor.row.saturating_sub(y_off);
         buf.get_mut(x_cursor as u16, y_cursor as u16)
@@ -107,4 +109,14 @@ impl Widget for EditorView<'_, '_> {
             s.content(self.state.mode.name()).render(foot, buf);
         }
     }
+}
+
+/// Retrieves the displayed cursor position based on the editor state.
+///
+/// Ensures that the displayed cursor position doesn't exceed the line length.
+/// If the internal cursor position exceeds the maximum column, clamp it to
+/// the maximum.
+fn displayed_cursor(state: &EditorState) -> Index2 {
+    let max_col = max_col(&state.lines, &state.cursor, state.mode);
+    Index2::new(state.cursor.row, state.cursor.col.min(max_col))
 }
