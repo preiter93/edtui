@@ -1,4 +1,7 @@
-use std::{cell::RefCell, error::Error, rc::Rc};
+#[cfg(feature = "arboard")]
+mod arboard;
+
+use std::{cell::RefCell, rc::Rc};
 
 /// Trait defining clipboard operations.
 pub trait ClipboardTrait {
@@ -42,25 +45,6 @@ impl Clipboard {
     pub fn new(clipboard: impl ClipboardTrait + 'static) -> Self {
         Clipboard(Rc::new(RefCell::new(clipboard)))
     }
-
-    /// Creates a new `Clipboard` with `InternalClipboard`.
-    /// The internal clipboard does not capture the systems clipboard.
-    #[must_use]
-    pub fn internal() -> Self {
-        Self::new(InternalClipboard::default())
-    }
-
-    /// Creates a new `Clipboard` with `ArboardClipboard`.
-    /// The arboard clipboard captures the systems clipboard.
-    /// Falls back to internal clipboard if the arboard clipboard
-    /// could not be instantiated
-    #[must_use]
-    pub fn arboard() -> Self {
-        if let Ok(clipboard) = ArboardClipboard::new() {
-            return Self::new(clipboard);
-        }
-        Self::internal()
-    }
 }
 
 impl ClipboardTrait for Clipboard {
@@ -86,29 +70,11 @@ impl ClipboardTrait for InternalClipboard {
     }
 }
 
-#[cfg(feature = "arboard")]
-pub struct ArboardClipboard {
-    inner: arboard::Clipboard,
-}
-
-#[cfg(feature = "arboard")]
-impl ArboardClipboard {
-    /// Instantiates a new arboard clipboard.
-    ///
-    /// ## Errors
-    /// - Platform not supported.
-    pub fn new() -> Result<Self, Box<dyn Error>> {
-        let inner = arboard::Clipboard::new()?;
-        Ok(Self { inner })
-    }
-}
-
-impl ClipboardTrait for ArboardClipboard {
-    fn set_text(&mut self, text: String) {
-        let _ = self.inner.set_text(text);
-    }
-
-    fn get_text(&mut self) -> String {
-        self.inner.get_text().unwrap_or_default()
+#[cfg(not(feature = "arboard"))]
+impl Default for Clipboard {
+    /// Creates a new `Clipboard` with `InternalClipboard`.
+    /// The internal clipboard does not capture the systems clipboard.
+    fn default() -> Self {
+        Self::new(InternalClipboard::default())
     }
 }
