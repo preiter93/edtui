@@ -1,6 +1,13 @@
 Released
 --------
 
+0.2.1 - ?
+===================
+
+- Fix bug in WordBackward action
+- Fix bug in RemoveChar action
+- Fix bug in DeleteSelection action
+ 
 0.2.0 - 25 December 2023
 ===================
 
