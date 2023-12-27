@@ -28,6 +28,7 @@ impl Term {
         std::panic::set_hook(Box::new(move |panic| {
             let _ = Self::stop();
             original_hook(panic);
+            eprint!("error: {panic}");
         }));
 
         Ok(Self { terminal })
