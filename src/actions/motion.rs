@@ -80,9 +80,9 @@ pub struct MoveWordForward(pub usize);
 
 impl Execute for MoveWordForward {
     fn execute(&mut self, state: &mut EditorState) {
-        fn move_word(state: &mut EditorState) {
-            let mut index = state.cursor;
+        fn move_word_right(state: &mut EditorState) {
             let lines = &state.lines;
+            let mut index = state.cursor;
             let first_char = state.lines.get(index);
             let mut iter = state.lines.iter().from(index);
             iter.next();
@@ -103,8 +103,12 @@ impl Execute for MoveWordForward {
             state.cursor = index;
         }
 
+        if state.lines.is_empty() {
+            return;
+        }
+
         for _ in 0..self.0 {
-            move_word(state);
+            move_word_right(state);
         }
     }
 }
@@ -117,20 +121,22 @@ pub struct MoveWordBackward(pub usize);
 
 impl Execute for MoveWordBackward {
     fn execute(&mut self, state: &mut EditorState) {
-        fn move_word(state: &mut EditorState) {
-            let mut index = state.cursor;
+        fn move_word_left(state: &mut EditorState) {
             let lines = &state.lines;
-            if index.col == 0 {
-                index.row = index.row.saturating_sub(1);
-                index.col = lines.len_col(index.row).saturating_sub(1);
-                state.cursor = index;
+            let mut index = state.cursor;
+            if index.row == 0 && index.col == 0 {
                 return;
             }
+
+            if index.col == 0 {
+                index.row = index.row.saturating_sub(1);
+                state.cursor.col = lines.len_col(index.row).saturating_sub(1);
+                state.cursor.row = index.row;
+                return;
+            }
+
             index.col = index.col.saturating_sub(1);
-
-            // Skip whitespaces to the left
             skip_whitespace_rev(lines, &mut index);
-
             let first_char = lines.get(index);
             for (val, i) in lines.iter().from(index).rev() {
                 // Break loop if it reaches the start of the line
@@ -147,8 +153,12 @@ impl Execute for MoveWordBackward {
             state.cursor = index;
         }
 
+        if state.lines.is_empty() {
+            return;
+        }
+
         for _ in 0..self.0 {
-            move_word(state);
+            move_word_left(state);
         }
     }
 }
@@ -298,6 +308,9 @@ mod tests {
 
         MoveWordBackward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 6));
+
+        MoveWordBackward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
 
         MoveWordBackward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 0));
