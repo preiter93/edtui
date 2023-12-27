@@ -1,5 +1,5 @@
 use crossterm::event::{self, Event, KeyCode};
-use edtui::{EditorState, Input};
+use edtui::{EditorState, Input, Lines};
 use root::Root;
 use std::error::Error;
 use term::Term;
@@ -25,11 +25,10 @@ pub struct AppContext {
 impl AppContext {
     pub fn new() -> Self {
         Self {
-            //             editor_state: EditorState::new(Lines::from(
-            //                 "\"Hello\",
-            // This is a light-weight vim inspired TUI editor.",
-            //             )),
-            editor_state: EditorState::default(),
+            editor_state: EditorState::new(Lines::from(
+                "\"Hello\",
+This is a light-weight vim inspired TUI editor.",
+            )),
             editor_input: Input::default(),
         }
     }
