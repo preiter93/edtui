@@ -68,6 +68,13 @@ impl<'a> EditorTheme<'a> {
         self
     }
 
+    /// Hides the cursors.
+    #[must_use]
+    pub fn hide_cursor(mut self) -> Self {
+        self.cursor_style = self.base;
+        self
+    }
+
     /// This method allows you to customize the style of the selection of
     /// the Editor in visual mode.
     #[must_use]
@@ -78,10 +85,17 @@ impl<'a> EditorTheme<'a> {
 
     /// This method allows you to customize the style of the [`StatusLine`]
     /// of the Editor. See [`StatusLine`] on how to modify its appearance.
-    /// If None, no status line is shown.
+    /// Use `hide_status_line` to hide the status line.
     #[must_use]
-    pub fn status_line(mut self, status_line: Option<StatusLine>) -> Self {
-        self.status_line = status_line;
+    pub fn status_line(mut self, status_line: StatusLine) -> Self {
+        self.status_line = Some(status_line);
+        self
+    }
+
+    /// Hides the status lilne.
+    #[must_use]
+    pub fn hide_status_line(mut self) -> Self {
+        self.status_line = None;
         self
     }
 }
