@@ -55,7 +55,7 @@ impl<'a> Theme<'a> {
                         .border_type(BorderType::Thick),
                 )
                 .base(EditorTheme::default().base.bold())
-                .status_line(None),
+                .hide_status_line(),
         }
     }
 }

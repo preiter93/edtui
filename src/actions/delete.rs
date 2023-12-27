@@ -1,7 +1,9 @@
 use jagged::index::RowIndex;
 
 use super::Execute;
-use crate::{clipboard::ClipboardTrait, EditorMode, EditorState, Index2, Lines};
+use crate::{
+    clipboard::ClipboardTrait, helper::clamp_column, EditorMode, EditorState, Index2, Lines,
+};
 
 /// Deletes a character at the current cursor position. Does not
 /// move the cursor position unless it is at the end of the line
@@ -10,6 +12,7 @@ pub struct RemoveChar(pub usize);
 
 impl Execute for RemoveChar {
     fn execute(&mut self, state: &mut EditorState) {
+        clamp_column(state);
         state.capture();
         for _ in 0..self.0 {
             let lines = &mut state.lines;
