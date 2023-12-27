@@ -57,17 +57,15 @@ pub struct SwitchMode(pub EditorMode);
 
 impl Execute for SwitchMode {
     fn execute(&mut self, state: &mut EditorState) {
+        clamp_column(state);
         match self.0 {
             EditorMode::Normal => {
                 state.selection = None;
-                clamp_column(state);
             }
             EditorMode::Visual => {
                 state.selection = Some(Selection::new(state.cursor, state.cursor));
             }
-            EditorMode::Insert => {
-                clamp_column(state);
-            }
+            EditorMode::Insert => {}
         }
         state.mode = self.0;
     }

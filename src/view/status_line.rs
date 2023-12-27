@@ -11,7 +11,7 @@ use super::theme::{DARK_PURPLE, LIGHT_PURPLE};
 pub struct StatusLine {
     /// The displayed text in the status line. Used internally to
     /// display the editor mode.
-    text: String,
+    content: String,
     /// The style for the content of the sidebar
     style_text: Style,
     /// The style for the line itself
@@ -26,13 +26,14 @@ impl Default for StatusLine {
     /// This constructor initializes with default style.
     fn default() -> Self {
         Self {
-            text: String::new(),
+            content: String::new(),
             style_text: Style::default().fg(Color::White).bg(DARK_PURPLE).bold(),
             style_line: Style::default().bg(LIGHT_PURPLE),
             align_left: true,
         }
     }
 }
+
 impl StatusLine {
     /// Overwrite the style for the status lines content.
     ///
@@ -58,8 +59,8 @@ impl StatusLine {
     ///
     /// This method is used internally to dynamically set the editors mode.
     #[must_use]
-    pub(crate) fn content(mut self, content: String) -> Self {
-        self.text = content;
+    pub fn content<S: Into<String>>(mut self, content: S) -> Self {
+        self.content = content.into();
         self
     }
 
@@ -87,7 +88,7 @@ impl Widget for StatusLine {
             .split(area);
 
         // Build the content and block widgets
-        let text = Paragraph::new(Line::from(Span::styled(self.text, self.style_text)))
+        let text = Paragraph::new(Line::from(Span::styled(self.content, self.style_text)))
             .alignment(Alignment::Center)
             .style(self.style_text);
         let block = Block::default().style(self.style_line);
