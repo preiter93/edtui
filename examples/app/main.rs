@@ -26,8 +26,8 @@ impl AppContext {
     pub fn new() -> Self {
         Self {
             editor_state: EditorState::new(Lines::from(
-                "\"Hello\",
-This is a light-weight vim inspired TUI editor.",
+                "EdTUI is a light-weight vim inspired TUI editor for the RataTUI ecosystem.
+Enjoy using it!",
             )),
             editor_input: Input::default(),
         }
