@@ -1,7 +1,7 @@
 Released
 --------
 
-0.2.1 - ?
+0.2.1 - 29 December 2023
 ===================
 
 - Fix bug in WordBackward action
