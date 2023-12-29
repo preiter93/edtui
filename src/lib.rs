@@ -40,6 +40,8 @@
 //! ### Roadmap
 //!
 //! - [x] Clipboard
+//! - [ ] Search
+//! - [ ] Vims `f`/`t` go to first
 //! - [ ] Support termwiz and termion
 //! - [ ] Display line numbers
 //! - [ ] Remap keybindings
