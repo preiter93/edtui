@@ -24,7 +24,7 @@ pub fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
 
 /// Appends a string into the lines data next to a given `index`.
 pub fn append_str(lines: &mut Lines, index: &mut Index2, text: &str) {
-    if lines.len_col(index.row) > 0 {
+    if lines.len() > 0 && lines.len_col(index.row) > 0 {
         index.col += 1;
     }
     for ch in text.chars() {
