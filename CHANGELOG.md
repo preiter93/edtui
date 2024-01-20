@@ -4,6 +4,7 @@ Unreleased
 0.2.2
 ===================
 - Fix bug in append string when no data was present
+- Update default color scheme
 
 Released
 --------

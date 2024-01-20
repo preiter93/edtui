@@ -26,12 +26,8 @@ impl Default for EditorTheme<'_> {
         Self {
             base: Style::default().bg(DARK_BLUE),
             block: None,
-            cursor_style: Style::default()
-                .bg(ratatui::style::Color::White)
-                .fg(ratatui::style::Color::Black),
-            selection_style: Style::default()
-                .bg(ratatui::style::Color::Indexed(220))
-                .fg(ratatui::style::Color::Black),
+            cursor_style: Style::default().bg(WHITE).fg(DARK_BLUE),
+            selection_style: Style::default().bg(YELLOW).fg(DARK_BLUE),
             status_line: Some(StatusLine::default()),
         }
     }
@@ -100,6 +96,18 @@ impl<'a> EditorTheme<'a> {
     }
 }
 
-pub(crate) const DARK_BLUE: Color = Color::Rgb(16, 24, 48);
-pub(crate) const DARK_PURPLE: Color = Color::Indexed(55);
-pub(crate) const LIGHT_PURPLE: Color = Color::Indexed(93);
+// Tailwind slate c100
+pub(crate) const LIGHT_GRAY: Color = Color::Rgb(248, 250, 252);
+
+// Tailwind slate c50
+pub(crate) const WHITE: Color = Color::Rgb(248, 250, 252);
+
+// Tailwind slate c900
+pub(crate) const DARK_BLUE: Color = Color::Rgb(15, 23, 42);
+
+// Tailwind purple c700 & c900
+pub(crate) const LIGHT_PURPLE: Color = Color::Rgb(126, 34, 206);
+pub(crate) const DARK_PURPLE: Color = Color::Rgb(88, 28, 135);
+
+// Tailwind yellow c400
+pub(crate) const YELLOW: Color = Color::Rgb(250, 204, 21);
