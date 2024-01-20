@@ -4,7 +4,7 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
 };
 
-use super::theme::{DARK_PURPLE, LIGHT_PURPLE};
+use super::theme::{DARK_PURPLE, LIGHT_GRAY, LIGHT_PURPLE};
 
 /// An optional status line for Editor.
 #[derive(Debug, Clone)]
@@ -27,8 +27,8 @@ impl Default for StatusLine {
     fn default() -> Self {
         Self {
             content: String::new(),
-            style_text: Style::default().fg(Color::White).bg(DARK_PURPLE).bold(),
-            style_line: Style::default().bg(LIGHT_PURPLE),
+            style_text: Style::default().fg(LIGHT_GRAY).bg(LIGHT_PURPLE).bold(),
+            style_line: Style::default().bg(DARK_PURPLE),
             align_left: true,
         }
     }
@@ -88,7 +88,7 @@ impl Widget for StatusLine {
             .split(area);
 
         // Build the content and block widgets
-        let text = Paragraph::new(Line::from(Span::styled(self.content, self.style_text)))
+        let text = Paragraph::new(Line::from(Span::from(self.content)))
             .alignment(Alignment::Center)
             .style(self.style_text);
         let block = Block::default().style(self.style_line);
