@@ -17,7 +17,7 @@ pub use self::motion::{
     MoveWordBackward, MoveWordForward,
 };
 pub use self::search::{
-    AppendToSearch, ClearSearch, DeleteFromSearch, FindFirst, FindNext, FindPrevious,
+    AppendCharToSearch, ClearSearch, FindFirst, FindNext, FindPrevious, RemoveCharFromSearch,
 };
 pub use self::select::{CopySelection, SelectBetween};
 
@@ -53,8 +53,8 @@ pub enum Action {
     FindNext(FindNext),
     FindPrevious(FindPrevious),
     ClearSearch(ClearSearch),
-    AppendToSearch(AppendToSearch),
-    DeleteFromSearch(DeleteFromSearch),
+    AppendCharToSearch(AppendCharToSearch),
+    RemoveCharFromSearch(RemoveCharFromSearch),
 }
 
 #[enum_dispatch]
