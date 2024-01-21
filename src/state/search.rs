@@ -6,9 +6,9 @@ use crate::Lines;
 /// matched indices, and selected index.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub(crate) struct SearchState {
+    pub(crate) start_cursor: Index2,
     pub(crate) pattern: String,
     matches: Vec<Index2>,
-    start_cursor: Index2,
     selected_index: Option<usize>,
 }
 
@@ -18,9 +18,16 @@ impl SearchState {
         self.pattern.len()
     }
 
-    /// Appends a character to the search pattern.
-    pub(crate) fn push_char(&mut self, ch: char) {
-        self.pattern.push(ch);
+    /// Starts a search by setting the start index and clearing all previous state.
+    pub(crate) fn start(&mut self, start_cursor: Index2) {
+        self.clear();
+        self.start_cursor = start_cursor;
+    }
+
+    /// Clears both the search pattern and matched indices.
+    pub(crate) fn clear(&mut self) {
+        self.pattern.clear();
+        self.matches.clear();
     }
 
     /// Triggers a search based on the current pattern in the provided text.
@@ -32,15 +39,14 @@ impl SearchState {
             .collect();
     }
 
+    /// Appends a character to the search pattern.
+    pub(crate) fn push_char(&mut self, ch: char) {
+        self.pattern.push(ch);
+    }
+
     /// Removes the last character from the search pattern.
     pub(crate) fn remove_char(&mut self) {
         self.pattern.pop();
-    }
-
-    /// Clears both the search pattern and matched indices.
-    pub(crate) fn clear(&mut self) {
-        self.pattern.clear();
-        self.matches.clear();
     }
 
     /// Finds and returns the next matched index after the selected index.

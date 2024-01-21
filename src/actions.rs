@@ -16,8 +16,9 @@ pub use self::motion::{
     MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
     MoveWordBackward, MoveWordForward,
 };
+use self::search::StartSearch;
 pub use self::search::{
-    AppendCharToSearch, ClearSearch, FindFirst, FindNext, FindPrevious, RemoveCharFromSearch,
+    AppendCharToSearch, FindNext, FindPrevious, RemoveCharFromSearch, StopSearch, TriggerSearch,
 };
 pub use self::select::{CopySelection, SelectBetween};
 
@@ -49,10 +50,11 @@ pub enum Action {
     Paste(Paste),
     CopySelection(CopySelection),
     Composed(Composed),
-    FindFirst(FindFirst),
+    StartSearch(StartSearch),
+    StopSearch(StopSearch),
+    TriggerSearch(TriggerSearch),
     FindNext(FindNext),
     FindPrevious(FindPrevious),
-    ClearSearch(ClearSearch),
     AppendCharToSearch(AppendCharToSearch),
     RemoveCharFromSearch(RemoveCharFromSearch),
 }
