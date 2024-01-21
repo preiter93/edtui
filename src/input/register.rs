@@ -101,4 +101,11 @@ impl RegisterKey {
     {
         Self::new(key.into(), EditorMode::Insert)
     }
+
+    pub fn s<T>(key: T) -> Self
+    where
+        T: Into<Vec<Key>>,
+    {
+        Self::new(key.into(), EditorMode::Search)
+    }
 }
