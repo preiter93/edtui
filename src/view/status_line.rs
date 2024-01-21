@@ -57,12 +57,20 @@ impl StatusLine {
         self
     }
 
-    /// Overwrite the content for the status line.
+    /// Overwrite the mode content for the status line.
     ///
     /// This method is used internally to dynamically set the editors mode.
     #[must_use]
-    pub fn content<S: Into<String>>(mut self, mode: S, search: Option<S>) -> Self {
+    pub fn mode<S: Into<String>>(mut self, mode: S) -> Self {
         self.mode = mode.into();
+        self
+    }
+
+    /// Overwrite the search content for the status line.
+    ///
+    /// This method is used internally to dynamically set the editors mode.
+    #[must_use]
+    pub fn search<S: Into<String>>(mut self, search: Option<S>) -> Self {
         self.search = search.map(Into::into);
         self
     }

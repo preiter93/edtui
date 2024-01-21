@@ -3,11 +3,11 @@ pub mod key;
 pub mod register;
 
 use crate::actions::{
-    Append, AppendNewline, AppendToSearch, ClearSearch, Composed, CopySelection, DeleteChar,
-    DeleteFromSearch, DeleteLine, DeleteSelection, Execute, FindFirst, FindNext, FindPrevious,
-    InsertChar, InsertNewline, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd,
-    MoveToFirst, MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar,
-    SelectBetween, SwitchMode, Undo,
+    Append, AppendCharToSearch, AppendNewline, ClearSearch, Composed, CopySelection, DeleteChar,
+    DeleteLine, DeleteSelection, Execute, FindFirst, FindNext, FindPrevious, InsertChar,
+    InsertNewline, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst,
+    MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar,
+    RemoveCharFromSearch, SelectBetween, SwitchMode, Undo,
 };
 use crate::{EditorMode, EditorState};
 
@@ -60,7 +60,7 @@ impl Default for Input {
         // Clear search
         r.insert(RegisterKey::s(vec![Key::Esc]), ClearSearch);
         // Delete last character from search
-        r.insert(RegisterKey::s(vec![Key::Backspace]), DeleteFromSearch);
+        r.insert(RegisterKey::s(vec![Key::Backspace]), RemoveCharFromSearch);
 
         // Go into insert mode and move one char forward
         r.insert(RegisterKey::n(vec![Key::Char('a')]), Append);
@@ -166,7 +166,7 @@ impl Input {
             // Always insert characters in insert mode
             Key::Char(c) if mode == EditorMode::Insert => InsertChar(c).execute(state),
             // Always add characters to search in search mode
-            Key::Char(c) if mode == EditorMode::Search => AppendToSearch(c).execute(state),
+            Key::Char(c) if mode == EditorMode::Search => AppendCharToSearch(c).execute(state),
             // Else lookup an action from the register
             _ => {
                 if let Some(mut action) = self.register.get(key.into(), mode) {
