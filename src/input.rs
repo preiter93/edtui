@@ -2,11 +2,13 @@
 pub mod key;
 pub mod register;
 
+use crate::actions::search::StartSearch;
 use crate::actions::{
-    Append, AppendNewline, Composed, CopySelection, DeleteChar, DeleteLine, DeleteSelection,
-    Execute, InsertChar, InsertNewline, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd,
-    MoveToFirst, MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar,
-    SelectBetween, SwitchMode, Undo,
+    Append, AppendCharToSearch, AppendNewline, Composed, CopySelection, DeleteChar, DeleteLine,
+    DeleteSelection, Execute, FindNext, FindPrevious, InsertChar, InsertNewline, LineBreak,
+    MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
+    MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch,
+    SelectBetween, StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 
@@ -44,6 +46,19 @@ impl Default for Input {
             RegisterKey::n(vec![Key::Char('v')]),
             SwitchMode(EditorMode::Visual),
         );
+
+        // Goes into search mode and starts of a new search.
+        r.insert(RegisterKey::n(vec![Key::Char('/')]), StartSearch);
+        // Trigger initial search
+        r.insert(RegisterKey::s(vec![Key::Enter]), TriggerSearch);
+        // Find next
+        r.insert(RegisterKey::n(vec![Key::Char('n')]), FindNext);
+        // Find previous
+        r.insert(RegisterKey::n(vec![Key::Char('N')]), FindPrevious);
+        // Clear search
+        r.insert(RegisterKey::s(vec![Key::Esc]), StopSearch);
+        // Delete last character from search
+        r.insert(RegisterKey::s(vec![Key::Backspace]), RemoveCharFromSearch);
 
         // Go into insert mode and move one char forward
         r.insert(RegisterKey::n(vec![Key::Char('a')]), Append);
@@ -148,6 +163,8 @@ impl Input {
         match key.into() {
             // Always insert characters in insert mode
             Key::Char(c) if mode == EditorMode::Insert => InsertChar(c).execute(state),
+            // Always add characters to search in search mode
+            Key::Char(c) if mode == EditorMode::Search => AppendCharToSearch(c).execute(state),
             // Else lookup an action from the register
             _ => {
                 if let Some(mut action) = self.register.get(key.into(), mode) {

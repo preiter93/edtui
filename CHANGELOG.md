@@ -5,6 +5,8 @@ Unreleased
 ===================
 - Fix bug in append string when no data was present
 - Update default color scheme
+- Add search functionality. Trigger search via '/'.
+  - Small breaking change in StatusLine widget. Replace 'content()' with 'mode()'.
 
 Released
 --------

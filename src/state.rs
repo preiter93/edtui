@@ -1,9 +1,11 @@
 //! The editors state
 pub mod mode;
+mod search;
 pub mod selection;
 mod undo;
 mod view;
 
+use self::search::SearchState;
 use self::view::ViewState;
 use self::{mode::EditorMode, selection::Selection, undo::Stack};
 use crate::clipboard::{Clipboard, ClipboardTrait};
@@ -26,6 +28,9 @@ pub struct EditorState {
 
     /// Internal view state of the editor.
     pub(crate) view: ViewState,
+
+    /// State holding the search results in search mode.
+    pub(crate) search: SearchState,
 
     /// Stack for undo operations.
     pub(crate) undo: Stack,
@@ -62,6 +67,7 @@ impl EditorState {
             mode: EditorMode::Normal,
             selection: None,
             view: ViewState::default(),
+            search: SearchState::default(),
             undo: Stack::new(),
             redo: Stack::new(),
             clip: Clipboard::default(),

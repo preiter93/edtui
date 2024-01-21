@@ -2,6 +2,7 @@
 pub mod delete;
 pub mod insert;
 pub mod motion;
+pub mod search;
 pub mod select;
 use crate::clipboard::ClipboardTrait;
 use crate::helper::{append_str, clamp_column};
@@ -14,6 +15,10 @@ pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
     MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
     MoveWordBackward, MoveWordForward,
+};
+use self::search::StartSearch;
+pub use self::search::{
+    AppendCharToSearch, FindNext, FindPrevious, RemoveCharFromSearch, StopSearch, TriggerSearch,
 };
 pub use self::select::{CopySelection, SelectBetween};
 
@@ -45,6 +50,13 @@ pub enum Action {
     Paste(Paste),
     CopySelection(CopySelection),
     Composed(Composed),
+    StartSearch(StartSearch),
+    StopSearch(StopSearch),
+    TriggerSearch(TriggerSearch),
+    FindNext(FindNext),
+    FindPrevious(FindPrevious),
+    AppendCharToSearch(AppendCharToSearch),
+    RemoveCharFromSearch(RemoveCharFromSearch),
 }
 
 #[enum_dispatch]
@@ -65,7 +77,7 @@ impl Execute for SwitchMode {
             EditorMode::Visual => {
                 state.selection = Some(Selection::new(state.cursor, state.cursor));
             }
-            EditorMode::Insert => {}
+            EditorMode::Insert | EditorMode::Search => {}
         }
         state.mode = self.0;
     }

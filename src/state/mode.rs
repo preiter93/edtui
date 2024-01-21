@@ -5,6 +5,7 @@ pub enum EditorMode {
     Normal,
     Insert,
     Visual,
+    Search,
 }
 
 impl EditorMode {
@@ -15,6 +16,7 @@ impl EditorMode {
             Self::Normal => "Normal".to_string(),
             Self::Insert => "Insert".to_string(),
             Self::Visual => "Visual".to_string(),
+            Self::Search => "Search".to_string(),
         }
     }
 }

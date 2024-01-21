@@ -2,7 +2,7 @@
 pub mod status_line;
 pub mod theme;
 use self::theme::EditorTheme;
-use crate::{helper::max_col, state::EditorState, Index2};
+use crate::{helper::max_col, state::EditorState, EditorMode, Index2};
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::StatusLine;
 
@@ -107,7 +107,13 @@ impl Widget for EditorView<'_, '_> {
 
         // Render the status line.
         if let Some(s) = self.theme.status_line {
-            s.content(self.state.mode.name()).render(foot, buf);
+            s.mode(self.state.mode.name())
+                .search(if self.state.mode == EditorMode::Search {
+                    Some(self.state.search.pattern.clone())
+                } else {
+                    None
+                })
+                .render(foot, buf);
         }
     }
 }
