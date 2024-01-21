@@ -2,12 +2,13 @@
 pub mod key;
 pub mod register;
 
+use crate::actions::search::StartSearch;
 use crate::actions::{
-    Append, AppendCharToSearch, AppendNewline, ClearSearch, Composed, CopySelection, DeleteChar,
-    DeleteLine, DeleteSelection, Execute, FindFirst, FindNext, FindPrevious, InsertChar,
-    InsertNewline, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst,
-    MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar,
-    RemoveCharFromSearch, SelectBetween, SwitchMode, Undo,
+    Append, AppendCharToSearch, AppendNewline, Composed, CopySelection, DeleteChar, DeleteLine,
+    DeleteSelection, Execute, FindNext, FindPrevious, InsertChar, InsertNewline, LineBreak,
+    MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
+    MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch,
+    SelectBetween, StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 
@@ -46,19 +47,16 @@ impl Default for Input {
             SwitchMode(EditorMode::Visual),
         );
 
-        // Go into search mode
-        r.insert(
-            RegisterKey::n(vec![Key::Char('/')]),
-            Composed::new(ClearSearch).chain(SwitchMode(EditorMode::Search)),
-        );
+        // Goes into search mode and starts of a new search.
+        r.insert(RegisterKey::n(vec![Key::Char('/')]), StartSearch);
         // Trigger initial search
-        r.insert(RegisterKey::s(vec![Key::Enter]), FindFirst);
+        r.insert(RegisterKey::s(vec![Key::Enter]), TriggerSearch);
         // Find next
         r.insert(RegisterKey::n(vec![Key::Char('n')]), FindNext);
         // Find previous
         r.insert(RegisterKey::n(vec![Key::Char('N')]), FindPrevious);
         // Clear search
-        r.insert(RegisterKey::s(vec![Key::Esc]), ClearSearch);
+        r.insert(RegisterKey::s(vec![Key::Esc]), StopSearch);
         // Delete last character from search
         r.insert(RegisterKey::s(vec![Key::Backspace]), RemoveCharFromSearch);
 

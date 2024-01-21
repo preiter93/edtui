@@ -12,6 +12,9 @@ impl Execute for AppendCharToSearch {
     fn execute(&mut self, state: &mut EditorState) {
         state.search.push_char(self.0);
         state.search.trigger_search(&state.lines);
+        if let Some(index) = state.search.find_first() {
+            state.cursor = *index;
+        }
     }
 }
 
@@ -30,9 +33,9 @@ impl Execute for RemoveCharFromSearch {
 
 /// Command to find the first match of the search pattern behind the last cursor position.
 #[derive(Clone, Debug)]
-pub struct FindFirst;
+pub struct TriggerSearch;
 
-impl Execute for FindFirst {
+impl Execute for TriggerSearch {
     /// Executes the command, finding the first match of the search pattern behind
     /// the last cursor position and setting the cursor to the found match.
     /// Switches to normal mode.
@@ -74,14 +77,26 @@ impl Execute for FindPrevious {
     }
 }
 
+/// Command to clear to start of the search and switch into search mode.
+#[derive(Clone, Debug)]
+pub struct StartSearch;
+
+impl Execute for StartSearch {
+    /// Executes the command, starting the search state and switching to search mode.
+    fn execute(&mut self, state: &mut EditorState) {
+        state.mode = EditorMode::Search;
+        state.search.start(state.cursor);
+    }
+}
 /// Command to clear the search state and switch to normal mode.
 #[derive(Clone, Debug)]
-pub struct ClearSearch;
+pub struct StopSearch;
 
-impl Execute for ClearSearch {
+impl Execute for StopSearch {
     /// Executes the command, clearing the search state and switching to normal mode.
     fn execute(&mut self, state: &mut EditorState) {
         state.mode = EditorMode::Normal;
         state.search.clear();
+        state.cursor = state.search.start_cursor;
     }
 }
