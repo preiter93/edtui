@@ -7,6 +7,7 @@ Unreleased
 - Update default color scheme
 - Add search functionality. Trigger search via '/'.
   - Small breaking change in StatusLine widget. Replace 'content()' with 'mode()'.
+- Bugfix: Fix panic in some cases when deleting selection
 
 Released
 --------
