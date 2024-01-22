@@ -97,7 +97,9 @@ impl Execute for DeleteSelection {
 
             // Delete selection
             state.cursor = selection.end();
-            state.cursor.col += 1;
+            if state.lines.len_col(state.cursor.row) > 0 {
+                state.cursor.col += 1;
+            }
             while state.cursor != selection.start() {
                 delete_char(&mut state.lines, &mut state.cursor);
             }
