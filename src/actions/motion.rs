@@ -30,6 +30,10 @@ impl Execute for MoveBackward {
             if state.cursor.col == 0 {
                 break;
             }
+            let max_col = max_col(&state.lines, &state.cursor, state.mode);
+            if state.cursor.col > max_col {
+                state.cursor.col = max_col;
+            }
             state.cursor.col -= 1;
         }
         if state.mode == EditorMode::Visual {
@@ -155,6 +159,11 @@ impl Execute for MoveWordBackward {
 
         if state.lines.is_empty() {
             return;
+        }
+
+        let max_col = max_col(&state.lines, &state.cursor, state.mode);
+        if state.cursor.col > max_col {
+            state.cursor.col = max_col;
         }
 
         for _ in 0..self.0 {
