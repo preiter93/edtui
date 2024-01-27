@@ -8,6 +8,7 @@ Unreleased
 - Add search functionality. Trigger search via '/'.
   - Small breaking change in StatusLine widget. Replace 'content()' with 'mode()'.
 - Bugfix: Fix panic in some cases when deleting selection
+- Bugfix: Move left when cursor pos was larger than current col len
 
 Released
 --------
