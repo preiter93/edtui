@@ -25,15 +25,11 @@ impl<'a> Root<'a> {
 
 impl Widget for Root<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Min(0)].as_ref())
-            .split(area);
         let theme = Theme::new();
 
         let state = &mut self.context.editor_state;
         let editor = EditorView::new(state).theme(theme.editor);
-        editor.render(chunks[0], buf)
+        editor.render(area, buf)
     }
 }
 

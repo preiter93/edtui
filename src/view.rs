@@ -57,14 +57,11 @@ impl Widget for EditorView<'_, '_> {
         };
 
         // Split into main section and status line
-        let area = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Min(0),
-                Constraint::Length(u16::from(self.theme.status_line.is_some())),
-            ])
-            .split(area);
-        let (main, foot) = (area[0], area[1]);
+        let [main, status] = Layout::vertical([
+            Constraint::Min(0),
+            Constraint::Length(u16::from(self.theme.status_line.is_some())),
+        ])
+        .areas(area);
         let width = main.width as usize;
         let height = main.height as usize;
 
@@ -113,7 +110,7 @@ impl Widget for EditorView<'_, '_> {
                 } else {
                     None
                 })
-                .render(foot, buf);
+                .render(status, buf);
         }
     }
 }

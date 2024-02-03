@@ -1,9 +1,13 @@
 Unreleased
 --------
 
-
 Released
 --------
+
+0.3.0 - 3 February 2024
+===================
+
+Bump ratatui to version 0.26.0
 
 0.2.2 - 3 February 2024
 ===================
