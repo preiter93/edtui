@@ -1,6 +1,6 @@
 [package]
 name = "edtui"
-version = "0.2.2"
+version = "0.3.0"
 edition = "2021"
 repository = "https://github.com/preiter93/edtui"
 keywords = ["ratatui", "tui", "editor", "text", "vim"]
@@ -9,7 +9,7 @@ authors = ["preiter <phil.reiter93@gmail.com>"]
 license = "MIT"
 
 [dependencies]
-ratatui = "0.25"
+ratatui = "0.26"
 jagged = { package = "edtui-jagged", path = "../edtui-jagged", version = "0.1" }
 enum_dispatch = "0.3.12"
 crossterm = "0.27"

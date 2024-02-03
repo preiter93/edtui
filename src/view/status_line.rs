@@ -93,10 +93,7 @@ impl Widget for StatusLine {
         } else {
             [Constraint::Min(0), Constraint::Length(10)]
         };
-        let area = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints(constraints)
-            .split(area);
+        let [left, right] = Layout::horizontal(constraints).areas(area);
 
         // Build the content and block widgets
         let mode_paragraph = Paragraph::new(Line::from(Span::from(self.mode)))
@@ -109,11 +106,11 @@ impl Widget for StatusLine {
 
         // Determine the alignment position
         if self.align_left {
-            mode_paragraph.render(area[0], buf);
-            search_paragraph.render(area[1], buf);
+            mode_paragraph.render(left, buf);
+            search_paragraph.render(right, buf);
         } else {
-            search_paragraph.render(area[0], buf);
-            mode_paragraph.render(area[1], buf);
+            search_paragraph.render(left, buf);
+            mode_paragraph.render(right, buf);
         };
     }
 }
