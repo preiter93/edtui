@@ -1,13 +1,15 @@
 Unreleased
 --------
 
-0.3.1
-=====
-
-- Paste over selection
-
 Released
 --------
+
+0.3.1 - 11 February 2024
+===================
+
+- Paste over selection
+- Support more motions in visual mode
+- Add demo
 
 0.3.0 - 3 February 2024
 ===================
