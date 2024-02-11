@@ -12,7 +12,7 @@ pub struct InsertChar(pub char);
 
 impl Execute for InsertChar {
     fn execute(&mut self, state: &mut EditorState) {
-        insert_char(&mut state.lines, &mut state.cursor, self.0);
+        insert_char(&mut state.lines, &mut state.cursor, self.0, false);
     }
 }
 
