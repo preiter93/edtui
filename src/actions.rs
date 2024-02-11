@@ -1,15 +1,16 @@
 //! Editor actions such as move, insert, delete
+pub mod cpaste;
 pub mod delete;
 pub mod insert;
 pub mod motion;
 pub mod search;
 pub mod select;
-use crate::clipboard::ClipboardTrait;
-use crate::helper::{append_str, clamp_column};
+use crate::helper::clamp_column;
 use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
 use enum_dispatch::enum_dispatch;
 
+pub use self::cpaste::{CopySelection, Paste};
 pub use self::delete::{DeleteChar, DeleteLine, DeleteSelection, RemoveChar};
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
@@ -20,7 +21,7 @@ use self::search::StartSearch;
 pub use self::search::{
     AppendCharToSearch, FindNext, FindPrevious, RemoveCharFromSearch, StopSearch, TriggerSearch,
 };
-pub use self::select::{CopySelection, SelectBetween};
+pub use self::select::SelectBetween;
 
 #[enum_dispatch(Execute)]
 #[derive(Clone, Debug)]
@@ -112,17 +113,6 @@ impl Execute for Redo {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Paste;
-
-impl Execute for Paste {
-    fn execute(&mut self, state: &mut EditorState) {
-        clamp_column(state);
-        state.capture();
-        append_str(&mut state.lines, &mut state.cursor, &state.clip.get_text());
-    }
-}
-
 /// Executes multiple actions one after the other.
 #[derive(Clone, Debug)]
 pub struct Composed(pub Vec<Action>);
@@ -186,18 +176,5 @@ mod tests {
         Append.execute(&mut state);
         assert_eq!(state.mode, EditorMode::Insert);
         assert_eq!(state.cursor, Index2::new(0, 12));
-    }
-
-    #[test]
-    fn test_copy_paste() {
-        let mut state = test_state();
-        let selection = Selection::new(Index2::new(0, 0), Index2::new(0, 2));
-        state.selection = Some(selection);
-
-        CopySelection.execute(&mut state);
-        Paste.execute(&mut state);
-
-        assert_eq!(state.cursor, Index2::new(0, 3));
-        assert_eq!(state.lines, Lines::from("HHelello World!\n\n123."));
     }
 }

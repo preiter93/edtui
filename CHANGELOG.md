@@ -1,6 +1,11 @@
 Unreleased
 --------
 
+0.3.1
+=====
+
+- Paste over selection
+
 Released
 --------
 

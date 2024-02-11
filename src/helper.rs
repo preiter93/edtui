@@ -3,7 +3,7 @@ use jagged::index::RowIndex;
 use crate::{state::selection::Selection, EditorMode, EditorState, Index2, Lines};
 
 /// Inserts a character into the lines data at the given `index`.
-pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char) {
+pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: bool) {
     if lines.is_empty() {
         lines.push(Vec::new());
     }
@@ -11,14 +11,17 @@ pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char) {
         line_break(lines, index);
     } else {
         lines.insert(*index, ch);
-        index.col += 1;
+        if !skip_move {
+            index.col += 1;
+        }
     }
 }
 
 /// Inserts a string into the lines data at the given `index`.
 pub fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
-    for ch in text.chars() {
-        insert_char(lines, index, ch);
+    for (i, ch) in text.chars().enumerate() {
+        let is_last = i == text.len().saturating_sub(1);
+        insert_char(lines, index, ch, is_last);
     }
 }
 
@@ -28,7 +31,7 @@ pub fn append_str(lines: &mut Lines, index: &mut Index2, text: &str) {
         index.col += 1;
     }
     for ch in text.chars() {
-        insert_char(lines, index, ch);
+        insert_char(lines, index, ch, false);
     }
     index.col = index.col.saturating_sub(1);
 }
