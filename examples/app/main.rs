@@ -27,7 +27,20 @@ impl AppContext {
         Self {
             editor_state: EditorState::new(Lines::from(
                 "EdTUI is a light-weight vim inspired TUI editor for the RataTUI ecosystem.
-Enjoy using it!",
+
+Navigate right (l), left (h), up (k) and down (j), using vim motions.
+
+Traverse words forward (w) and backward (b).
+
+Select text (v), including selection between \"brackets\" (cw).
+
+Copy and paste text.
+
+Built-in search using the '/' command.
+
+This editor is under active development.
+Don't hesitate to open issues or submit pull requests to contribute!
+",
             )),
             editor_input: Input::default(),
         }

@@ -37,7 +37,7 @@ For more keybindings and customization options, refer to the code.
 
 ### Demo
 
-![](resources/screenshot.png)
+![](resources/app.gif)
 
 #### Roadmap
 

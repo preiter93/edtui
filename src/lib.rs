@@ -35,7 +35,7 @@
 //!
 //! ## Demo
 //!
-//!![](resources/screenshot.png)
+//!![](resources/app.gif)
 //!
 //! ### Roadmap
 //!
