@@ -114,6 +114,10 @@ impl Execute for MoveWordForward {
         for _ in 0..self.0 {
             move_word_right(state);
         }
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
     }
 }
 
@@ -169,6 +173,10 @@ impl Execute for MoveWordBackward {
         for _ in 0..self.0 {
             move_word_left(state);
         }
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
     }
 }
 
@@ -191,6 +199,10 @@ pub struct MoveToStart();
 impl Execute for MoveToStart {
     fn execute(&mut self, state: &mut EditorState) {
         state.cursor.col = 0;
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
     }
 }
 // move to the first non-whitespace character in the line.
@@ -200,6 +212,10 @@ pub struct MoveToFirst();
 impl Execute for MoveToFirst {
     fn execute(&mut self, state: &mut EditorState) {
         state.cursor.col = 0;
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
     }
 }
 
@@ -210,6 +226,10 @@ pub struct MoveToEnd();
 impl Execute for MoveToEnd {
     fn execute(&mut self, state: &mut EditorState) {
         state.cursor.col = max_col(&state.lines, &state.cursor, state.mode);
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
     }
 }
 

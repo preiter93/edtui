@@ -86,11 +86,16 @@ impl Default for Input {
         // Move one word forward/backward
         r.insert(RegisterKey::n(vec![Key::Char('w')]), MoveWordForward(1));
         r.insert(RegisterKey::n(vec![Key::Char('b')]), MoveWordBackward(1));
+        r.insert(RegisterKey::v(vec![Key::Char('w')]), MoveWordForward(1));
+        r.insert(RegisterKey::v(vec![Key::Char('b')]), MoveWordBackward(1));
 
         // Move cursor to start/first/last position
         r.insert(RegisterKey::n(vec![Key::Char('0')]), MoveToStart());
         r.insert(RegisterKey::n(vec![Key::Char('_')]), MoveToFirst());
         r.insert(RegisterKey::n(vec![Key::Char('$')]), MoveToEnd());
+        r.insert(RegisterKey::v(vec![Key::Char('0')]), MoveToStart());
+        r.insert(RegisterKey::v(vec![Key::Char('_')]), MoveToFirst());
+        r.insert(RegisterKey::v(vec![Key::Char('$')]), MoveToEnd());
 
         // Move cursor to start/first/last position and enter insert mode
         r.insert(
