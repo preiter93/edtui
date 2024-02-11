@@ -37,12 +37,13 @@ For more keybindings and customization options, refer to the code.
 
 ### Demo
 
-![](resources/screenshot.png)
+![](resources/app.gif)
 
 #### Roadmap
 
 - [x] Clipboard
-- [ ] Search
+- [x] Search
+
 - [ ] Vims `f`/`t` go to first
 - [ ] Support termwiz and termion
 - [ ] Display line numbers
