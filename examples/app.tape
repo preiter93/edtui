@@ -12,20 +12,19 @@ Type "cargo run --example app"
 Set TypingSpeed 100ms
 Enter
 Sleep 1.5s
-Show
 
-Sleep 1.0s
 # First line
 Type "v$"
-Sleep 3.0s
+Show
+Sleep 3.5s
 Escape
 Type "0jj"
 Sleep 0.2s
 
 # Second line
-Type "llllllllllllllllllll
+Type "wllllllllllllll"
 Sleep 0.2s
-Type "hhhhlllllll"
+Type "hhhhhhhhhhhhhh"
 Sleep 0.2s
 Type "j0j"
 Sleep 0.2s
@@ -53,19 +52,21 @@ Sleep 0.5s
 Type "p"
 Sleep 0.5s
 Type "j0j"
-Sleep 0.2s
+Sleep 1.0s
 
 # Sixth line
 Type "/"
 Sleep 0.2s
-Type "/c"
+Type "c"
 Sleep 0.2s
-Type "/co"
-Sleep 0.5s
+Type "o"
+Sleep 1.0s
 Escape
 Type "j0j"
 Sleep 0.2s
 
 # Seventh line
 Type "vj$"
-Sleep 5.0s
+Sleep 3.5s
+Escape
+Sleep 0.5s
