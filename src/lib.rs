@@ -15,31 +15,31 @@
 //!
 //! #### Normal/Visual Mode:
 //!
-//! | Keybinding              | Description                              |
-//! |-------------------------|------------------------------------------|
-//! | `i`                     | Enter Insert mode                        |
-//! | `v`                     | Enter Visual mode                        |
-//! | `h`, `j`, `k`, `l`      | Navigate left, down, up, and right       |
-//! | `w`, `b`                | Move forward or backward by word         |
-//! | `x`                     | Delete the character under the cursor    |
-//! | `Del`                   | Delete the character left of the cursor  |
-//! | `u`, `r`                | Undo/Redo last action                    |
-//! | `Esc`                   | Escape Insert mode or Visual mode        |
-//! | `0`                     | Move cursor to start of line             |
-//! | `^`                     | Move cursor to first non-blank character |
-//! | `$`                     | Move cursor to end of line               |
-//! | `a`                     | Append after the cursor                  |
-//! | `A`                     | Append at the end of the line            |
-//! | `o`                     | Add a new line below and enter Insert mode |
-//! | `O`                     | Add a new line above and enter Insert mode |
-//! | `Backspace`             | Delete the previous character            |
-//! | `d`                     | Delete the selection                     |
-//! | `dd`                    | Delete the current line                  |
-//! | `cw`                    | Select between brackets                  |
-//! | `u`                     | Undo the last change                     |
-//! | `r`                     | Redo the last undone action              |
-//! | `y`                     | Copy the selected text                   |
-//! | `p`                     | Paste the copied text                    |
+//! | Keybinding              | Description                                  |
+//! |-------------------------|----------------------------------------------|
+//! | `i`                     | Enter Insert mode                            |
+//! | `v`                     | Enter Visual mode                            |
+//! | `h`, `j`, `k`, `l`      | Navigate left, down, up, and right           |
+//! | `w`, `b`                | Move forward or backward by word             |
+//! | `x`                     | Delete the character under the cursor        |
+//! | `Del`                   | Delete the character left of the cursor      |
+//! | `u`, `r`                | Undo/Redo last action                        |
+//! | `Esc`                   | Escape Insert mode or Visual mode            |
+//! | `0`                     | Move cursor to start of line                 |
+//! | `^`                     | Move cursor to first non-blank character     |
+//! | `$`                     | Move cursor to end of line                   |
+//! | `a`                     | Append after the cursor                      |
+//! | `A`                     | Append at the end of the line                |
+//! | `o`                     | Add a new line below and enter Insert mode   |
+//! | `O`                     | Add a new line above and enter Insert mode   |
+//! | `Backspace`             | Delete the previous character                |
+//! | `d`                     | Delete the selection                         |
+//! | `dd`                    | Delete the current line                      |
+//! | `ciw`                   | Select between delimiters. Supported: ["]    |
+//! | `u`                     | Undo the last change                         |
+//! | `r`                     | Redo the last undone action                  |
+//! | `y`                     | Copy the selected text                       |
+//! | `p`                     | Paste the copied text                        |
 //!
 //! #### Insert Mode:
 //!
