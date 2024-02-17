@@ -137,7 +137,7 @@ impl Default for Input {
 
         // Select inner word between delimiters
         r.insert(
-            RegisterKey::n(vec![Key::Char('c'), Key::Char('w')]),
+            RegisterKey::n(vec![Key::Char('c'), Key::Char('i'), Key::Char('w')]),
             SelectBetween('"'),
         );
 

@@ -1,6 +1,8 @@
 Unreleased
 --------
 
+- Use "ciw" for selection between delimiters instead of "cw".
+
 Released
 --------
 
