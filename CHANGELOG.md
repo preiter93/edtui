@@ -1,10 +1,13 @@
 Unreleased
 --------
 
-- Use "ciw" for selection between delimiters instead of "cw".
-
 Released
 --------
+
+0.3.2 - 18 February 2024
+===================
+- Use "ciw" for selection between delimiters instead of "cw".
+- Minor bugfixes
 
 0.3.1 - 11 February 2024
 ===================
