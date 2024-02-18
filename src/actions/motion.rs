@@ -34,7 +34,7 @@ impl Execute for MoveBackward {
             if state.cursor.col > max_col {
                 state.cursor.col = max_col;
             }
-            state.cursor.col -= 1;
+            state.cursor.col = state.cursor.col.saturating_sub(1);
         }
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
@@ -51,7 +51,7 @@ impl Execute for MoveUp {
             if state.cursor.row == 0 {
                 break;
             }
-            state.cursor.row -= 1;
+            state.cursor.row = state.cursor.row.saturating_sub(1);
         }
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
