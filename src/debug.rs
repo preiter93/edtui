@@ -6,7 +6,6 @@ use std::io::Write;
 pub fn log_to_file<T: Debug>(data: T) {
     let mut file = OpenOptions::new()
         .create(true)
-        .write(true)
         .append(true)
         .open("debug.log")
         .unwrap();
