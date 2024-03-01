@@ -49,13 +49,13 @@ pub(crate) fn line_break(lines: &mut Lines, index: &mut Index2) {
     index.col = 0;
 }
 
-/// Returns the maximum permissible column value. In normal or visual
-/// mode the limit is len() - 1, in insert mode the limit is len().
+/// Returns the maximum permissible column value. In normal mode
+/// the limit is len() - 1, in visual and insert mode the limit is len().
 pub(crate) fn max_col(lines: &Lines, index: &Index2, mode: EditorMode) -> usize {
-    if mode == EditorMode::Insert {
-        max_col_insert(lines, index)
-    } else {
+    if mode == EditorMode::Normal {
         max_col_normal(lines, index)
+    } else {
+        max_col_insert(lines, index)
     }
 }
 

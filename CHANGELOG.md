@@ -8,6 +8,7 @@ Released
 - Fix panic in delete selection
 - Add SelectLine
 - Fix selection bug
+- Render visual selection correctly
 
 0.3.2 - 18 February 2024
 ===================
