@@ -138,7 +138,10 @@ impl Execute for MoveWordBackward {
 
             if index.col == 0 {
                 index.row = index.row.saturating_sub(1);
-                state.cursor.col = lines.len_col(index.row).saturating_sub(1);
+                state.cursor.col = lines
+                    .len_col(index.row)
+                    .unwrap_or_default()
+                    .saturating_sub(1);
                 state.cursor.row = index.row;
                 return;
             }

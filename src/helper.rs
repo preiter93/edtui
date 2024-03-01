@@ -27,7 +27,7 @@ pub fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
 
 /// Appends a string into the lines data next to a given `index`.
 pub fn append_str(lines: &mut Lines, index: &mut Index2, text: &str) {
-    if !lines.is_empty() && lines.len_col(index.row) > 0 {
+    if !lines.is_empty() && lines.len_col(index.row).unwrap_or_default() > 0 {
         index.col += 1;
     }
     for ch in text.chars() {
@@ -64,7 +64,10 @@ pub(crate) fn max_col_normal(lines: &Lines, index: &Index2) -> usize {
     if lines.is_empty() {
         return 0;
     }
-    lines.len_col(index.row).saturating_sub(1)
+    let Some(len_col) = lines.len_col(index.row) else {
+        return 0;
+    };
+    len_col.saturating_sub(1)
 }
 
 /// Returns the maximum permissible column value.
@@ -72,7 +75,7 @@ pub(crate) fn max_col_insert(lines: &Lines, index: &Index2) -> usize {
     if lines.is_empty() {
         return 0;
     }
-    lines.len_col(index.row)
+    lines.len_col(index.row).unwrap_or_default()
 }
 
 /// Returns the maximum permissible column value. In normal or visual
@@ -94,9 +97,13 @@ pub(crate) fn clamp_column(state: &mut EditorState) {
 }
 
 /// Set the selections end positions
-pub(crate) fn set_selection(selection: &mut Option<Selection>, end: Index2) {
-    if let Some(start) = selection.as_ref().map(|x| x.start) {
-        *selection = Some(Selection::new(start, end));
+pub(crate) fn set_selection(selection: &mut Option<Selection>, index: Index2) {
+    if let Some(Selection { start, end }) = selection.as_ref() {
+        if index <= *start {
+            *selection = Some(Selection::new(index, *end));
+        } else {
+            *selection = Some(Selection::new(*start, index));
+        }
     }
 }
 
@@ -128,7 +135,7 @@ pub(crate) fn skip_whitespace_rev(lines: &Lines, index: &mut Index2) {
 /// Get the number of columns in the current line.
 #[must_use]
 pub(crate) fn len_col(state: &EditorState) -> usize {
-    state.lines.len_col(state.cursor.row)
+    state.lines.len_col(state.cursor.row).unwrap_or_default()
 }
 
 #[cfg(test)]
