@@ -20,11 +20,16 @@ impl Execute for RemoveChar {
         for _ in 0..self.0 {
             let lines = &mut state.lines;
             let index = &mut state.cursor;
-            if lines.len_col(index.row) == 0 {
+            if lines.len_col(index.row).unwrap_or_default() == 0 {
                 return;
             }
             let _ = lines.remove(*index);
-            index.col = index.col.min(lines.len_col(index.row).saturating_sub(1));
+            index.col = index.col.min(
+                lines
+                    .len_col(index.row)
+                    .unwrap_or_default()
+                    .saturating_sub(1),
+            );
         }
     }
 }
@@ -51,7 +56,7 @@ fn delete_char(lines: &mut Lines, index: &mut Index2) {
             index.col -= 1;
         } else if index.row > 0 {
             index.row -= 1;
-            index.col = lines.len_col(index.row);
+            index.col = lines.len_col(index.row).unwrap_or_default();
         }
     }
 
@@ -109,7 +114,7 @@ impl Execute for DeleteSelection {
 
 pub(crate) fn delete_selection(state: &mut EditorState, selection: &Selection) {
     state.cursor = selection.end();
-    if state.lines.len_col(state.cursor.row) > 0 {
+    if state.lines.len_col(state.cursor.row).unwrap_or_default() > 0 {
         state.cursor.col += 1;
     }
     while state.cursor > selection.start() {

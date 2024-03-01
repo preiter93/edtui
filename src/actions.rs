@@ -21,7 +21,7 @@ use self::search::StartSearch;
 pub use self::search::{
     AppendCharToSearch, FindNext, FindPrevious, RemoveCharFromSearch, StopSearch, TriggerSearch,
 };
-pub use self::select::SelectBetween;
+pub use self::select::{SelectBetween, SelectLine};
 
 #[enum_dispatch(Execute)]
 #[derive(Clone, Debug)]
@@ -46,6 +46,7 @@ pub enum Action {
     DeleteLine(DeleteLine),
     DeleteSelection(DeleteSelection),
     SelectBetween(SelectBetween),
+    SelectLine(SelectLine),
     Undo(Undo),
     Redo(Redo),
     Paste(Paste),

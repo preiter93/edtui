@@ -8,7 +8,7 @@ use crate::actions::{
     DeleteSelection, Execute, FindNext, FindPrevious, InsertChar, InsertNewline, LineBreak,
     MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
     MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch,
-    SelectBetween, StopSearch, SwitchMode, TriggerSearch, Undo,
+    SelectBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 
@@ -140,6 +140,9 @@ impl Default for Input {
             RegisterKey::n(vec![Key::Char('c'), Key::Char('i'), Key::Char('w')]),
             SelectBetween('"'),
         );
+
+        // Select  the line
+        r.insert(RegisterKey::n(vec![Key::Char('V')]), SelectLine);
 
         // Undo
         r.insert(RegisterKey::n(vec![Key::Char('u')]), Undo);

@@ -3,6 +3,11 @@ Unreleased
 
 Released
 --------
+0.3.3 - 2 May 2024
+===================
+- Fix panic in delete selection
+- Add SelectLine
+- Fix selection bug
 
 0.3.2 - 18 February 2024
 ===================
