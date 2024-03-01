@@ -220,6 +220,8 @@ dependencies = [
 [[package]]
 name = "edtui-jagged"
 version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7a26dc814881a4e2c998bfb232eedc731bd181fd6637cc5aa5e53c8acecd792"
 
 [[package]]
 name = "either"
