@@ -2,8 +2,10 @@ use jagged::index::RowIndex;
 
 use super::Execute;
 use crate::{
-    clipboard::ClipboardTrait, helper::clamp_column, state::selection::Selection, EditorMode,
-    EditorState, Index2, Lines,
+    clipboard::ClipboardTrait,
+    helper::{clamp_column, max_col_insert},
+    state::selection::Selection,
+    EditorMode, EditorState, Index2, Lines,
 };
 
 /// Deletes a character at the current cursor position. Does not
@@ -34,6 +36,8 @@ pub struct DeleteChar(pub usize);
 
 impl Execute for DeleteChar {
     fn execute(&mut self, state: &mut EditorState) {
+        // let max_col = max_col(&state.lines, &state.cursor, EditorMode::Insert);
+        // state.cursor.col = state.cursor.col.min(max_col);
         state.capture();
         for _ in 0..self.0 {
             delete_char(&mut state.lines, &mut state.cursor);
@@ -60,6 +64,8 @@ fn delete_char(lines: &mut Lines, index: &mut Index2) {
         move_left(lines, index);
         lines.merge(&mut rest);
     } else {
+        let max_col = max_col_insert(lines, index);
+        index.col = index.col.min(max_col);
         move_left(lines, index);
         let _ = lines.remove(*index);
     }
@@ -106,7 +112,7 @@ pub(crate) fn delete_selection(state: &mut EditorState, selection: &Selection) {
     if state.lines.len_col(state.cursor.row) > 0 {
         state.cursor.col += 1;
     }
-    while state.cursor != selection.start() {
+    while state.cursor > selection.start() {
         delete_char(&mut state.lines, &mut state.cursor);
     }
 }
@@ -180,5 +186,17 @@ mod tests {
         DeleteSelection.execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 1));
         assert_eq!(state.lines, Lines::from("H23."));
+    }
+
+    #[test]
+    fn test_delete_selection_out_of_bounds() {
+        let mut state = EditorState::new(Lines::from("123.\nHello World!\n456."));
+        let st = Index2::new(0, 5);
+        let en = Index2::new(2, 10);
+        state.selection = Some(Selection::new(st, en));
+
+        DeleteSelection.execute(&mut state);
+        // assert_eq!(state.cursor, Index2::new(0, 1));
+        assert_eq!(state.lines, Lines::from("123."));
     }
 }
