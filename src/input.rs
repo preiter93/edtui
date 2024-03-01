@@ -66,21 +66,29 @@ impl Default for Input {
         // Move cursor right
         r.insert(RegisterKey::n(vec![Key::Char('l')]), MoveForward(1));
         r.insert(RegisterKey::v(vec![Key::Char('l')]), MoveForward(1));
+        r.insert(RegisterKey::n(vec![Key::Right]), MoveForward(1));
+        r.insert(RegisterKey::v(vec![Key::Right]), MoveForward(1));
         r.insert(RegisterKey::i(vec![Key::Right]), MoveForward(1));
 
         // Move cursor left
         r.insert(RegisterKey::n(vec![Key::Char('h')]), MoveBackward(1));
         r.insert(RegisterKey::v(vec![Key::Char('h')]), MoveBackward(1));
+        r.insert(RegisterKey::n(vec![Key::Left]), MoveBackward(1));
+        r.insert(RegisterKey::v(vec![Key::Left]), MoveBackward(1));
         r.insert(RegisterKey::i(vec![Key::Left]), MoveBackward(1));
 
         // Move cursor up
         r.insert(RegisterKey::n(vec![Key::Char('k')]), MoveUp(1));
         r.insert(RegisterKey::v(vec![Key::Char('k')]), MoveUp(1));
+        r.insert(RegisterKey::n(vec![Key::Up]), MoveUp(1));
+        r.insert(RegisterKey::v(vec![Key::Up]), MoveUp(1));
         r.insert(RegisterKey::i(vec![Key::Up]), MoveUp(1));
 
         // Move cursor down
         r.insert(RegisterKey::n(vec![Key::Char('j')]), MoveDown(1));
         r.insert(RegisterKey::v(vec![Key::Char('j')]), MoveDown(1));
+        r.insert(RegisterKey::n(vec![Key::Down]), MoveDown(1));
+        r.insert(RegisterKey::v(vec![Key::Down]), MoveDown(1));
         r.insert(RegisterKey::i(vec![Key::Down]), MoveDown(1));
 
         // Move one word forward/backward
