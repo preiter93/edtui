@@ -9,6 +9,7 @@ Released
 - Add SelectLine
 - Fix selection bug
 - Render visual selection correctly
+- Bump edtui-jagged to v0.1.3
 
 0.3.2 - 18 February 2024
 ===================
