@@ -37,7 +37,9 @@ impl Execute for AppendNewline {
     fn execute(&mut self, state: &mut EditorState) {
         state.cursor.col = 0;
         for _ in 0..self.0 {
-            state.cursor.row += 1;
+            if !state.lines.is_empty() {
+                state.cursor.row += 1;
+            }
             state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
         }
         SwitchMode(EditorMode::Insert).execute(state);
