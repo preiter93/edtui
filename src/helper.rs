@@ -50,7 +50,7 @@ pub(crate) fn line_break(lines: &mut Lines, index: &mut Index2) {
 }
 
 /// Returns the maximum permissible column value. In normal mode
-/// the limit is len() - 1, in visual and insert mode the limit is len().
+/// the limit is `len() - 1`, in visual and insert mode the limit is `len()`.
 pub(crate) fn max_col(lines: &Lines, index: &Index2, mode: EditorMode) -> usize {
     if mode == EditorMode::Normal {
         max_col_normal(lines, index)
@@ -79,7 +79,7 @@ pub(crate) fn max_col_insert(lines: &Lines, index: &Index2) -> usize {
 }
 
 /// Returns the maximum permissible column value. In normal or visual
-/// mode the limit is len() - 1, in insert mode the limit is len().
+/// mode the limit is `len() - 1`, in insert mode the limit is `len()`.
 pub(crate) fn max_row(state: &EditorState) -> usize {
     if state.mode == EditorMode::Insert {
         state.lines.len()
@@ -89,8 +89,8 @@ pub(crate) fn max_row(state: &EditorState) -> usize {
 }
 
 /// Clamps the column of the cursor if the cursor is out of bounds.
-/// In normal or visual mode, clamps on col = len() - 1, in insert
-/// mode on col = len().
+/// In normal or visual mode, clamps on `col = len() - 1`, in insert
+/// mode on `col = len()`.
 pub(crate) fn clamp_column(state: &mut EditorState) {
     let max_col = max_col(&state.lines, &state.cursor, state.mode);
     state.cursor.col = state.cursor.col.min(max_col);

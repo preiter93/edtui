@@ -35,7 +35,7 @@
 //! | `Backspace`             | Delete the previous character                |
 //! | `d`                     | Delete the selection                         |
 //! | `dd`                    | Delete the current line                      |
-//! | `ciw`                   | Select between delimiters. Supported: ["]    |
+//! | `ciw`                   | Select between delimiters. Supported: [`"`]    |
 //! | `u`                     | Undo the last change                         |
 //! | `r`                     | Redo the last undone action                  |
 //! | `y`                     | Copy the selected text                       |
