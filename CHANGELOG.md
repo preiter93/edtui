@@ -3,7 +3,11 @@ Unreleased
 
 Released
 --------
-0.3.3 - 2 May 2024
+0.3.4 - 4 May 2024
+===================
+- Fix panic when appending new line to empty buffer
+ 
+0.3.3 - 2 April 2024
 ===================
 - Fix panic in delete selection
 - Add SelectLine
