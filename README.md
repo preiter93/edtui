@@ -25,7 +25,7 @@ It is designed to provide a light-weight user experience inspired by Vim.
 | `w`, `b`                | Move forward or backward by word             |
 | `x`                     | Delete the character under the cursor        |
 | `Del`                   | Delete the character left of the cursor      |
-| `u`, `r`                | Undo/Redo last action                        |
+| `u`, `<ctrl>+r`         | Undo/Redo last action                        |
 | `Esc`                   | Escape Insert mode or Visual mode            |
 | `0`                     | Move cursor to start of line                 |
 | `^`                     | Move cursor to first non-blank character     |
@@ -37,7 +37,7 @@ It is designed to provide a light-weight user experience inspired by Vim.
 | `Backspace`             | Delete the previous character                |
 | `d`                     | Delete the selection                         |
 | `dd`                    | Delete the current line                      |
-| `ciw`                   | Select between delimiters. Supported: ["]    |
+| `ciw`                   | Select between delimiters. Supported: [`"`]  |
 | `u`                     | Undo the last change                         |
 | `r`                     | Redo the last undone action                  |
 | `y`                     | Copy the selected text                       |

@@ -156,7 +156,7 @@ impl Default for Input {
         r.insert(RegisterKey::n(vec![Key::Char('u')]), Undo);
 
         // Redo
-        r.insert(RegisterKey::n(vec![Key::Char('r')]), Redo);
+        r.insert(RegisterKey::n(vec![Key::Ctrl('r')]), Redo);
 
         // Copy
         r.insert(RegisterKey::v(vec![Key::Char('y')]), CopySelection);

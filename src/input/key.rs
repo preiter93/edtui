@@ -1,4 +1,4 @@
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Key {
@@ -10,11 +10,19 @@ pub enum Key {
     Enter,
     Esc,
     Backspace,
+    Ctrl(char),
     None,
 }
 
 impl From<KeyEvent> for Key {
     fn from(key: KeyEvent) -> Self {
+        if key.modifiers == KeyModifiers::CONTROL {
+            return match key.code {
+                KeyCode::Char(c) => Key::Ctrl(c),
+                _ => Key::None,
+            };
+        }
+
         match key.code {
             KeyCode::Char(c) => Key::Char(c),
             KeyCode::Enter => Key::Enter,
