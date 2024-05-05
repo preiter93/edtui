@@ -1,6 +1,10 @@
 Unreleased
 --------
 
+0.3.5 - 4 May 2024
+===================
+- Map Redo from `r` to `<ctrl>+r`
+
 Released
 --------
 0.3.4 - 4 May 2024
