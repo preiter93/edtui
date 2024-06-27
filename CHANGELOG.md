@@ -1,12 +1,14 @@
-Unreleased
+Released
 --------
+
+0.4.0 - 27 June 2024
+===================
+- Bump ratatui to v0.27
 
 0.3.5 - 4 May 2024
 ===================
 - Map Redo from `r` to `<ctrl>+r`
 
-Released
---------
 0.3.4 - 4 May 2024
 ===================
 - Fix panic when appending new line to empty buffer

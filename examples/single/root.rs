@@ -1,5 +1,5 @@
-use crossterm::event::{KeyCode, KeyEvent};
 use edtui::{EditorTheme, EditorView};
+use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
     prelude::*,
     widgets::{Block, BorderType, Borders, Widget},

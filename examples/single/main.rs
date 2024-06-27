@@ -1,5 +1,5 @@
-use crossterm::event::{self, Event, KeyCode};
 use edtui::{EditorState, Input, Lines};
+use ratatui::crossterm::event::{self, Event, KeyCode};
 use root::Root;
 use std::error::Error;
 use term::Term;

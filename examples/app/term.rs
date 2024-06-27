@@ -1,4 +1,4 @@
-use crossterm::{
+use ratatui::crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -20,7 +20,7 @@ impl Term {
         let backend = CrosstermBackend::new(stdout());
         let terminal = Terminal::new(backend)?;
 
-        crossterm::execute!(stdout(), EnterAlternateScreen, EnableMouseCapture)?;
+        ratatui::crossterm::execute!(stdout(), EnterAlternateScreen, EnableMouseCapture)?;
         enable_raw_mode()?;
 
         // Shutdown gracefully
@@ -36,7 +36,7 @@ impl Term {
 
     pub fn stop() -> Result<()> {
         disable_raw_mode()?;
-        crossterm::execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture)?;
+        ratatui::crossterm::execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture)?;
         Ok(())
     }
 }
