@@ -32,7 +32,7 @@ Navigate right (l), left (h), up (k) and down (j), using vim motions.
 
 Traverse words forward (w) and backward (b).
 
-Select text (v), including selection between \"brackets\" (ciw).
+Select text (v), including selection between \"delimiters\" (ciw).
 
 Copy and paste text: 
 
