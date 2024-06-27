@@ -95,7 +95,7 @@ impl Widget for EditorView<'_, '_> {
                 // Selection
                 if let Some(selection) = &self.state.selection {
                     let position = Index2::new(y_off + i, x_off + j);
-                    if selection.within(&position) {
+                    if selection.contains(&position) {
                         buf.get_mut(x, y).set_style(self.theme.selection_style);
                     }
                 }

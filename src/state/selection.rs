@@ -13,7 +13,7 @@ impl Selection {
     }
 
     #[must_use]
-    pub fn within(&self, pos: &Index2) -> bool {
+    pub fn contains(&self, pos: &Index2) -> bool {
         let (start, end) = if self.start < self.end {
             (&self.start, &self.end)
         } else {
@@ -35,7 +35,7 @@ impl Selection {
 
     #[must_use]
     pub fn start(&self) -> Index2 {
-        if self.reverse() {
+        if self.is_reversed() {
             return self.end;
         }
         self.start
@@ -43,14 +43,14 @@ impl Selection {
 
     #[must_use]
     pub fn end(&self) -> Index2 {
-        if self.reverse() {
+        if self.is_reversed() {
             return self.start;
         }
         self.end
     }
 
     #[must_use]
-    fn reverse(&self) -> bool {
+    fn is_reversed(&self) -> bool {
         self.start.row > self.end.row
             || self.start.row == self.end.row && self.start.col > self.end.col
     }
