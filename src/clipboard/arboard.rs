@@ -1,4 +1,3 @@
-#![cfg(feature = "arboard")]
 use super::{Clipboard, ClipboardTrait};
 use crate::clipboard::InternalClipboard;
 use std::error::Error;
