@@ -170,7 +170,7 @@ mod tests {
 
         DeleteLine(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(1, 0));
-        assert_eq!(state.lines, Lines::from("Hello World!\n\n"));
+        assert_eq!(state.lines, Lines::from("Hello World!\n"));
 
         DeleteLine(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 0));
