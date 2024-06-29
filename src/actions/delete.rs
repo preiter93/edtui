@@ -174,6 +174,12 @@ mod tests {
         DeleteChar(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 12));
         assert_eq!(state.lines, Lines::from("Hello World!\n123."));
+
+        let mut state = EditorState::new(Lines::from("\nb"));
+        state.cursor = Index2::new(0, 1);
+        DeleteChar(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.lines, Lines::from("\nb"));
     }
 
     #[test]
