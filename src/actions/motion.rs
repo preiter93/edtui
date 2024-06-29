@@ -1,6 +1,6 @@
 use super::Execute;
 use crate::{
-    helper::{max_col, max_row, set_selection, skip_whitespace, skip_whitespace_rev},
+    helper::{max_col, set_selection, skip_whitespace, skip_whitespace_rev},
     EditorMode, EditorState,
 };
 

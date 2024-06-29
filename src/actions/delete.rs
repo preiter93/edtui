@@ -58,11 +58,11 @@ fn delete_char(lines: &mut Lines, index: &mut Index2) {
         }
     }
 
-    if index.col == 0 && index.row == 0 {
+    let len_col = lines.len_col(index.row).unwrap_or_default();
+    if len_col == 0 && index.row == 0 {
         return;
     }
 
-    let len_col = lines.len_col(index.row).unwrap_or_default();
     if index.col > len_col {
         index.col = len_col;
     }
@@ -178,7 +178,7 @@ mod tests {
         let mut state = EditorState::new(Lines::from("\nb"));
         state.cursor = Index2::new(0, 1);
         DeleteChar(1).execute(&mut state);
-        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.cursor, Index2::new(0, 1));
         assert_eq!(state.lines, Lines::from("\nb"));
     }
 
