@@ -65,7 +65,7 @@ pub struct MoveDown(pub usize);
 impl Execute for MoveDown {
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
-            if state.cursor.row >= max_row(state) {
+            if state.cursor.row >= state.lines.len().saturating_sub(1) {
                 break;
             }
             state.cursor.row += 1;
