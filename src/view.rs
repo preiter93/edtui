@@ -4,7 +4,7 @@ pub mod theme;
 use self::theme::EditorTheme;
 use crate::{helper::max_col, state::EditorState, EditorMode, Index2};
 use ratatui::{prelude::*, widgets::Widget};
-pub use status_line::StatusLine;
+pub use status_line::EditorStatusLine;
 
 pub struct EditorView<'a, 'b> {
     pub(crate) state: &'a mut EditorState,

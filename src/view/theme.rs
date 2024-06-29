@@ -1,4 +1,4 @@
-use super::StatusLine;
+use super::EditorStatusLine;
 use ratatui::{
     style::{Color, Style},
     widgets::Block,
@@ -15,7 +15,7 @@ pub struct EditorTheme<'a> {
     /// The surrounding block
     pub block: Option<Block<'a>>,
     /// An optional [`StatusLine`] displaying the editor mode
-    pub status_line: Option<StatusLine>,
+    pub status_line: Option<EditorStatusLine>,
 }
 
 impl Default for EditorTheme<'_> {
@@ -28,7 +28,7 @@ impl Default for EditorTheme<'_> {
             block: None,
             cursor_style: Style::default().bg(WHITE).fg(DARK_BLUE),
             selection_style: Style::default().bg(YELLOW).fg(DARK_BLUE),
-            status_line: Some(StatusLine::default()),
+            status_line: Some(EditorStatusLine::default()),
         }
     }
 }
@@ -83,7 +83,7 @@ impl<'a> EditorTheme<'a> {
     /// of the Editor. See [`StatusLine`] on how to modify its appearance.
     /// Use `hide_status_line` to hide the status line.
     #[must_use]
-    pub fn status_line(mut self, status_line: StatusLine) -> Self {
+    pub fn status_line(mut self, status_line: EditorStatusLine) -> Self {
         self.status_line = Some(status_line);
         self
     }

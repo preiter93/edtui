@@ -8,7 +8,7 @@ use super::theme::{DARK_PURPLE, LIGHT_GRAY, LIGHT_PURPLE};
 
 /// An optional status line for Editor.
 #[derive(Debug, Clone)]
-pub struct StatusLine {
+pub struct EditorStatusLine {
     /// Displays the current editor mode in the status line.
     mode: String,
     /// The current search buffer. Shown only in search mode.
@@ -21,8 +21,8 @@ pub struct StatusLine {
     align_left: bool,
 }
 
-impl Default for StatusLine {
-    /// Creates a new instance of [`StatusLine`].
+impl Default for EditorStatusLine {
+    /// Creates a new instance of [`EditorStatusLine`].
     ///
     /// This constructor initializes with default style.
     fn default() -> Self {
@@ -36,7 +36,7 @@ impl Default for StatusLine {
     }
 }
 
-impl StatusLine {
+impl EditorStatusLine {
     /// Overwrite the style for the status lines content.
     ///
     /// This method allows you to customize the appearance of the
@@ -85,7 +85,7 @@ impl StatusLine {
     }
 }
 
-impl Widget for StatusLine {
+impl Widget for EditorStatusLine {
     fn render(self, area: Rect, buf: &mut Buffer) {
         // Split the layout horizontally.
         let constraints = if self.align_left {
