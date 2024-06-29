@@ -16,11 +16,11 @@ use self::key::Key;
 use self::register::{Register, RegisterKey};
 
 #[derive(Clone, Debug)]
-pub struct Input {
+pub struct EditorInput {
     register: Register,
 }
 
-impl Default for Input {
+impl Default for EditorInput {
     #[allow(clippy::too_many_lines)]
     fn default() -> Self {
         let mut r = Register::new();
@@ -169,7 +169,7 @@ impl Default for Input {
     }
 }
 
-impl Input {
+impl EditorInput {
     pub fn on_key<T>(&mut self, key: T, state: &mut EditorState)
     where
         T: Into<Key> + Copy,

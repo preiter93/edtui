@@ -76,9 +76,9 @@ pub mod input;
 pub mod state;
 pub mod view;
 
-pub use input::Input;
+pub use input::EditorInput;
 pub use state::{mode::EditorMode, EditorState};
-pub use view::{theme::EditorTheme, EditorView, StatusLine};
+pub use view::{theme::EditorTheme, EditorStatusLine, EditorView};
 
 /// A data structure that contains chars organized in rows and columns
 pub type Lines = jagged::Jagged<char>;
