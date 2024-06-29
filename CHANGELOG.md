@@ -1,6 +1,11 @@
 Released
 --------
 
+0.5.0 - 29 June 2024
+===================
+- Breaking change: Rename Input to EditorInput
+- Breaking change: Rename StatusLine to EditorStatusLine
+
 0.4.1 - 29 June 2024
 ===================
 - Add fuzz testing
