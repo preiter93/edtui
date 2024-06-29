@@ -10,6 +10,10 @@ pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: b
     if ch == '\n' {
         line_break(lines, index);
     } else {
+        let len_col = lines.len_col_unchecked(index.row);
+        if index.col > len_col {
+            index.col = len_col.saturating_sub(1);
+        }
         lines.insert(*index, ch);
         if !skip_move {
             index.col += 1;

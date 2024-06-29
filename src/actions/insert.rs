@@ -107,6 +107,16 @@ mod tests {
     }
 
     #[test]
+    fn test_insert_char_out_of_bounds() {
+        let mut state = EditorState::new(Lines::from("\nb"));
+        state.cursor = Index2::new(0, 1);
+
+        InsertChar('a').execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 1));
+        assert_eq!(state.lines, Lines::from("a\nb"));
+    }
+
+    #[test]
     fn test_line_break() {
         let mut state = test_state();
 
