@@ -41,8 +41,6 @@ pub struct DeleteChar(pub usize);
 
 impl Execute for DeleteChar {
     fn execute(&mut self, state: &mut EditorState) {
-        // let max_col = max_col(&state.lines, &state.cursor, EditorMode::Insert);
-        // state.cursor.col = state.cursor.col.min(max_col);
         state.capture();
         for _ in 0..self.0 {
             delete_char(&mut state.lines, &mut state.cursor);
@@ -62,6 +60,11 @@ fn delete_char(lines: &mut Lines, index: &mut Index2) {
 
     if index.col == 0 && index.row == 0 {
         return;
+    }
+
+    let len_col = lines.len_col(index.row).unwrap_or_default();
+    if index.col > len_col {
+        index.col = len_col;
     }
 
     if index.col == 0 {
@@ -161,6 +164,16 @@ mod tests {
         DeleteChar(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 10));
         assert_eq!(state.lines, Lines::from("Hell World\n\n123."));
+    }
+
+    #[test]
+    fn test_delete_char_empty_line() {
+        let mut state = test_state();
+        state.cursor = Index2::new(1, 99);
+
+        DeleteChar(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 12));
+        assert_eq!(state.lines, Lines::from("Hello World!\n123."));
     }
 
     #[test]
