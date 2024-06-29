@@ -41,6 +41,8 @@ pub fn append_str(lines: &mut Lines, index: &mut Index2, text: &str) {
 pub(crate) fn line_break(lines: &mut Lines, index: &mut Index2) {
     if index.col == 0 {
         lines.insert(RowIndex::new(index.row), vec![]);
+    } else if index.col >= lines.len_col(index.row).unwrap_or_default() {
+        lines.insert(RowIndex::new(index.row + 1), vec![]);
     } else {
         let mut rest = lines.split_off(*index);
         lines.append(&mut rest);

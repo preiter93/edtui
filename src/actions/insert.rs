@@ -107,7 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn test_linebreak() {
+    fn test_line_break() {
         let mut state = test_state();
 
         LineBreak(1).execute(&mut state);
@@ -118,6 +118,16 @@ mod tests {
         LineBreak(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(2, 0));
         assert_eq!(state.lines, Lines::from("\nHello\n World!\n\n123."));
+    }
+
+    #[test]
+    fn test_line_break_col_out_of_bounds() {
+        let mut state = test_state();
+        state.cursor.col = 99;
+
+        LineBreak(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(1, 0));
+        assert_eq!(state.lines, Lines::from("Hello World!\n\n\n123."));
     }
 
     #[test]
