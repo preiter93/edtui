@@ -1,6 +1,11 @@
 Released
 --------
 
+0.4.1 - 29 June 2024
+===================
+- Add fuzz testing
+- Fix several bugs that were discovered by fuzzing
+
 0.4.0 - 27 June 2024
 ===================
 - Bump ratatui to v0.27

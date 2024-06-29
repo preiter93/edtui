@@ -1,6 +1,6 @@
 [package]
 name = "edtui"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 repository = "https://github.com/preiter93/edtui"
 keywords = ["ratatui", "tui", "editor", "text", "vim"]
@@ -17,9 +17,6 @@ arbitrary = { version = "1", optional = true, features = ["derive"] }
 
 [[example]]
 name = "app"
-
-[[example]]
-name = "debug"
 
 [features]
 default = ["arboard"]
