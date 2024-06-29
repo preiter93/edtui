@@ -97,6 +97,16 @@ mod tests {
     }
 
     #[test]
+    fn test_insert_char_into_empty_buffer() {
+        let mut state = EditorState::new(Lines::from("\n"));
+        state.cursor.row = 1;
+
+        InsertChar('a').execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(1, 1));
+        assert_eq!(state.lines, Lines::from("\na"));
+    }
+
+    #[test]
     fn test_linebreak() {
         let mut state = test_state();
 

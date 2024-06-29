@@ -4,7 +4,7 @@ use crate::{state::selection::Selection, EditorMode, EditorState, Index2, Lines}
 
 /// Inserts a character into the lines data at the given `index`.
 pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: bool) {
-    if lines.is_empty() {
+    if lines.len() == index.row {
         lines.push(Vec::new());
     }
     if ch == '\n' {
