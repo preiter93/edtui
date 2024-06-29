@@ -128,6 +128,12 @@ mod tests {
         LineBreak(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(1, 0));
         assert_eq!(state.lines, Lines::from("Hello World!\n\n\n123."));
+
+        state.cursor.col = 99;
+        state.cursor.row = 4;
+        LineBreak(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(5, 0));
+        assert_eq!(state.lines, Lines::from("Hello World!\n\n\n123.\n"));
     }
 
     #[test]
