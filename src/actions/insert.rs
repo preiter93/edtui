@@ -22,6 +22,9 @@ pub struct LineBreak(pub usize);
 
 impl Execute for LineBreak {
     fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            state.lines.push(Vec::new());
+        }
         for _ in 0..self.0 {
             line_break(&mut state.lines, &mut state.cursor);
         }
