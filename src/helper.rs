@@ -10,7 +10,9 @@ pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: b
     if ch == '\n' {
         line_break(lines, index);
     } else {
-        let len_col = lines.len_col_unchecked(index.row);
+        let Some(len_col) = lines.len_col(index.row) else {
+            return;
+        };
         if index.col > len_col {
             index.col = len_col.saturating_sub(1);
         }
@@ -148,6 +150,19 @@ pub(crate) fn len_col(state: &EditorState) -> usize {
     state.lines.len_col(state.cursor.row).unwrap_or_default()
 }
 
+/// Checks whether an index is out of bounds of the `Lines` buffer.
+pub fn is_out_of_bounds(lines: &mut Lines, index: &mut Index2) -> bool {
+    if index.row >= lines.len() {
+        return true;
+    }
+
+    if index.col >= lines.len_col_unchecked(index.row) {
+        return true;
+    }
+
+    return false;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -192,6 +207,26 @@ mod tests {
         insert_str(&mut lines, &mut index, ",\n");
         assert_eq!(index, Index2::new(1, 0));
         assert_eq!(lines, Lines::from("Hello,\n World!\n\n123."));
+    }
+
+    #[test]
+    fn test_insert_char() {
+        let mut lines = test_lines();
+        let mut index = Index2::new(0, 5);
+
+        insert_char(&mut lines, &mut index, '?', false);
+        assert_eq!(index, Index2::new(0, 6));
+        assert_eq!(lines, Lines::from("Hello? World!\n\n123."));
+    }
+
+    #[test]
+    fn test_insert_char_out_of_bounds() {
+        let mut lines = test_lines();
+        let mut index = Index2::new(99, 0);
+
+        insert_char(&mut lines, &mut index, '?', false);
+        assert_eq!(index, Index2::new(99, 0));
+        assert_eq!(lines, Lines::from("Hello World!\n\n123."));
     }
 
     #[test]
