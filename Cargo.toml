@@ -20,6 +20,6 @@ arbitrary = { version = "1", optional = true, features = ["derive"] }
 name = "app"
 
 [features]
-default = ["arboard", "mouse"]
+default = ["arboard", "mouse-support"]
 arboard = ["dep:arboard"]
-mouse = [] # experimental
+mouse-support = [] # experimental

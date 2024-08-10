@@ -53,6 +53,22 @@
 //!
 //!![](resources/app.gif)
 //!
+//! ## Experimental Mouse Support
+//!
+//! `Edtui` now includes experimental mouse support. To enable it activate the feature
+//! ```toml
+//! [dependencies.edtui]
+//! version = "0.6.0"
+//! features = ["mouse-support"]
+//! ```
+//! and use the mouse event handler
+//! ```rust
+//! let mouse_handler = EditorMouse::default();
+//! mouse_handler.on_event(mouse_event, &mut state);
+//! ```
+//!
+//! **Note**: This feature is experimental, so expect potential bugs and breaking changes.
+//!
 //! ### Roadmap
 //!
 //! - [x] Clipboard
