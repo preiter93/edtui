@@ -110,12 +110,8 @@ pub(crate) fn clamp_column(state: &mut EditorState) {
 
 /// Set the selections end positions
 pub(crate) fn set_selection(selection: &mut Option<Selection>, index: Index2) {
-    if let Some(Selection { start, end }) = selection.as_ref() {
-        if index <= *start {
-            *selection = Some(Selection::new(index, *end));
-        } else {
-            *selection = Some(Selection::new(*start, index));
-        }
+    if let Some(selection) = selection {
+        selection.end = index;
     }
 }
 
