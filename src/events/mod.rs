@@ -1,4 +1,4 @@
-pub(crate) mod input;
+pub(crate) mod deprecated_input;
 mod key;
 #[cfg(feature = "mouse-support")]
 pub(crate) mod mouse;
@@ -10,11 +10,11 @@ use crate::EditorState;
 
 /// Handles key and mouse events.
 #[derive(Default)]
-pub struct EditorEvent {
+pub struct EditorEventHandler {
     pub key_handler: KeyEventHandler,
 }
 
-impl EditorEvent {
+impl EditorEventHandler {
     /// Creates a new `EditorEvent` handler.
     #[must_use]
     pub fn new(key_handler: KeyEventHandler) -> Self {

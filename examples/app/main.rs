@@ -1,4 +1,4 @@
-use edtui::{EditorEvent, EditorState, Lines};
+use edtui::{EditorEventHandler, EditorState, Lines};
 use ratatui::crossterm::event::{self, Event, KeyCode};
 use root::Root;
 use std::error::Error;
@@ -18,14 +18,14 @@ pub struct App {
 }
 
 pub struct AppContext {
-    editor_state: EditorState,
-    editor_event: EditorEvent,
+    state: EditorState,
+    event_handler: EditorEventHandler,
 }
 
 impl AppContext {
     pub fn new() -> Self {
         Self {
-            editor_state: EditorState::new(Lines::from(
+            state: EditorState::new(Lines::from(
                 "EdTUI is a light-weight vim inspired TUI editor for the RataTUI ecosystem.
 
 Navigate right (l), left (h), up (k) and down (j), using vim motions.
@@ -42,7 +42,7 @@ This editor is under active development.
 Don't hesitate to open issues or submit pull requests to contribute!
 ",
             )),
-            editor_event: EditorEvent::default(),
+            event_handler: EditorEventHandler::default(),
         }
     }
 }

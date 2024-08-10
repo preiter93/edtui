@@ -93,8 +93,8 @@ mod state;
 mod view;
 
 #[allow(deprecated)]
-pub use events::input::EditorInput;
-pub use events::EditorEvent;
+pub use events::deprecated_input::EditorInput;
+pub use events::EditorEventHandler;
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView};
 

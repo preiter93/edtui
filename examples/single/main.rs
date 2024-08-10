@@ -1,4 +1,4 @@
-use edtui::{EditorEvent, EditorState, Lines};
+use edtui::{EditorEventHandler, EditorState, Lines};
 use ratatui::crossterm::event::{self, Event, KeyCode};
 use root::Root;
 use std::error::Error;
@@ -18,15 +18,15 @@ pub struct App {
 }
 
 pub struct AppContext {
-    editor_state: EditorState,
-    editor_event: EditorEvent,
+    state: EditorState,
+    event_handler: EditorEventHandler,
 }
 
 impl AppContext {
     pub fn new() -> Self {
         Self {
-            editor_state: EditorState::new(Lines::from("\"Single line editor\"")),
-            editor_event: EditorEvent::default(),
+            state: EditorState::new(Lines::from("\"Single line editor\"")),
+            event_handler: EditorEventHandler::default(),
         }
     }
 }
