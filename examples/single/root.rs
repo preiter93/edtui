@@ -22,7 +22,7 @@ impl<'a> Root<'a> {
 
         match event.code {
             KeyCode::Enter => {}
-            _ => input.on_key(event, state),
+            _ => input.on_event(event, state),
         }
     }
 }

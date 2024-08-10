@@ -1,5 +1,5 @@
-use edtui::{EditorTheme, EditorView};
-use ratatui::crossterm::event::KeyEvent;
+use edtui::{EditorMouse, EditorTheme, EditorView};
+use ratatui::crossterm::event::{KeyEvent, MouseEvent};
 use ratatui::{
     prelude::*,
     widgets::{Block, BorderType, Borders, Widget},
@@ -16,10 +16,16 @@ impl<'a> Root<'a> {
         Self { context }
     }
 
-    pub fn handle_events(self, event: KeyEvent) {
+    pub fn handle_key_events(self, event: KeyEvent) {
         let input = &mut self.context.editor_input;
         let state = &mut self.context.editor_state;
-        input.on_key(event, state)
+        input.on_event(event, state)
+    }
+
+    pub fn handle_mouse_events(self, event: MouseEvent) {
+        let state = &mut self.context.editor_state;
+        let mouse = EditorMouse::default();
+        mouse.on_event(event, state)
     }
 }
 

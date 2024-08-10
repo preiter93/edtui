@@ -77,6 +77,7 @@ mod state;
 mod view;
 
 pub use events::input::EditorInput;
+pub use events::mouse::EditorMouse;
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView};
 
