@@ -5,6 +5,8 @@ pub mod selection;
 mod undo;
 mod view;
 
+use view::Offset;
+
 use self::search::SearchState;
 use self::view::ViewState;
 use self::{mode::EditorMode, selection::Selection, undo::Stack};
@@ -77,5 +79,21 @@ impl EditorState {
     /// Set a custom clipboard.
     pub fn set_clipboard(&mut self, clipboard: impl ClipboardTrait + 'static) {
         self.clip = Clipboard::new(clipboard);
+    }
+
+    /// Sets the offset from the upper-left corner of the terminal window to the start of the editor buffer.
+    ///
+    /// There are two offsets involved in determining the mouse position relative to the editor text:
+    ///
+    /// 1. **window_to_editor_offset**: This offset is from the terminal window to the start of the editor
+    /// area. This must be set manually by the user using this method.
+    ///
+    /// 2. **editor_to_textarea_offset**: This offset is from the start of the editor area to the actual textarea
+    /// (e.g., borders, padding). This offset is set automatically.
+    ///
+    /// Both of these offsets are necessary to correctly calculate the mouse position in relation to the text
+    /// within the editor.
+    pub(crate) fn set_window_to_editor_offset<T: Into<Offset>>(&mut self, offset: T) {
+        self.view.window_to_editor_offset = offset.into();
     }
 }
