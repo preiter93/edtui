@@ -64,14 +64,17 @@ impl App {
 
     fn handle_events(&mut self) -> Result<()> {
         let root = Root::new(&mut self.context);
-        match event::read()? {
-            Event::Key(event) => match event.code {
-                KeyCode::Char('q') => self.should_quit = true,
-                _ => root.handle_key_events(event),
-            },
-            Event::Mouse(event) => root.handle_mouse_events(event),
-            _ => {}
-        }
+        let event = event::read()?;
+
+        if let Event::Key(event) = event {
+            if event.code == KeyCode::Char('q') {
+                self.should_quit = true;
+                return Ok(());
+            }
+        };
+
+        root.handle_events(event);
+
         Ok(())
     }
 
