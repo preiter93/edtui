@@ -156,7 +156,7 @@ pub fn is_out_of_bounds(lines: &mut Lines, index: &mut Index2) -> bool {
         return true;
     }
 
-    return false;
+    false
 }
 
 #[cfg(test)]
