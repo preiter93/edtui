@@ -10,8 +10,8 @@ license = "MIT"
 
 [dependencies]
 ratatui = "0.27"
-# jagged = { package = "edtui-jagged", version = "0.1.4" }
-jagged = { package = "edtui-jagged", version = "0.1", path = "../edtui-jagged" }
+jagged = { package = "edtui-jagged", version = "0.1.4" }
+# jagged = { package = "edtui-jagged", version = "0.1", path = "../edtui-jagged" }
 enum_dispatch = "0.3.12"
 arboard = { version = "3.3.0", optional = true }
 arbitrary = { version = "1", optional = true, features = ["derive"] }
@@ -22,4 +22,4 @@ name = "app"
 [features]
 default = ["arboard", "mouse"]
 arboard = ["dep:arboard"]
-mouse = []
+mouse = [] # experimental

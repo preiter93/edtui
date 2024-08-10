@@ -1,6 +1,5 @@
 use crate::Index2;
 use ratatui::layout::Rect;
-use std::ops::Add;
 
 /// Represents the (x, y) offset of the editor's viewport.
 /// It represents the top-left local editor coordinate.
@@ -10,29 +9,19 @@ pub(crate) struct ViewState {
     viewport_x: usize,
     /// The y-coordinate offset of the viewport.
     viewport_y: usize,
-    /// The offset from the terminal window to the editor.
-    pub(crate) window_to_editor_offset: Offset,
-    /// The offset from the editor to the textarea.
+    /// Sets the offset from the upper-left corner of the terminal window to the start of the textarea buffer.
+    ///
+    /// This offset is necessary to calculate the mouse position in relation to the text
+    /// within the editor.
     pub(crate) editor_to_textarea_offset: Offset,
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct Offset {
+pub(crate) struct Offset {
     /// The x-offset.
     pub(crate) x: usize,
     /// The y-offset.
     pub(crate) y: usize,
-}
-
-impl Add<Offset> for Offset {
-    type Output = Offset;
-
-    fn add(self, rhs: Self::Output) -> Self::Output {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
-    }
 }
 
 impl From<Rect> for Offset {
@@ -122,7 +111,6 @@ mod tests {
                 viewport_x: 0,
                 viewport_y: 1,
                 editor_to_textarea_offset: Offset::default(),
-                window_to_editor_offset: Offset::default(),
             },
             size: (1, 2),
             cursor: Index2::new(0, 0),
@@ -139,7 +127,6 @@ mod tests {
                 viewport_x: 0,
                 viewport_y: 0,
                 editor_to_textarea_offset: Offset::default(),
-                window_to_editor_offset: Offset::default(),
             },
             size: (1, 2),
             cursor: Index2::new(2, 0),
@@ -153,7 +140,6 @@ mod tests {
                 viewport_x: 1,
                 viewport_y: 0,
                 editor_to_textarea_offset: Offset::default(),
-                window_to_editor_offset: Offset::default(),
             },
             size: (2, 1),
             cursor: Index2::new(0, 0),
@@ -167,7 +153,6 @@ mod tests {
                 viewport_x: 0,
                 viewport_y: 0,
                 editor_to_textarea_offset: Offset::default(),
-                window_to_editor_offset: Offset::default(),
             },
             size: (2, 1),
             cursor: Index2::new(0, 2),
