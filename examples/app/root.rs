@@ -17,15 +17,15 @@ impl<'a> Root<'a> {
     }
 
     pub fn handle_key_events(self, key: KeyEvent) {
-        let event = &mut self.context.editor_event;
-        let state = &mut self.context.editor_state;
-        event.on_key_event(key, state)
+        let event_handler = &mut self.context.event_handler;
+        let state = &mut self.context.state;
+        event_handler.on_key_event(key, state)
     }
 
     pub fn handle_mouse_events(self, mouse: MouseEvent) {
-        let event = &mut self.context.editor_event;
-        let state = &mut self.context.editor_state;
-        event.on_mouse_event(mouse, state)
+        let event_handler = &mut self.context.event_handler;
+        let state = &mut self.context.state;
+        event_handler.on_mouse_event(mouse, state)
     }
 }
 
@@ -33,7 +33,7 @@ impl Widget for Root<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let theme = Theme::new();
 
-        let state = &mut self.context.editor_state;
+        let state = &mut self.context.state;
         let editor = EditorView::new(state).theme(theme.editor);
         editor.render(area, buf)
     }

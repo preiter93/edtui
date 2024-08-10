@@ -17,12 +17,12 @@ impl<'a> Root<'a> {
     }
 
     pub fn handle_events(self, key: KeyEvent) {
-        let event = &mut self.context.editor_event;
-        let state = &mut self.context.editor_state;
+        let event_handler = &mut self.context.event_handler;
+        let state = &mut self.context.state;
 
         match key.code {
             KeyCode::Enter => {}
-            _ => event.on_key_event(key, state),
+            _ => event_handler.on_key_event(key, state),
         }
     }
 }
@@ -32,7 +32,7 @@ impl Widget for Root<'_> {
         let [top, _] = Layout::vertical([Constraint::Length(3), Constraint::Min(0)]).areas(area);
         let theme = Theme::new();
 
-        let state = &mut self.context.editor_state;
+        let state = &mut self.context.state;
         let editor = EditorView::new(state).theme(theme.editor);
         editor.render(top, buf)
     }
