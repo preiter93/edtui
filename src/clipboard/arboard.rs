@@ -1,3 +1,4 @@
+#![cfg(feature = "arboard")]
 use super::{Clipboard, ClipboardTrait};
 use crate::clipboard::InternalClipboard;
 use std::error::Error;
@@ -27,7 +28,6 @@ impl ClipboardTrait for ArboardClipboard {
     }
 }
 
-#[cfg(feature = "arboard")]
 impl Default for Clipboard {
     /// Creates a new `Clipboard` with `ArboardClipboard`.
     /// The arboard clipboard captures the systems clipboard.
