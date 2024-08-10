@@ -1,25 +1,20 @@
+use app::{App, AppContext};
 use edtui::{EditorEventHandler, EditorState, Lines};
-use ratatui::crossterm::event::{self, Event, KeyCode};
-use root::Root;
 use std::error::Error;
 use term::Term;
-mod root;
+mod app;
 mod term;
+mod theme;
+
 pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 fn main() -> Result<()> {
-    App::run()
-}
-
-pub struct App {
-    term: Term,
-    context: AppContext,
-    should_quit: bool,
-}
-
-pub struct AppContext {
-    state: EditorState,
-    event_handler: EditorEventHandler,
+    let mut term = Term::new()?;
+    let mut app = App {
+        context: AppContext::new(),
+        should_quit: false,
+    };
+    app.run(&mut term)
 }
 
 impl AppContext {
@@ -44,47 +39,5 @@ Don't hesitate to open issues or submit pull requests to contribute!
             )),
             event_handler: EditorEventHandler::default(),
         }
-    }
-}
-
-impl App {
-    pub fn new() -> Result<App> {
-        Ok(App {
-            term: Term::new()?,
-            context: AppContext::new(),
-            should_quit: false,
-        })
-    }
-
-    fn draw(&mut self) -> Result<()> {
-        let root = Root::new(&mut self.context);
-        let _ = self.term.draw(|f| f.render_widget(root, f.size()));
-        Ok(())
-    }
-
-    fn handle_events(&mut self) -> Result<()> {
-        let root = Root::new(&mut self.context);
-        let event = event::read()?;
-
-        if let Event::Key(event) = event {
-            if event.code == KeyCode::Char('q') {
-                self.should_quit = true;
-                return Ok(());
-            }
-        };
-
-        root.handle_events(event);
-
-        Ok(())
-    }
-
-    pub fn run() -> Result<()> {
-        let mut app = Self::new()?;
-        while !app.should_quit {
-            app.draw()?;
-            app.handle_events()?;
-        }
-        Term::stop()?;
-        Ok(())
     }
 }
