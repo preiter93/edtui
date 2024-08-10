@@ -11,7 +11,7 @@ use std::{
 
 pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
-pub(crate) struct Term {
+pub struct Term {
     terminal: Terminal<CrosstermBackend<Stdout>>,
 }
 
