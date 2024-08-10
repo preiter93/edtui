@@ -1,6 +1,11 @@
 Released
 --------
 
+0.5.1 - 10 Aug 2024
+===================
+- Make insert char safer
+- Fix bug in selection mode
+
 0.5.0 - 29 June 2024
 ===================
 - Breaking change: Rename Input to EditorInput
