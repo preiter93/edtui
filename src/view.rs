@@ -69,11 +69,15 @@ impl Widget for EditorView<'_, '_> {
         // cursor is clamped to the maximum line length.
         let cursor = displayed_cursor(self.state);
 
+        // Store the offset from the current buffer to the textarea inside the state.
+        // This is required to calculate mouse positions correctly.
+        self.state.view.set_editor_to_textarea_offset(area);
+
         // Update the view offset. Requuires the screen size and the position
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let size = (width, height);
-        let (x_off, y_off) = self.state.view.update_offset(size, cursor);
+        let (x_off, y_off) = self.state.view.update_viewport_offset(size, cursor);
 
         // Rendering of the cursor. Cursor is not rendered in the loop below,
         // as the cursor may be outside the text in input mode.

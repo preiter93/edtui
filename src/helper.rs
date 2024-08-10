@@ -147,7 +147,7 @@ pub(crate) fn len_col(state: &EditorState) -> usize {
 }
 
 /// Checks whether an index is out of bounds of the `Lines` buffer.
-pub fn is_out_of_bounds(lines: &mut Lines, index: &mut Index2) -> bool {
+pub fn is_out_of_bounds(lines: &Lines, index: &Index2) -> bool {
     if index.row >= lines.len() {
         return true;
     }
