@@ -1,6 +1,6 @@
 [package]
 name = "edtui"
-version = "0.5.1"
+version = "0.6.0"
 edition = "2021"
 repository = "https://github.com/preiter93/edtui"
 keywords = ["ratatui", "tui", "editor", "text", "vim"]
@@ -19,5 +19,6 @@ arbitrary = { version = "1", optional = true, features = ["derive"] }
 name = "app"
 
 [features]
-default = ["arboard"]
+default = ["arboard", "capture_mouse"]
 arboard = ["dep:arboard"]
+capture_mouse = []
