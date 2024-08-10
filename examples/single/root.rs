@@ -16,13 +16,13 @@ impl<'a> Root<'a> {
         Self { context }
     }
 
-    pub fn handle_events(self, event: KeyEvent) {
-        let input = &mut self.context.editor_input;
+    pub fn handle_events(self, key: KeyEvent) {
+        let event = &mut self.context.editor_event;
         let state = &mut self.context.editor_state;
 
-        match event.code {
+        match key.code {
             KeyCode::Enter => {}
-            _ => input.on_event(event, state),
+            _ => event.on_key_event(key, state),
         }
     }
 }

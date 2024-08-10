@@ -1,4 +1,4 @@
-use edtui::{EditorMouse, EditorTheme, EditorView};
+use edtui::{EditorTheme, EditorView};
 use ratatui::crossterm::event::{KeyEvent, MouseEvent};
 use ratatui::{
     prelude::*,
@@ -16,16 +16,16 @@ impl<'a> Root<'a> {
         Self { context }
     }
 
-    pub fn handle_key_events(self, event: KeyEvent) {
-        let input = &mut self.context.editor_input;
+    pub fn handle_key_events(self, key: KeyEvent) {
+        let event = &mut self.context.editor_event;
         let state = &mut self.context.editor_state;
-        input.on_event(event, state)
+        event.on_key_event(key, state)
     }
 
-    pub fn handle_mouse_events(self, event: MouseEvent) {
+    pub fn handle_mouse_events(self, mouse: MouseEvent) {
+        let event = &mut self.context.editor_event;
         let state = &mut self.context.editor_state;
-        let mouse = EditorMouse::default();
-        mouse.on_event(event, state)
+        event.on_mouse_event(mouse, state)
     }
 }
 

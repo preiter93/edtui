@@ -9,10 +9,10 @@ use crate::{
 
 /// Handles a mouse event.
 #[derive(Clone, Debug, Default)]
-pub struct EditorMouse {}
+pub struct MouseEventHandler {}
 
-impl EditorMouse {
-    pub fn on_event<E>(self, event: E, state: &mut EditorState)
+impl MouseEventHandler {
+    pub fn on_event<E>(event: E, state: &mut EditorState)
     where
         E: Into<MouseEvent>,
     {

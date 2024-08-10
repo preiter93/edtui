@@ -62,9 +62,9 @@
 //! features = ["mouse-support"]
 //! ```
 //! and use the mouse event handler
-//! ```rust
-//! let mouse_handler = EditorMouse::default();
-//! mouse_handler.on_event(mouse_event, &mut state);
+//! ```ignore
+//! let event_handler = EditorEvent::default();
+//! event_handler.on_mouse_event(mouse_event, &mut state);
 //! ```
 //!
 //! **Note**: This feature is experimental, so expect potential bugs and breaking changes.
@@ -87,13 +87,14 @@
 pub mod actions;
 pub mod clipboard;
 mod debug;
-mod events;
+pub mod events;
 mod helper;
 mod state;
 mod view;
 
+#[allow(deprecated)]
 pub use events::input::EditorInput;
-pub use events::mouse::EditorMouse;
+pub use events::EditorEvent;
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView};
 
