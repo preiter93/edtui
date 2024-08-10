@@ -1,6 +1,7 @@
-use edtui::EditorTheme;
+use edtui::{EditorStatusLine, EditorTheme};
 use ratatui::{
     prelude::{Alignment, Stylize},
+    style::{Color, Style},
     widgets::{Block, BorderType, Borders},
 };
 
@@ -19,7 +20,22 @@ impl<'a> Theme<'a> {
                         .title("Editor")
                         .title_alignment(Alignment::Center),
                 )
-                .base(EditorTheme::default().base.bold()),
+                .base(Style::default().bg(DARK_BLUE).fg(WHITE))
+                .cursor_style(Style::default().bg(WHITE).fg(DARK_BLUE))
+                .selection_style(Style::default().bg(YELLOW).fg(DARK_BLUE))
+                .status_line(
+                    EditorStatusLine::default()
+                        .style_text(Style::default().fg(LIGHT_GRAY).bg(LIGHT_PURPLE).bold())
+                        .style_text(Style::default().fg(LIGHT_GRAY).bg(DARK_PURPLE))
+                        .align_left(true),
+                ),
         }
     }
 }
+
+pub(crate) const DARK_BLUE: Color = Color::Rgb(15, 23, 42);
+pub(crate) const YELLOW: Color = Color::Rgb(250, 204, 21);
+pub(crate) const WHITE: Color = Color::Rgb(248, 250, 252);
+pub(crate) const LIGHT_GRAY: Color = Color::Rgb(248, 250, 252);
+pub(crate) const LIGHT_PURPLE: Color = Color::Rgb(126, 34, 206);
+pub(crate) const DARK_PURPLE: Color = Color::Rgb(88, 28, 135);

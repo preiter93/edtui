@@ -24,7 +24,7 @@ impl Default for EditorTheme<'_> {
     /// This constructor initializes with default style.
     fn default() -> Self {
         Self {
-            base: Style::default().bg(DARK_BLUE),
+            base: Style::default().bg(DARK_BLUE).fg(WHITE),
             block: None,
             cursor_style: Style::default().bg(WHITE).fg(DARK_BLUE),
             selection_style: Style::default().bg(YELLOW).fg(DARK_BLUE),
