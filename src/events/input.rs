@@ -18,6 +18,7 @@ pub struct EditorInput {
 }
 
 impl Default for EditorInput {
+    #[allow(clippy::too_many_lines)]
     fn default() -> Self {
         let register: HashMap<EditorInputKey, Action> = HashMap::from([
             // Go into normal mode
@@ -260,7 +261,7 @@ impl Default for EditorInput {
     }
 }
 impl EditorInput {
-    /// Creates a new EditorInput.
+    /// Creates a new `EditorInput`.
     #[must_use]
     pub fn new(register: HashMap<EditorInputKey, Action>) -> Self {
         Self {
@@ -369,7 +370,15 @@ impl EditorInputKey {
 }
 
 impl EditorInput {
+    #[deprecated(since = "0.6.0", note = "Use on_event instead.")]
     pub fn on_key<T>(&mut self, key: T, state: &mut EditorState)
+    where
+        T: Into<KeyEvent> + Copy,
+    {
+        self.on_event(key, state);
+    }
+
+    pub fn on_event<T>(&mut self, key: T, state: &mut EditorState)
     where
         T: Into<KeyEvent> + Copy,
     {

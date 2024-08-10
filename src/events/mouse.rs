@@ -1,10 +1,9 @@
-#![cfg(feature = "mouse")]
 use jagged::Index2;
 use ratatui::crossterm::event::{MouseEvent as CTMouseEvent, MouseEventKind};
 
 use crate::{
     actions::{Execute, SwitchMode},
-    helper::{is_out_of_bounds, set_selection},
+    helper::set_selection,
     EditorMode, EditorState,
 };
 
@@ -13,32 +12,17 @@ use crate::{
 pub struct EditorMouse {}
 
 impl EditorMouse {
-    pub fn on_event<E>(event: E, state: &mut EditorState)
+    pub fn on_event<E>(self, event: E, state: &mut EditorState)
     where
         E: Into<MouseEvent>,
     {
         let event = event.into();
-        if let MouseEvent::None = event {
+        if event == MouseEvent::None {
             return;
         }
 
         let total_textarea_offset =
             state.view.editor_to_textarea_offset + state.view.window_to_editor_offset;
-
-        match event {
-            MouseEvent::Down(mouse) | MouseEvent::Up(mouse) | MouseEvent::Drag(mouse) => {
-                let cursor = Index2::new(
-                    mouse.row.saturating_sub(total_textarea_offset.x),
-                    mouse.col.saturating_sub(total_textarea_offset.y),
-                );
-                if !is_out_of_bounds(&state.lines, &cursor) {
-                    state.cursor = cursor;
-                } else {
-                    state.cursor = state.lines.last_index().unwrap_or(state.cursor);
-                }
-            }
-            MouseEvent::None => return,
-        };
 
         if let MouseEvent::Down(_) = event {
             state.selection = None;
@@ -53,6 +37,34 @@ impl EditorMouse {
             }
             set_selection(&mut state.selection, state.cursor);
         }
+
+        match event {
+            MouseEvent::Down(mouse) | MouseEvent::Up(mouse) | MouseEvent::Drag(mouse) => {
+                let lines = &state.lines;
+                let cursor = Index2::new(
+                    mouse.row.saturating_sub(total_textarea_offset.x),
+                    mouse.col.saturating_sub(total_textarea_offset.y),
+                );
+                let last_row = lines.len().saturating_sub(1);
+                let last_col = lines.len_col(cursor.row).unwrap_or(0).saturating_sub(1);
+
+                // row is out of bounds
+                if last_row < cursor.row {
+                    let last_col = lines.len_col(last_row).unwrap_or(0).saturating_sub(1);
+                    state.cursor = Index2::new(last_row, last_col);
+                // col is out of bounds
+                } else if last_col < cursor.col {
+                    state.cursor = Index2::new(cursor.row, last_col);
+                } else {
+                    state.cursor = cursor;
+                }
+
+                if let MouseEvent::Drag(_) = event {
+                    set_selection(&mut state.selection, state.cursor);
+                }
+            }
+            MouseEvent::None => (),
+        };
     }
 }
 
