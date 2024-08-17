@@ -30,7 +30,7 @@ impl EditorEventHandler {
         match event.into() {
             Event::Key(event) => self.on_key_event(event, state),
             Event::Mouse(event) => self.on_mouse_event(event, state),
-            _ => (),
+            Event::None => (),
         }
     }
 

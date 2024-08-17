@@ -1,6 +1,10 @@
 Released
 --------
 
+0.6.0 - 17 Aug 2024
+===================
+- Bump ratatui to v0.28
+
 0.5.1 - 10 Aug 2024
 ===================
 - Make insert char safer
