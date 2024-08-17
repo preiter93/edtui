@@ -83,8 +83,9 @@ impl Widget for EditorView<'_, '_> {
         // as the cursor may be outside the text in input mode.
         let x_cursor = (main.left() as usize) + width.min(cursor.col.saturating_sub(x_off));
         let y_cursor = (main.top() as usize) + cursor.row.saturating_sub(y_off);
-        buf.get_mut(x_cursor as u16, y_cursor as u16)
-            .set_style(self.theme.cursor_style);
+        if let Some(cell) = buf.cell_mut(Position::new(x_cursor as u16, y_cursor as u16)) {
+            cell.set_style(self.theme.cursor_style);
+        }
 
         // Rendering the text and the selection.
         let lines = &self.state.lines;
@@ -94,13 +95,17 @@ impl Widget for EditorView<'_, '_> {
                 let x = (main.left() as usize) as u16 + j as u16;
 
                 // Text
-                buf.get_mut(x, y).set_symbol(&char.to_string());
+                if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
+                    cell.set_symbol(&char.to_string());
+                }
 
                 // Selection
                 if let Some(selection) = &self.state.selection {
                     let position = Index2::new(y_off + i, x_off + j);
                     if selection.contains(&position) {
-                        buf.get_mut(x, y).set_style(self.theme.selection_style);
+                        if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
+                            cell.set_style(self.theme.selection_style);
+                        }
                     }
                 }
             }

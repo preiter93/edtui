@@ -32,7 +32,7 @@ impl App {
     }
 
     pub fn draw(&mut self, term: &mut Term) -> Result<()> {
-        let _ = term.draw(|f| f.render_widget(self, f.size()));
+        let _ = term.draw(|f| f.render_widget(self, f.area()));
         Ok(())
     }
 
