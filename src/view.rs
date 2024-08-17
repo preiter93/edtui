@@ -77,21 +77,21 @@ impl Widget for EditorView<'_, '_> {
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let size = (width, height);
-        let (x_off, y_off) = self.state.view.update_viewport_offset(size, cursor);
+        let offset = self.state.view.update_viewport_offset(size, cursor);
 
         // Rendering of the cursor. Cursor is not rendered in the loop below,
         // as the cursor may be outside the text in input mode.
-        let x_cursor = (main.left() as usize) + width.min(cursor.col.saturating_sub(x_off));
-        let y_cursor = (main.top() as usize) + cursor.row.saturating_sub(y_off);
+        let x_cursor = (main.left() as usize) + width.min(cursor.col.saturating_sub(offset.x));
+        let y_cursor = (main.top() as usize) + cursor.row.saturating_sub(offset.y);
         if let Some(cell) = buf.cell_mut(Position::new(x_cursor as u16, y_cursor as u16)) {
             cell.set_style(self.theme.cursor_style);
         }
 
         // Rendering the text and the selection.
         let lines = &self.state.lines;
-        for (i, line) in lines.iter_row().skip(y_off).take(height).enumerate() {
+        for (i, line) in lines.iter_row().skip(offset.y).take(height).enumerate() {
             let y = (main.top() as usize) as u16 + i as u16;
-            for (j, char) in line.iter().skip(x_off).take(width).enumerate() {
+            for (j, char) in line.iter().skip(offset.x).take(width).enumerate() {
                 let x = (main.left() as usize) as u16 + j as u16;
 
                 // Text
@@ -101,7 +101,7 @@ impl Widget for EditorView<'_, '_> {
 
                 // Selection
                 if let Some(selection) = &self.state.selection {
-                    let position = Index2::new(y_off + i, x_off + j);
+                    let position = Index2::new(offset.y + i, offset.x + j);
                     if selection.contains(&position) {
                         if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
                             cell.set_style(self.theme.selection_style);
