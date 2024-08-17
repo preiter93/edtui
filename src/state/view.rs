@@ -5,10 +5,8 @@ use ratatui::layout::Rect;
 /// It represents the top-left local editor coordinate.
 #[derive(Default, Debug, Clone)]
 pub(crate) struct ViewState {
-    /// The x-coordinate offset of the viewport.
-    viewport_x: usize,
-    /// The y-coordinate offset of the viewport.
-    viewport_y: usize,
+    /// The offset of the viewport.
+    pub(crate) viewport: Offset,
     /// Sets the offset from the upper-left corner of the terminal window to the start of the textarea buffer.
     ///
     /// This offset is necessary to calculate the mouse position in relation to the text
@@ -22,6 +20,12 @@ pub(crate) struct Offset {
     pub(crate) x: usize,
     /// The y-offset.
     pub(crate) y: usize,
+}
+
+impl Offset {
+    pub(crate) fn new(x: usize, y: usize) -> Self {
+        Self { x, y }
+    }
 }
 
 impl From<Rect> for Offset {
@@ -50,28 +54,28 @@ impl ViewState {
         &mut self,
         size: (usize, usize),
         cursor: Index2,
-    ) -> (usize, usize) {
+    ) -> Offset {
         let limit = (
-            size.0.saturating_sub(1) + self.viewport_x,
-            size.1.saturating_sub(1) + self.viewport_y,
+            size.0.saturating_sub(1) + self.viewport.x,
+            size.1.saturating_sub(1) + self.viewport.y,
         );
         // scroll left
-        if cursor.col < self.viewport_x {
-            self.viewport_x = cursor.col;
+        if cursor.col < self.viewport.x {
+            self.viewport.x = cursor.col;
         }
         // scroll right
         if cursor.col >= limit.0 {
-            self.viewport_x += cursor.col.saturating_sub(limit.0);
+            self.viewport.x += cursor.col.saturating_sub(limit.0);
         }
         // scroll up
-        if cursor.row < self.viewport_y {
-            self.viewport_y = cursor.row;
+        if cursor.row < self.viewport.y {
+            self.viewport.y = cursor.row;
         }
         // scroll down
         if cursor.row >= limit.1 {
-            self.viewport_y += cursor.row.saturating_sub(limit.1);
+            self.viewport.y += cursor.row.saturating_sub(limit.1);
         }
-        (self.viewport_x, self.viewport_y)
+        self.viewport
     }
 }
 
@@ -108,13 +112,12 @@ mod tests {
         // 2 ---- |
         scroll_up: {
             view: ViewState{
-                viewport_x: 0,
-                viewport_y: 1,
+                viewport: Offset::new(0, 1),
                 editor_to_textarea_offset: Offset::default(),
             },
             size: (1, 2),
             cursor: Index2::new(0, 0),
-            expected: (0, 0)
+            expected: Offset::new(0, 0)
         }
     );
 
@@ -124,39 +127,36 @@ mod tests {
         // 2 <-   | --<-
         scroll_down: {
             view: ViewState{
-                viewport_x: 0,
-                viewport_y: 0,
+                viewport: Offset::new(0, 0),
                 editor_to_textarea_offset: Offset::default(),
             },
             size: (1, 2),
             cursor: Index2::new(2, 0),
-            expected: (0, 1)
+            expected: Offset::new(0, 1)
         }
     );
 
     update_view_offset_test!(
         scroll_left: {
             view: ViewState{
-                viewport_x: 1,
-                viewport_y: 0,
+                viewport: Offset::new(1, 0),
                 editor_to_textarea_offset: Offset::default(),
             },
             size: (2, 1),
             cursor: Index2::new(0, 0),
-            expected: (0, 0)
+            expected: Offset::new(0, 0)
         }
     );
 
     update_view_offset_test!(
         scroll_right: {
             view: ViewState{
-                viewport_x: 0,
-                viewport_y: 0,
+                viewport: Offset::new(0, 0),
                 editor_to_textarea_offset: Offset::default(),
             },
             size: (2, 1),
             cursor: Index2::new(0, 2),
-            expected: (1, 0)
+            expected: Offset::new(1, 0)
         }
     );
 }
