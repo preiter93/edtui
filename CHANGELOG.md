@@ -1,7 +1,11 @@
 Released
 --------
 
-0.6.0 - 17 Aug 2024
+0.7.1 - 17 Aug 2024
+===================
+- Key event handler implements clone
+
+0.7.0 - 17 Aug 2024
 ===================
 - Bump ratatui to v0.28
 
