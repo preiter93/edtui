@@ -10,7 +10,7 @@ use crate::EditorState;
 use ratatui::crossterm::event::Event as CTEvent;
 
 /// Handles key and mouse events.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct EditorEventHandler {
     pub key_handler: KeyEventHandler,
 }

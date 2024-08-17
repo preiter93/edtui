@@ -5,7 +5,7 @@ use crate::EditorState;
 use super::key::{KeyEvent, KeyEventHandler};
 
 #[derive(Clone, Debug)]
-#[deprecated(since = "0.6.0", note = "Use EditorEvent instead.")]
+#[deprecated(since = "0.6.0", note = "Use EditorEventHandler instead.")]
 pub struct EditorInput {
     event_handler: KeyEventHandler,
 }
