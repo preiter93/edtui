@@ -5,6 +5,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders},
 };
 
+#[derive(Default)]
 pub struct Theme<'a> {
     pub editor: EditorTheme<'a>,
 }
