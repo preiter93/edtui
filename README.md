@@ -6,6 +6,16 @@
 `EdTUI` is a text editor widget for the [Ratatui](https://github.com/ratatui-org/ratatui) ecosystem.
 It is designed to provide a light-weight user experience inspired by Vim.
 
+```rust
+use edtui::{EditorState, EditorTheme, EditorView};
+use ratatui::widgets::Widget;
+
+let mut state = EditorState::default();
+EditorView::new(&mut state)
+        .theme(EditorTheme::default())
+        .render(area, buf)
+```
+
 ### Features
 - Vim-like keybindings and editing modes for efficient text manipulation.
 - Normal, Insert and Visual mode.
@@ -60,13 +70,13 @@ For more keybindings and customization options, refer to the code.
 `Edtui` now includes experimental mouse support. To enable it activate the feature
 ```toml
 [dependencies.edtui]
-version = "0.6.0"
+version = "0.7"
 features = ["mouse-support"]
 ```
 and use the mouse event handler
 ```rust
-let mouse_handler = EditorMouse::default();
-mouse_handler.on_event(mouse_event, &mut state);
+let event_handler = EditorEvent::default();
+event_handler.on_mouse_event(mouse_event, &mut state);
 ```
 
 **Note**: This feature is experimental, so expect potential bugs and breaking changes.
