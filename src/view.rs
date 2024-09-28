@@ -115,7 +115,7 @@ impl Widget for EditorView<'_, '_> {
         if let Some(s) = self.theme.status_line {
             s.mode(self.state.mode.name())
                 .search(if self.state.mode == EditorMode::Search {
-                    Some(self.state.search.pattern.clone())
+                    Some(self.state.search_pattern())
                 } else {
                     None
                 })
