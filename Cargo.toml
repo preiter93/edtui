@@ -1,6 +1,6 @@
 [package]
 name = "edtui"
-version = "0.7.3"
+version = "0.7.4"
 edition = "2021"
 repository = "https://github.com/preiter93/edtui"
 keywords = ["ratatui", "tui", "editor", "text", "vim"]
@@ -10,7 +10,7 @@ license = "MIT"
 
 [dependencies]
 ratatui = "0.28"
-jagged = { package = "edtui-jagged", version = "0.1.4" }
+jagged = { package = "edtui-jagged", version = "0.1.5" }
 enum_dispatch = "0.3.12"
 arboard = { version = "3.3.0", optional = true }
 arbitrary = { version = "1", optional = true, features = ["derive"] }
