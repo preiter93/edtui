@@ -223,7 +223,7 @@ dependencies = [
 
 [[package]]
 name = "edtui"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "arbitrary",
  "arboard",
@@ -234,9 +234,9 @@ dependencies = [
 
 [[package]]
 name = "edtui-jagged"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0e8447b1e3e75b9e078d9717f89f409198a51f2e5bddf87bd350ce6fe04a92e"
+checksum = "3a02f7b3f54b11bc0191d2481280d93019c2b313cb3be7061f30705fa000ec1f"
 
 [[package]]
 name = "either"
