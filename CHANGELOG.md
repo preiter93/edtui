@@ -1,6 +1,10 @@
 Released
 --------
 
+0.7.3 - 28 Sep 2024
+===================
+- Expose search_pattern() method
+ 
 0.7.1 - 17 Aug 2024
 ===================
 - Key event handler implements clone
