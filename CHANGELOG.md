@@ -1,5 +1,10 @@
 Released
 --------
+
+0.7.5 - 03 Okt 2024
+===================
+- Highlight search text
+
 0.7.4 - 28 Sep 2024
 ===================
 - Bump edtui jagged version

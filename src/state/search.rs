@@ -2,14 +2,16 @@ use jagged::Index2;
 
 use crate::Lines;
 
+use super::selection::Selection;
+
 /// Represents the state of a search operation, including the search pattern,
 /// matched indices, and selected index.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub(crate) struct SearchState {
     pub(crate) start_cursor: Index2,
     pub(crate) pattern: String,
-    matches: Vec<Index2>,
-    selected_index: Option<usize>,
+    pub(crate) matches: Vec<Index2>,
+    pub(crate) selected_index: Option<usize>,
 }
 
 impl SearchState {
@@ -91,5 +93,21 @@ impl SearchState {
             return self.matches.get(new_selected);
         }
         None
+    }
+
+    /// Returns the index of the currently selected match.
+    fn selected_match(&self) -> Option<&Index2> {
+        if let Some(index) = self.selected_index {
+            return self.matches.get(index);
+        }
+        None
+    }
+
+    /// Returns the currently selected match as a range from start index to end index.
+    pub(crate) fn selected_range(&self) -> Option<Selection> {
+        self.selected_match().map(|&start| {
+            let end = Index2::new(start.row, start.col + self.pattern_len().saturating_sub(1));
+            Selection::new(start, end)
+        })
     }
 }
