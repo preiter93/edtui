@@ -236,6 +236,21 @@ impl Execute for MoveToEnd {
     }
 }
 
+// Move the cursor to the closing bracket.
+#[derive(Clone, Debug, Copy)]
+pub struct MoveToMatchinBracket();
+
+impl Execute for MoveToMatchinBracket {
+    fn execute(&mut self, state: &mut EditorState) {
+        if let Some(index) = state.lines.find_closing_bracket(state.cursor) {
+            state.cursor = index;
+            if state.mode == EditorMode::Visual {
+                set_selection(&mut state.selection, state.cursor);
+            }
+        };
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{Index2, Lines};

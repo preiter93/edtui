@@ -2,9 +2,9 @@ use crate::actions::search::StartSearch;
 use crate::actions::{
     Action, Append, AppendCharToSearch, AppendNewline, Composed, CopySelection, DeleteChar,
     DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious, InsertChar, InsertNewline,
-    LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
-    MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch,
-    SelectBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
+    LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToMatchinBracket,
+    MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar,
+    RemoveCharFromSearch, SelectBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 use ratatui::crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
@@ -236,6 +236,15 @@ impl Default for KeyEventHandler {
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('A')]),
                 Composed::new(MoveToEnd()).chain(Append).into(),
+            ),
+            // Move cursor to the next opening/closing bracket.
+            (
+                KeyEventRegister::n(vec![KeyEvent::Char('%')]),
+                MoveToMatchinBracket().into(),
+            ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Char('%')]),
+                MoveToMatchinBracket().into(),
             ),
             // Append/insert new line and switch into insert mode
             (
