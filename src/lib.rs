@@ -38,6 +38,7 @@
 //! | `0`                     | Move cursor to start of line                 |
 //! | `^`                     | Move cursor to first non-blank character     |
 //! | `$`                     | Move cursor to end of line                   |
+//! | `%`                     | Move cursor to closing/opening bracket       |
 //! | `a`                     | Append after the cursor                      |
 //! | `A`                     | Append at the end of the line                |
 //! | `o`                     | Add a new line below and enter Insert mode   |

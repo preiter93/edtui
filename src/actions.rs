@@ -14,8 +14,8 @@ pub use self::cpaste::{CopySelection, Paste};
 pub use self::delete::{DeleteChar, DeleteLine, DeleteSelection, RemoveChar};
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
-    MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToStart, MoveUp,
-    MoveWordBackward, MoveWordForward,
+    MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToMatchinBracket, MoveToStart,
+    MoveUp, MoveWordBackward, MoveWordForward,
 };
 use self::search::StartSearch;
 pub use self::search::{
@@ -37,6 +37,7 @@ pub enum Action {
     MoveToStart(MoveToStart),
     MoveToFirst(MoveToFirst),
     MoveToEnd(MoveToEnd),
+    MoveToMatchingBracket(MoveToMatchinBracket),
     InsertChar(InsertChar),
     LineBreak(LineBreak),
     AppendNewline(AppendNewline),
