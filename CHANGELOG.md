@@ -1,6 +1,10 @@
 Released
 --------
 
+0.7.6 - 03 Okt 2024
+===================
+- Move to opening/closing bracket with '%'
+
 0.7.5 - 03 Okt 2024
 ===================
 - Highlight search text
