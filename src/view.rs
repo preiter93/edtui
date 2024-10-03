@@ -106,21 +106,15 @@ impl Widget for EditorView<'_, '_> {
                     cell.set_symbol(&char.to_string());
                 }
 
-                // Selection
-                if let Some(selection) = &self.state.selection {
-                    if selection.contains(&position) {
-                        if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
-                            cell.set_style(self.theme.selection_style);
-                        }
-                    }
-                }
-
-                // Search selection
-                if let Some(search_selection) = &search_selection {
-                    if search_selection.contains(&position) {
-                        if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
-                            cell.set_style(self.theme.selection_style);
-                        }
+                // Hightlight Selections
+                let selections = vec![&self.state.selection, &search_selection];
+                for selection in selections {
+                    let Some(selection) = selection else { continue };
+                    if !selection.contains(&position) {
+                        continue;
+                    };
+                    if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
+                        cell.set_style(self.theme.selection_style);
                     }
                 }
             }
