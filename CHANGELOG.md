@@ -1,7 +1,12 @@
+0.7.8
+===================
+- Refactoring
+- Bump edtui-jagged version
+ 
 Released
 --------
 
-0.7.6 - 03 Okt 2024
+0.7.7 - 03 Okt 2024
 ===================
 - Move to opening/closing bracket with '%'
 

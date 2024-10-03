@@ -242,7 +242,7 @@ pub struct MoveToMatchinBracket();
 
 impl Execute for MoveToMatchinBracket {
     fn execute(&mut self, state: &mut EditorState) {
-        if let Some(index) = state.lines.find_closing_bracket(state.cursor) {
+        if let Some(index) = state.lines.find_matching_bracket(state.cursor) {
             state.cursor = index;
             if state.mode == EditorMode::Visual {
                 set_selection(&mut state.selection, state.cursor);
