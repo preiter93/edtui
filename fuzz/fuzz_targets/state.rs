@@ -1,12 +1,13 @@
 #![no_main]
 
-use edtui::{events::KeyEvent, EditorInput, EditorState};
+use edtui::{events::KeyEvent, EditorEventHandler, EditorState};
 use libfuzzer_sys::fuzz_target;
 
+// run: cargo fuzz run state
 fuzz_target!(|data: Vec<KeyEvent>| {
     let mut state = EditorState::default();
-    let mut input = EditorInput::default();
+    let mut input = EditorEventHandler::default();
     for key in data {
-        input.on_event(key, &mut state)
+        input.on_key_event(key, &mut state)
     }
 });
