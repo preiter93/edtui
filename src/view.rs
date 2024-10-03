@@ -87,11 +87,18 @@ impl Widget for EditorView<'_, '_> {
             cell.set_style(self.theme.cursor_style);
         }
 
+        // Predetermine search highlighted selection.
+        let mut search_selection = None;
+        if self.state.mode == EditorMode::Search {
+            search_selection = self.state.search.selected_range();
+        };
+
         // Rendering the text and the selection.
         let lines = &self.state.lines;
         for (i, line) in lines.iter_row().skip(offset.y).take(height).enumerate() {
             let y = (main.top() as usize) as u16 + i as u16;
             for (j, char) in line.iter().skip(offset.x).take(width).enumerate() {
+                let position = Index2::new(offset.y + i, offset.x + j);
                 let x = (main.left() as usize) as u16 + j as u16;
 
                 // Text
@@ -101,8 +108,16 @@ impl Widget for EditorView<'_, '_> {
 
                 // Selection
                 if let Some(selection) = &self.state.selection {
-                    let position = Index2::new(offset.y + i, offset.x + j);
                     if selection.contains(&position) {
+                        if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
+                            cell.set_style(self.theme.selection_style);
+                        }
+                    }
+                }
+
+                // Search selection
+                if let Some(search_selection) = &search_selection {
+                    if search_selection.contains(&position) {
                         if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
                             cell.set_style(self.theme.selection_style);
                         }
