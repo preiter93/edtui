@@ -2,7 +2,11 @@
 pub mod status_line;
 pub mod theme;
 use self::theme::EditorTheme;
-use crate::{helper::max_col, state::EditorState, EditorMode, Index2};
+use crate::{
+    helper::max_col,
+    state::{selection::Selection, EditorState},
+    EditorMode, Index2,
+};
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::EditorStatusLine;
 
@@ -43,7 +47,6 @@ impl<'a, 'b> EditorView<'a, 'b> {
 }
 
 impl Widget for EditorView<'_, '_> {
-    // type State = ViewState;
     fn render(self, area: Rect, buf: &mut Buffer) {
         // Draw the border.
         buf.set_style(area, self.theme.base);
@@ -79,45 +82,32 @@ impl Widget for EditorView<'_, '_> {
         let size = (width, height);
         let offset = self.state.view.update_viewport_offset(size, cursor);
 
+        // Predetermine search highlighted selections.
+        let mut search_selection = None;
+        if self.state.mode == EditorMode::Search {
+            search_selection = self.state.search.selected_range();
+        };
+        let selections = vec![&self.state.selection, &search_selection];
+
+        // Rendering the text and the selection.
+        let lines = &self.state.lines;
+        for (i, line) in lines.iter_row().skip(offset.y).take(height).enumerate() {
+            let y = (main.top() as usize) as u16 + i as u16;
+            let area = Rect::new(main.left(), y, main.width, main.height);
+
+            InternalLine::new(line, &self.theme, offset.y + i, offset.x)
+                .into_spans(&selections)
+                .into_iter()
+                .collect::<Line>()
+                .render(area, buf);
+        }
+
         // Rendering of the cursor. Cursor is not rendered in the loop below,
         // as the cursor may be outside the text in input mode.
         let x_cursor = (main.left() as usize) + width.min(cursor.col.saturating_sub(offset.x));
         let y_cursor = (main.top() as usize) + cursor.row.saturating_sub(offset.y);
         if let Some(cell) = buf.cell_mut(Position::new(x_cursor as u16, y_cursor as u16)) {
             cell.set_style(self.theme.cursor_style);
-        }
-
-        // Predetermine search highlighted selection.
-        let mut search_selection = None;
-        if self.state.mode == EditorMode::Search {
-            search_selection = self.state.search.selected_range();
-        };
-
-        // Rendering the text and the selection.
-        let lines = &self.state.lines;
-        for (i, line) in lines.iter_row().skip(offset.y).take(height).enumerate() {
-            let y = (main.top() as usize) as u16 + i as u16;
-            for (j, char) in line.iter().skip(offset.x).take(width).enumerate() {
-                let position = Index2::new(offset.y + i, offset.x + j);
-                let x = (main.left() as usize) as u16 + j as u16;
-
-                // Text
-                if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
-                    cell.set_symbol(&char.to_string());
-                }
-
-                // Hightlight Selections
-                let selections = vec![&self.state.selection, &search_selection];
-                for selection in selections {
-                    let Some(selection) = selection else { continue };
-                    if !selection.contains(&position) {
-                        continue;
-                    };
-                    if let Some(cell) = buf.cell_mut(Position::new(x, y)) {
-                        cell.set_style(self.theme.selection_style);
-                    }
-                }
-            }
         }
 
         // Render the status line.
@@ -130,6 +120,84 @@ impl Widget for EditorView<'_, '_> {
                 })
                 .render(status, buf);
         }
+    }
+}
+
+struct InternalLine<'a, 'b> {
+    line: &'a [char],
+    theme: &'b EditorTheme<'b>,
+    row_index: usize,
+    col_offset: usize,
+}
+
+impl<'a, 'b> InternalLine<'a, 'b> {
+    fn new(
+        line: &'a [char],
+        theme: &'b EditorTheme<'b>,
+        row_index: usize,
+        col_offset: usize,
+    ) -> Self {
+        Self {
+            line,
+            theme,
+            row_index,
+            col_offset,
+        }
+    }
+}
+
+impl<'a> InternalLine<'a, '_> {
+    fn get_style(&self, is_selected: bool) -> Style {
+        if is_selected {
+            self.theme.selection_style
+        } else {
+            self.theme.base
+        }
+    }
+
+    /// Converts an `InternalLine` into a vector of `Span`s, applying styles based on the
+    /// given selections.
+    fn into_spans(self, selections: &[&Option<Selection>]) -> Vec<Span<'a>> {
+        let mut selections = selections.iter().filter_map(|selection| selection.as_ref());
+
+        let mut spans = Vec::new();
+        let mut current_span = String::new();
+        let mut previous_is_selected = false;
+
+        // Iterate over the line's characters, starting from the offset
+        for (i, &ch) in self.line.iter().skip(self.col_offset).enumerate() {
+            let position = Index2::new(self.row_index, self.col_offset + i);
+
+            // Check if the current position is selected by any selection
+            let current_is_selected = selections.any(|selection| selection.contains(&position));
+
+            // If the selection state has changed, push the current span and start a new one
+            if i != 0 && previous_is_selected != current_is_selected {
+                spans.push(Span::styled(
+                    current_span.clone(),
+                    self.get_style(previous_is_selected),
+                ));
+                current_span.clear();
+            }
+
+            previous_is_selected = current_is_selected;
+            current_span.push(ch);
+        }
+
+        // Push the final span
+        spans.push(Span::styled(
+            current_span,
+            self.get_style(previous_is_selected),
+        ));
+
+        spans
+    }
+}
+
+fn crop_first(s: &str, pos: usize) -> &str {
+    match s.char_indices().nth(pos) {
+        Some((pos, _)) => &s[pos..],
+        None => "",
     }
 }
 
