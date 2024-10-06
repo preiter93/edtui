@@ -106,7 +106,10 @@ pub mod clipboard;
 mod debug;
 pub mod events;
 mod helper;
+mod internal;
 mod state;
+#[cfg(feature = "syntax-highlighting")]
+mod syntax_higlighting;
 mod view;
 
 #[allow(deprecated)]
@@ -114,6 +117,12 @@ pub use events::deprecated_input::EditorInput;
 pub use events::EditorEventHandler;
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView};
+
+#[cfg(feature = "syntax-highlighting")]
+pub use syntax_higlighting::SyntaxHighlighter;
+
+#[cfg(feature = "syntax-highlighting")]
+pub use syntect;
 
 /// A data structure that contains chars organized in rows and columns
 pub type Lines = jagged::Jagged<char>;

@@ -5,7 +5,7 @@ Set Padding 2
 Set BorderRadius 10
 Set FontSize 46
 Set Width 2300
-Set Height 1200
+Set Height 1300
 Set PlaybackSpeed 0.4
 
 Hide
@@ -14,7 +14,7 @@ Set TypingSpeed 100ms
 Enter
 Sleep 1.5s
 
-# First line
+# Introduction
 Type "v$"
 Show
 Sleep 3.5s
@@ -22,7 +22,7 @@ Escape
 Type "0jj"
 Sleep 0.2s
 
-# Second line
+# Simple navigation
 Type "wllllllllllllll"
 Sleep 0.2s
 Type "hhhhhhhhhhhhhh"
@@ -30,13 +30,13 @@ Sleep 0.2s
 Type "j0j"
 Sleep 0.2s
 
-# Third line
+# Word forward
 Type "wwwwwwwwwwbbbbbbbbbb"
 Sleep 0.2s
 Type "j0j"
 Sleep 0.2s
 
-# Fourth line
+# Select between
 Type "lllllllvlll"
 Sleep 0.2s
 Escape
@@ -47,27 +47,33 @@ Sleep 0.2s
 Type "j0j"
 Sleep 0.2s
 
-# Fifth line
+# Copy paste
 Type "$"
 Sleep 0.5s
 Type "p"
-Sleep 0.5s
+Sleep 1.5s
 Type "j0j"
-Sleep 1.0s
+Sleep 0.5s
 
-# Sixth line
+# Search
 Type "/"
 Sleep 0.2s
 Type "c"
 Sleep 0.2s
 Type "o"
-Sleep 1.0s
+Sleep 1.5s
 Escape
 Type "j0j"
 Sleep 0.2s
 
-# Seventh line
-Type "vj$"
+# Syntax highlighting
+Sleep 1.0s
+Type "j"
+Type@0.5s "%%%%%"
+Sleep 0.2s
+
+# Contribution
+Type "jjvj$"
 Sleep 3.5s
 Escape
 Sleep 0.5s
