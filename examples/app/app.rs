@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use edtui::{EditorEventHandler, EditorState, EditorView};
+use edtui::{EditorEventHandler, EditorState, EditorView, SyntaxHighlighter};
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyModifiers};
 use ratatui::{prelude::*, widgets::Widget};
 
@@ -56,9 +56,11 @@ impl App {
 
 impl Widget for &mut App {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let syntax_highlighter = SyntaxHighlighter::new("base16-ocean.dark", "json");
         EditorView::new(&mut self.context.state)
             .wrap(true)
             .theme(Theme::new().editor)
+            .syntax_highlighter(Some(syntax_highlighter))
             .render(area, buf)
     }
 }

@@ -2,23 +2,21 @@
 pub(crate) mod line_wrapper;
 pub mod status_line;
 pub mod theme;
-
-use std::cmp::min;
-
-use self::theme::EditorTheme;
-use crate::{
-    helper::max_col,
-    state::{selection::Selection, EditorState},
-    EditorMode, Index2,
-};
+#[cfg(feature = "syntax-highlighting")]
+pub use crate::syntax_higlighting::SyntaxHighlighter;
+use crate::{helper::max_col, internal::InternalLine, state::EditorState, EditorMode, Index2};
 use line_wrapper::LineWrapper;
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::EditorStatusLine;
+use std::cmp::min;
+use theme::EditorTheme;
 
 pub struct EditorView<'a, 'b> {
     pub(crate) state: &'a mut EditorState,
     pub(crate) theme: EditorTheme<'b>,
     pub(crate) wrap: bool,
+    #[cfg(feature = "syntax-highlighting")]
+    pub(crate) syntax_highlighter: Option<SyntaxHighlighter>,
 }
 
 impl<'a, 'b> EditorView<'a, 'b> {
@@ -29,6 +27,8 @@ impl<'a, 'b> EditorView<'a, 'b> {
             state,
             theme: EditorTheme::default(),
             wrap: true,
+            #[cfg(feature = "syntax-highlighting")]
+            syntax_highlighter: None,
         }
     }
 
@@ -37,6 +37,15 @@ impl<'a, 'b> EditorView<'a, 'b> {
     #[must_use]
     pub fn theme(mut self, theme: EditorTheme<'b>) -> Self {
         self.theme = theme;
+        self
+    }
+
+    #[cfg(feature = "syntax-highlighting")]
+    /// Set the syntax highlighter for the [`EditorView`]
+    /// See [`SyntaxHighlighter`] for the more information.
+    #[must_use]
+    pub fn syntax_highlighter(mut self, syntax_highlighter: Option<SyntaxHighlighter>) -> Self {
+        self.syntax_highlighter = syntax_highlighter;
         self
     }
 
@@ -108,7 +117,7 @@ impl Widget for EditorView<'_, '_> {
         if self.state.mode == EditorMode::Search {
             search_selection = self.state.search.selected_range();
         };
-        let selections = [&self.state.selection, &search_selection];
+        let selections = vec![&self.state.selection, &search_selection];
 
         let mut y = (main.top() as usize) as u16;
         let mut num_rows = 0;
@@ -117,14 +126,25 @@ impl Widget for EditorView<'_, '_> {
             num_rows += 1;
 
             // Wrap lines
-            let spans = InternalLine::new(
+            let internal_line = InternalLine::new(
                 line,
                 self.theme.base,
                 self.theme.selection_style,
                 offset.y + i,
                 offset.x,
-            )
-            .into_spans(&selections);
+            );
+
+            #[cfg(feature = "syntax-highlighting")]
+            let spans = {
+                if let Some(syntax_highlighter) = &self.syntax_highlighter {
+                    internal_line.into_highlighted_spans(&selections, syntax_highlighter)
+                } else {
+                    internal_line.into_spans(&selections)
+                }
+            };
+
+            #[cfg(not(feature = "syntax-highlighting"))]
+            let spans = { internal_line.into_spans(&selections) };
 
             let (line_widths, wrapped_spans) = if self.wrap {
                 LineWrapper::wrap_spans(spans, main.width as usize)
@@ -192,90 +212,15 @@ impl Widget for EditorView<'_, '_> {
     }
 }
 
-fn spans_width(spans: &[Span]) -> usize {
-    spans.iter().fold(0, |sum, span| sum + span.width())
-}
-
-struct InternalLine<'a> {
-    line: &'a [char],
-    base: Style,
-    highlighted: Style,
-    row_index: usize,
-    col_offset: usize,
-}
-
-impl<'a> InternalLine<'a> {
-    fn new(
-        line: &'a [char],
-        base: Style,
-        highlighted: Style,
-        row_index: usize,
-        col_offset: usize,
-    ) -> Self {
-        Self {
-            line,
-            base,
-            highlighted,
-            row_index,
-            col_offset,
-        }
-    }
-}
-
-impl<'a> InternalLine<'a> {
-    fn get_style(&self, is_selected: bool) -> Style {
-        if is_selected {
-            self.highlighted
-        } else {
-            self.base
-        }
-    }
-
-    /// Converts an `InternalLine` into a vector of `Span`s, applying styles based on the
-    /// given selections.
-    fn into_spans(self, selections: &[&Option<Selection>]) -> Vec<Span<'a>> {
-        let mut spans = Vec::new();
-        let mut current_span = String::new();
-        let mut previous_is_selected = false;
-
-        // Iterate over the line's characters, starting from the offset
-        for (i, &ch) in self.line.iter().skip(self.col_offset).enumerate() {
-            let position = Index2::new(self.row_index, self.col_offset + i);
-
-            // Check if the current position is selected by any selection
-            let current_is_selected = selections
-                .iter()
-                .filter_map(|selection| selection.as_ref())
-                .any(|selection| selection.contains(&position));
-
-            // If the selection state has changed, push the current span and start a new one
-            if i != 0 && previous_is_selected != current_is_selected {
-                spans.push(Span::styled(
-                    current_span.clone(),
-                    self.get_style(previous_is_selected),
-                ));
-                current_span.clear();
-            }
-
-            previous_is_selected = current_is_selected;
-            current_span.push(ch);
-        }
-
-        // Push the final span
-        spans.push(Span::styled(
-            current_span,
-            self.get_style(previous_is_selected),
-        ));
-
-        spans
-    }
-}
-
 fn crop_first(s: &str, pos: usize) -> &str {
     match s.char_indices().nth(pos) {
         Some((pos, _)) => &s[pos..],
         None => "",
     }
+}
+
+pub(crate) fn spans_width<'a>(spans: &[Span<'a>]) -> usize {
+    spans.iter().fold(0, |sum, span| sum + span.width())
 }
 
 /// Retrieves the displayed cursor position based on the editor state.
@@ -286,27 +231,4 @@ fn crop_first(s: &str, pos: usize) -> &str {
 fn displayed_cursor(state: &EditorState) -> Index2 {
     let max_col = max_col(&state.lines, &state.cursor, state.mode);
     Index2::new(state.cursor.row, state.cursor.col.min(max_col))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_internal_line_into_spans() {
-        // given
-        let base = Style::default();
-        let hightlighted = Style::default().red();
-        let line = "Hello".chars().into_iter().collect::<Vec<char>>();
-
-        let selection = Some(Selection::new(Index2::new(0, 0), Index2::new(0, 2)));
-        let selections = vec![&selection];
-
-        // when
-        let spans = InternalLine::new(&line, base, hightlighted, 0, 0).into_spans(&selections);
-
-        // then
-        assert_eq!(spans[0], Span::styled("Hel", hightlighted));
-        assert_eq!(spans[1], Span::styled("lo", base));
-    }
 }

@@ -33,7 +33,13 @@ Copy and paste text:
 
 Built-in search using the '/' command.
 
-This editor is under active development. Don't hesitate to open issues or submit pull requests to contribute!
+Supports syntax highlighting:
+{
+  \"name\": \"edtui\"
+}
+
+This editor is under active development.
+Don't hesitate to open issues or submit pull requests to contribute!
 ",
             )),
             event_handler: EditorEventHandler::default(),
