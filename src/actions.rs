@@ -9,13 +9,14 @@ use crate::helper::clamp_column;
 use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
 use enum_dispatch::enum_dispatch;
+use motion::{MoveToFirstRow, MoveToLastRow};
 
 pub use self::cpaste::{CopySelection, Paste};
 pub use self::delete::{DeleteChar, DeleteLine, DeleteSelection, RemoveChar};
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
-    MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToMatchinBracket, MoveToStart,
-    MoveUp, MoveWordBackward, MoveWordForward,
+    MoveBackward, MoveDown, MoveForward, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket,
+    MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
 };
 use self::search::StartSearch;
 pub use self::search::{
@@ -34,9 +35,11 @@ pub enum Action {
     MoveDown(MoveDown),
     MoveWordForward(MoveWordForward),
     MoveWordBackward(MoveWordBackward),
-    MoveToStart(MoveToStart),
+    MoveToStartOfLine(MoveToStartOfLine),
     MoveToFirst(MoveToFirst),
-    MoveToEnd(MoveToEnd),
+    MoveToEndOfLine(MoveToEndOfLine),
+    MoveToFirstRow(MoveToFirstRow),
+    MoveToLastRow(MoveToLastRow),
     MoveToMatchingBracket(MoveToMatchinBracket),
     InsertChar(InsertChar),
     LineBreak(LineBreak),

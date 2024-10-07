@@ -1,5 +1,6 @@
 0.7.8
 ===================
+- Move to first ('gg') / last ('G') row
 - Refactoring
 - Bump edtui-jagged version
 - Capture editor state on each new input
