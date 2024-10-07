@@ -1,4 +1,4 @@
-0.7.8
+0.8.0
 ===================
 - Support for line-wrapping `EditorView::new().wrap(true);`
 - Move to first ('gg') / last ('G') row
