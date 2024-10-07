@@ -2,6 +2,9 @@
 pub(crate) mod line_wrapper;
 pub mod status_line;
 pub mod theme;
+
+use std::cmp::min;
+
 use self::theme::EditorTheme;
 use crate::{
     helper::max_col,
@@ -81,6 +84,7 @@ impl Widget for EditorView<'_, '_> {
         .areas(area);
         let width = main.width as usize;
         let height = main.height as usize;
+        let lines = &self.state.lines;
 
         // Retrieve the displayed cursor position. The column of the displayed
         // cursor is clamped to the maximum line length.
@@ -94,7 +98,10 @@ impl Widget for EditorView<'_, '_> {
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let size = (width, height);
-        let offset = self.state.view.update_viewport_offset(size, cursor);
+        let offset = self
+            .state
+            .view
+            .update_viewport_offset(size, cursor, lines, self.wrap);
 
         // Predetermine search highlighted selections.
         let mut search_selection = None;
@@ -103,28 +110,27 @@ impl Widget for EditorView<'_, '_> {
         };
         let selections = [&self.state.selection, &search_selection];
 
-        // Rendering the text and the selection.
-        let lines = &self.state.lines;
         let mut y = (main.top() as usize) as u16;
+        let mut num_rows = 0;
         for (i, line) in lines.iter_row().skip(offset.y).enumerate() {
             let row_index = offset.y + i;
+            num_rows += 1;
 
             // Wrap lines
-            let offset_x = if self.wrap { 0 } else { offset.x };
             let spans = InternalLine::new(
                 line,
                 self.theme.base,
                 self.theme.selection_style,
                 offset.y + i,
-                offset_x,
+                offset.x,
             )
             .into_spans(&selections);
 
-            let mut line_wrapper = LineWrapper::default();
-            let wrapped_spans = if self.wrap {
-                line_wrapper.wrap_lines(spans, main.width as usize)
+            let (line_widths, wrapped_spans) = if self.wrap {
+                LineWrapper::wrap_spans(spans, main.width as usize)
             } else {
-                vec![spans]
+                let spans_width = spans_width(&spans);
+                (vec![spans_width], vec![spans])
             };
             let line_count = wrapped_spans.len();
 
@@ -138,12 +144,17 @@ impl Widget for EditorView<'_, '_> {
                 if i + 1 < line_count {
                     y_line += 1;
                 }
+
+                if y_line >= main.bottom() {
+                    break;
+                }
             }
 
-            // Rendering of the the cursor position. Must take visual line breaks into account.
+            // Rendering of the the cursor. Must take line wrapping into account.
             if row_index == cursor.row {
-                let relative_position = line_wrapper.find_position(cursor.col);
-                let x_cursor = main.left() + relative_position.col as u16;
+                let relative_position = LineWrapper::find_position(&line_widths, cursor.col);
+                let relative_position_col = relative_position.col.saturating_sub(offset.x);
+                let x_cursor = main.left() + min(width, relative_position_col) as u16;
                 let y_cursor = y + relative_position.row as u16;
                 if let Some(cell) = buf.cell_mut(Position::new(x_cursor, y_cursor)) {
                     cell.set_style(self.theme.cursor_style);
@@ -157,6 +168,10 @@ impl Widget for EditorView<'_, '_> {
             }
         }
 
+        // Save the total number of lines displayed in the viewport.
+        // This is necessary to correctly handle scrolling.
+        self.state.view.update_num_rows(num_rows);
+
         // Render the status line.
         if let Some(s) = self.theme.status_line {
             s.mode(self.state.mode.name())
@@ -168,6 +183,10 @@ impl Widget for EditorView<'_, '_> {
                 .render(status, buf);
         }
     }
+}
+
+fn spans_width(spans: &[Span]) -> usize {
+    spans.iter().fold(0, |sum, span| sum + span.width())
 }
 
 struct InternalLine<'a> {
@@ -208,8 +227,6 @@ impl<'a> InternalLine<'a> {
     /// Converts an `InternalLine` into a vector of `Span`s, applying styles based on the
     /// given selections.
     fn into_spans(self, selections: &[&Option<Selection>]) -> Vec<Span<'a>> {
-        // let selection = selections.firs
-
         let mut spans = Vec::new();
         let mut current_span = String::new();
         let mut previous_is_selected = false;

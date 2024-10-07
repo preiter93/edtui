@@ -1,6 +1,6 @@
 use edtui::{EditorStatusLine, EditorTheme};
 use ratatui::{
-    prelude::{Alignment, Stylize},
+    prelude::Alignment,
     style::{Color, Style},
     widgets::{Block, BorderType, Borders},
 };

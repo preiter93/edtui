@@ -3,15 +3,29 @@ use ratatui::text::Span;
 use unicode_width::UnicodeWidthChar;
 
 #[derive(Default)]
-pub(super) struct LineWrapper {
-    pub(super) line_widths: Vec<usize>,
-}
+pub(crate) struct LineWrapper;
+
 impl LineWrapper {
-    pub(super) fn wrap_lines<'a>(
-        &mut self,
-        spans: Vec<Span<'a>>,
-        max_width: usize,
-    ) -> Vec<Vec<Span<'a>>> {
+    /// Splits a given line width into multiple smaller widths, ensuring each width
+    /// is no larger than the specified maximum width.
+    pub(crate) fn determine_split(line_width: usize, max_width: usize) -> Vec<usize> {
+        if line_width == 0 {
+            return vec![0];
+        }
+
+        let mut remaining_width = line_width;
+        let mut split_widths = Vec::new();
+
+        while remaining_width > 0 {
+            let current_chunk = std::cmp::min(remaining_width, max_width);
+            split_widths.push(current_chunk);
+            remaining_width = remaining_width.saturating_sub(max_width);
+        }
+
+        split_widths
+    }
+
+    pub(crate) fn wrap_spans(spans: Vec<Span>, max_width: usize) -> (Vec<usize>, Vec<Vec<Span>>) {
         let mut wrapped_lines = Vec::new();
         let mut current_line = Vec::new();
         let mut current_line_width = 0;
@@ -55,8 +69,7 @@ impl LineWrapper {
             line_widths.push(current_line_width);
         }
 
-        self.line_widths = line_widths;
-        wrapped_lines
+        (line_widths, wrapped_lines)
     }
 
     fn split_span_at(span: Span, split_at: usize) -> (Span, Span) {
@@ -77,24 +90,24 @@ impl LineWrapper {
         (Span::styled(span_content, style), Span::styled("", style))
     }
 
-    pub(super) fn find_position(&self, col: usize) -> Index2 {
-        if self.line_widths.is_empty() {
+    pub(crate) fn find_position(line_widths: &[usize], col: usize) -> Index2 {
+        if line_widths.is_empty() {
             return Index2::new(0, col);
         }
 
         let mut length_offset = 0;
 
-        for (i, &length) in self.line_widths.iter().enumerate() {
+        for (i, &length) in line_widths.iter().enumerate() {
             if col < length_offset + length {
                 return Index2::new(i, col.saturating_sub(length_offset));
             }
-            if i + 1 < self.line_widths.len() {
+            if i + 1 < line_widths.len() {
                 length_offset += length;
             }
         }
 
         Index2::new(
-            self.line_widths.len().saturating_sub(1),
+            line_widths.len().saturating_sub(1),
             col.saturating_sub(length_offset),
         )
     }
@@ -107,28 +120,42 @@ mod tests {
     #[test]
     fn test_line_wrapper() {
         let spans = vec![Span::raw("Hello"), Span::raw("World")];
-        let mut line_wrapper = LineWrapper::default();
-        let wrapped_spans = line_wrapper.wrap_lines(spans, 3);
+        let (line_widths, wrapped_spans) = LineWrapper::wrap_spans(spans, 3);
 
         assert_eq!(wrapped_spans[0], vec![Span::raw("Hel")]);
         assert_eq!(wrapped_spans[1], vec![Span::raw("lo"), Span::raw("W")]);
         assert_eq!(wrapped_spans[2], vec![Span::raw("orl")]);
         assert_eq!(wrapped_spans[3], vec![Span::raw("d")]);
 
-        let line_widths = line_wrapper.line_widths;
         assert_eq!(line_widths[0], 3);
         assert_eq!(line_widths[1], 3);
         assert_eq!(line_widths[2], 3);
         assert_eq!(line_widths[3], 1);
     }
 
+    fn test_line_wrapper_determine_split() {
+        let line_widths = LineWrapper::determine_split(5, 3);
+
+        assert_eq!(line_widths[0], 3);
+        assert_eq!(line_widths[1], 2);
+
+        let line_widths = LineWrapper::determine_split(6, 3);
+
+        assert_eq!(line_widths[0], 3);
+        assert_eq!(line_widths[1], 3);
+    }
+
     #[test]
     fn test_line_wrapper_find_position() {
-        let line_wrapper = LineWrapper {
-            line_widths: vec![2, 2, 1],
-        };
+        let line_widths = vec![2, 2, 1];
 
-        assert_eq!(line_wrapper.find_position(2), Index2::new(1, 0));
-        assert_eq!(line_wrapper.find_position(5), Index2::new(2, 1));
+        assert_eq!(
+            LineWrapper::find_position(&line_widths, 2),
+            Index2::new(1, 0)
+        );
+        assert_eq!(
+            LineWrapper::find_position(&line_widths, 5),
+            Index2::new(2, 1)
+        );
     }
 }
