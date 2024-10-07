@@ -1,4 +1,7 @@
-0.8.0
+Released
+--------
+
+0.8.0 - 07 Okt 2024
 ===================
 - Support for line-wrapping `EditorView::new().wrap(true);`
 - Move to first ('gg') / last ('G') row
@@ -7,9 +10,6 @@
 - Bump edtui-jagged version
 - Capture editor state on each new input
 - Bugfix: Move to matching bracket
- 
-Released
---------
 
 0.7.7 - 03 Okt 2024
 ===================
