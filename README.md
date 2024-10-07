@@ -20,6 +20,7 @@ EditorView::new(&mut state)
 - Normal, Insert and Visual mode.
 - Clipboard: Uses the `arboard` clibpboard by default which allows copy pasting between the
   system clipboard and the editor.
+- Line wrapping
 
 ### Keybindings
 `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
