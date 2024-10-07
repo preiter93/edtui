@@ -88,12 +88,12 @@
 //!
 //! - [x] Clipboard
 //! - [x] Search
+//! - [x] Soft-wrap lines
 //!
 //! - [ ] Vims `f`/`t` go to first
 //! - [ ] Support termwiz and termion
 //! - [ ] Display line numbers
 //! - [ ] Remap keybindings
-//! - [ ] Soft-wrap lines
 #![allow(
     dead_code,
     clippy::module_name_repetitions,
