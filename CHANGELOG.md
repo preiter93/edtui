@@ -2,6 +2,7 @@
 ===================
 - Refactoring
 - Bump edtui-jagged version
+- Capture editor state on each new input
  
 Released
 --------
