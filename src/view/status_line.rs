@@ -4,7 +4,7 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
-use super::theme::{DARK_PURPLE, LIGHT_GRAY, LIGHT_PURPLE};
+use super::theme::{DARK_GRAY, WHITE};
 
 /// An optional status line for Editor.
 #[derive(Debug, Clone)]
@@ -29,8 +29,8 @@ impl Default for EditorStatusLine {
         Self {
             mode: String::new(),
             search: None,
-            style_text: Style::default().fg(LIGHT_GRAY).bg(LIGHT_PURPLE).bold(),
-            style_line: Style::default().fg(LIGHT_GRAY).bg(DARK_PURPLE),
+            style_text: Style::default().fg(WHITE).bg(DARK_GRAY).bold(),
+            style_line: Style::default().fg(WHITE).bg(DARK_GRAY),
             align_left: true,
         }
     }
