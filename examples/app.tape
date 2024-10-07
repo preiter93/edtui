@@ -3,9 +3,9 @@ Output "resources/app.gif"
 Set Margin 10
 Set Padding 2
 Set BorderRadius 10
-Set FontSize 42
+Set FontSize 48
 Set Width 2300
-Set Height 1100
+Set Height 1200
 Set PlaybackSpeed 0.4
 
 Hide
