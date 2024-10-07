@@ -1,6 +1,6 @@
 use edtui::{EditorStatusLine, EditorTheme};
 use ratatui::{
-    prelude::{Alignment, Stylize},
+    prelude::Alignment,
     style::{Color, Style},
     widgets::{Block, BorderType, Borders},
 };
@@ -18,25 +18,25 @@ impl<'a> Theme<'a> {
                     Block::default()
                         .borders(Borders::ALL)
                         .border_type(BorderType::Thick)
-                        .title("Editor")
+                        .title("|Editor|")
                         .title_alignment(Alignment::Center),
                 )
-                .base(Style::default().bg(DARK_BLUE).fg(WHITE))
-                .cursor_style(Style::default().bg(WHITE).fg(DARK_BLUE))
-                .selection_style(Style::default().bg(YELLOW).fg(DARK_BLUE))
+                .base(Style::default().bg(DARK_NIGHT).fg(WHITE))
+                .cursor_style(Style::default().bg(WHITE).fg(DARK_NIGHT))
+                .selection_style(Style::default().bg(ORANGE).fg(DARK_NIGHT))
                 .status_line(
                     EditorStatusLine::default()
-                        .style_text(Style::default().fg(LIGHT_GRAY).bg(LIGHT_PURPLE).bold())
-                        .style_text(Style::default().fg(LIGHT_GRAY).bg(DARK_PURPLE))
+                        .style_text(Style::default().fg(DARK_NIGHT).bg(GREEN))
+                        .style_line(Style::default().fg(WHITE).bg(DARK_GRAY))
                         .align_left(true),
                 ),
         }
     }
 }
 
-pub(crate) const DARK_BLUE: Color = Color::Rgb(15, 23, 42);
-pub(crate) const YELLOW: Color = Color::Rgb(250, 204, 21);
+pub(crate) const DARK_GRAY: Color = Color::Rgb(16, 17, 22);
 pub(crate) const WHITE: Color = Color::Rgb(248, 250, 252);
-pub(crate) const LIGHT_GRAY: Color = Color::Rgb(248, 250, 252);
-pub(crate) const LIGHT_PURPLE: Color = Color::Rgb(126, 34, 206);
-pub(crate) const DARK_PURPLE: Color = Color::Rgb(88, 28, 135);
+
+pub(crate) const DARK_NIGHT: Color = Color::Rgb(16, 17, 22);
+pub(crate) const ORANGE: Color = Color::Rgb(255, 153, 0);
+pub(crate) const GREEN: Color = Color::Rgb(0, 204, 102);

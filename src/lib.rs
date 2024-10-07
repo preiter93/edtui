@@ -11,6 +11,7 @@
 //! let mut state = EditorState::default();
 //! EditorView::new(&mut state)
 //!         .theme(EditorTheme::default())
+//!         .wrap(true) // line wrapping
 //!         .render(area, buf)
 //! ```
 //!
@@ -19,6 +20,7 @@
 //! - Normal, Insert and Visual mode.
 //! - Clipboard: Uses the `arboard` clibpboard by default which allows copy pasting between the
 //!   system clipboard and the editor.
+//! - Line wrapping
 //!
 //! ## Keybindings
 //! `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
@@ -80,18 +82,18 @@
 //! event_handler.on_mouse_event(mouse_event, &mut state);
 //! ```
 //!
-//! **Note**: This feature is experimental, so expect potential bugs and breaking changes.
+//! **Note**: This feature is experimental, so expect potential bugs and breaking changes. It does currently not work correctly on wrapped lines.
 //!
 //! ### Roadmap
 //!
 //! - [x] Clipboard
 //! - [x] Search
+//! - [x] Soft-wrap lines
 //!
 //! - [ ] Vims `f`/`t` go to first
 //! - [ ] Support termwiz and termion
 //! - [ ] Display line numbers
 //! - [ ] Remap keybindings
-//! - [ ] Soft-wrap lines
 #![allow(
     dead_code,
     clippy::module_name_repetitions,
