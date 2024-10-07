@@ -1,9 +1,11 @@
 0.7.8
 ===================
 - Move to first ('gg') / last ('G') row
+- Copy deleted line to clipboard
 - Refactoring
 - Bump edtui-jagged version
 - Capture editor state on each new input
+- Bugfix: Move to matching bracket
  
 Released
 --------
