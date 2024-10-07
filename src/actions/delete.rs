@@ -90,7 +90,8 @@ impl Execute for DeleteLine {
             if state.cursor.row >= state.lines.len() {
                 break;
             }
-            state.lines.remove(RowIndex::new(state.cursor.row));
+            let deleted_chars = state.lines.remove(RowIndex::new(state.cursor.row));
+            state.clip.set_text(deleted_chars.iter().collect());
             state.cursor.col = 0;
             state.cursor.row = state.cursor.row.min(state.lines.len().saturating_sub(1));
         }
