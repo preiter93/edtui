@@ -24,10 +24,10 @@ impl Default for EditorTheme<'_> {
     /// This constructor initializes with default style.
     fn default() -> Self {
         Self {
-            base: Style::default().bg(DARK_BLUE).fg(WHITE),
+            base: Style::default().bg(BLACK).fg(WHITE),
             block: None,
-            cursor_style: Style::default().bg(WHITE).fg(DARK_BLUE),
-            selection_style: Style::default().bg(YELLOW).fg(DARK_BLUE),
+            cursor_style: Style::default().bg(WHITE).fg(BLACK),
+            selection_style: Style::default().bg(YELLOW).fg(BLACK),
             status_line: Some(EditorStatusLine::default()),
         }
     }
@@ -96,18 +96,10 @@ impl<'a> EditorTheme<'a> {
     }
 }
 
-// Tailwind slate c100
-pub(crate) const LIGHT_GRAY: Color = Color::Rgb(248, 250, 252);
+pub(crate) const WHITE: Color = Color::Rgb(255, 255, 255);
 
-// Tailwind slate c50
-pub(crate) const WHITE: Color = Color::Rgb(248, 250, 252);
+pub(crate) const BLACK: Color = Color::Rgb(0, 0, 0);
 
-// Tailwind slate c900
-pub(crate) const DARK_BLUE: Color = Color::Rgb(15, 23, 42);
+pub(crate) const DARK_GRAY: Color = Color::Rgb(16, 17, 22);
 
-// Tailwind purple c700 & c900
-pub(crate) const LIGHT_PURPLE: Color = Color::Rgb(126, 34, 206);
-pub(crate) const DARK_PURPLE: Color = Color::Rgb(88, 28, 135);
-
-// Tailwind yellow c400
 pub(crate) const YELLOW: Color = Color::Rgb(250, 204, 21);
