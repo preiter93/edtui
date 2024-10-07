@@ -18,7 +18,7 @@ impl<'a> Theme<'a> {
                     Block::default()
                         .borders(Borders::ALL)
                         .border_type(BorderType::Thick)
-                        .title("Editor")
+                        .title("|Editor|")
                         .title_alignment(Alignment::Center),
                 )
                 .base(Style::default().bg(DARK_NIGHT).fg(WHITE))

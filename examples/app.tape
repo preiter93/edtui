@@ -3,9 +3,10 @@ Output "resources/app.gif"
 Set Margin 10
 Set Padding 2
 Set BorderRadius 10
-Set Width 1200
-Set Height 700
-Set PlaybackSpeed 0.5
+Set FontSize 42
+Set Width 2300
+Set Height 1100
+Set PlaybackSpeed 0.4
 
 Hide
 Type "cargo run --example app"

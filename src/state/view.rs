@@ -55,6 +55,8 @@ impl ViewState {
         size: (usize, usize),
         cursor: Index2,
     ) -> Offset {
+        // FIXME: Scrolling does not work with line
+        // wrapping
         let limit = (
             size.0.saturating_sub(1) + self.viewport.x,
             size.1.saturating_sub(1) + self.viewport.y,
