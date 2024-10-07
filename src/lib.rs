@@ -11,6 +11,7 @@
 //! let mut state = EditorState::default();
 //! EditorView::new(&mut state)
 //!         .theme(EditorTheme::default())
+//!         .wrap(true) // line wrapping
 //!         .render(area, buf)
 //! ```
 //!
