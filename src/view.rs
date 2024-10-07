@@ -1,4 +1,5 @@
 //! The editors state
+pub(crate) mod line_wrapper;
 pub mod status_line;
 pub mod theme;
 use self::theme::EditorTheme;
@@ -7,12 +8,14 @@ use crate::{
     state::{selection::Selection, EditorState},
     EditorMode, Index2,
 };
+use line_wrapper::LineWrapper;
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::EditorStatusLine;
 
 pub struct EditorView<'a, 'b> {
     pub(crate) state: &'a mut EditorState,
     pub(crate) theme: EditorTheme<'b>,
+    pub(crate) wrap: bool,
 }
 
 impl<'a, 'b> EditorView<'a, 'b> {
@@ -22,6 +25,7 @@ impl<'a, 'b> EditorView<'a, 'b> {
         Self {
             state,
             theme: EditorTheme::default(),
+            wrap: false,
         }
     }
 
@@ -30,6 +34,16 @@ impl<'a, 'b> EditorView<'a, 'b> {
     #[must_use]
     pub fn theme(mut self, theme: EditorTheme<'b>) -> Self {
         self.theme = theme;
+        self
+    }
+
+    /// Sets whether overflowing lines should wrap onto the next line.
+    ///
+    /// # Note
+    /// Line wrapping currently has issues when used with mouse events.
+    #[must_use]
+    pub fn wrap(mut self, wrap: bool) -> Self {
+        self.wrap = wrap;
         self
     }
 
@@ -87,27 +101,60 @@ impl Widget for EditorView<'_, '_> {
         if self.state.mode == EditorMode::Search {
             search_selection = self.state.search.selected_range();
         };
-        let selections = vec![&self.state.selection, &search_selection];
+        let selections = [&self.state.selection, &search_selection];
 
         // Rendering the text and the selection.
         let lines = &self.state.lines;
-        for (i, line) in lines.iter_row().skip(offset.y).take(height).enumerate() {
-            let y = (main.top() as usize) as u16 + i as u16;
-            let area = Rect::new(main.left(), y, main.width, main.height);
+        let mut y = (main.top() as usize) as u16;
+        for (i, line) in lines.iter_row().skip(offset.y).enumerate() {
+            let row_index = offset.y + i;
 
-            InternalLine::new(line, &self.theme, offset.y + i, offset.x)
-                .into_spans(&selections)
-                .into_iter()
-                .collect::<Line>()
-                .render(area, buf);
-        }
+            // Wrap lines
+            let offset_x = if self.wrap { 0 } else { offset.x };
+            let spans = InternalLine::new(
+                line,
+                self.theme.base,
+                self.theme.selection_style,
+                offset.y + i,
+                offset_x,
+            )
+            .into_spans(&selections);
 
-        // Rendering of the cursor. Cursor is not rendered in the loop below,
-        // as the cursor may be outside the text in input mode.
-        let x_cursor = (main.left() as usize) + width.min(cursor.col.saturating_sub(offset.x));
-        let y_cursor = (main.top() as usize) + cursor.row.saturating_sub(offset.y);
-        if let Some(cell) = buf.cell_mut(Position::new(x_cursor as u16, y_cursor as u16)) {
-            cell.set_style(self.theme.cursor_style);
+            let mut line_wrapper = LineWrapper::default();
+            let wrapped_spans = if self.wrap {
+                line_wrapper.wrap_lines(spans, main.width as usize)
+            } else {
+                vec![spans]
+            };
+            let line_count = wrapped_spans.len();
+
+            // Rendering the content line by line.
+            let mut y_line = y;
+            for (i, span) in wrapped_spans.into_iter().enumerate() {
+                let area = Rect::new(main.left(), y_line, main.width, main.height);
+                span.into_iter().collect::<Line>().render(area, buf);
+
+                // Increment the y position if there are more lines left to render.
+                if i + 1 < line_count {
+                    y_line += 1;
+                }
+            }
+
+            // Rendering of the the cursor position. Must take visual line breaks into account.
+            if row_index == cursor.row {
+                let relative_position = line_wrapper.find_position(cursor.col);
+                let x_cursor = main.left() + relative_position.col as u16;
+                let y_cursor = y + relative_position.row as u16;
+                if let Some(cell) = buf.cell_mut(Position::new(x_cursor, y_cursor)) {
+                    cell.set_style(self.theme.cursor_style);
+                }
+            }
+
+            // Increment y after rendering the current visual line.
+            y = y_line + 1;
+            if y >= main.bottom() {
+                break;
+            }
         }
 
         // Render the status line.
@@ -123,42 +170,45 @@ impl Widget for EditorView<'_, '_> {
     }
 }
 
-struct InternalLine<'a, 'b> {
+struct InternalLine<'a> {
     line: &'a [char],
-    theme: &'b EditorTheme<'b>,
+    base: Style,
+    highlighted: Style,
     row_index: usize,
     col_offset: usize,
 }
 
-impl<'a, 'b> InternalLine<'a, 'b> {
+impl<'a> InternalLine<'a> {
     fn new(
         line: &'a [char],
-        theme: &'b EditorTheme<'b>,
+        base: Style,
+        highlighted: Style,
         row_index: usize,
         col_offset: usize,
     ) -> Self {
         Self {
             line,
-            theme,
+            base,
+            highlighted,
             row_index,
             col_offset,
         }
     }
 }
 
-impl<'a> InternalLine<'a, '_> {
+impl<'a> InternalLine<'a> {
     fn get_style(&self, is_selected: bool) -> Style {
         if is_selected {
-            self.theme.selection_style
+            self.highlighted
         } else {
-            self.theme.base
+            self.base
         }
     }
 
     /// Converts an `InternalLine` into a vector of `Span`s, applying styles based on the
     /// given selections.
     fn into_spans(self, selections: &[&Option<Selection>]) -> Vec<Span<'a>> {
-        let mut selections = selections.iter().filter_map(|selection| selection.as_ref());
+        // let selection = selections.firs
 
         let mut spans = Vec::new();
         let mut current_span = String::new();
@@ -169,7 +219,10 @@ impl<'a> InternalLine<'a, '_> {
             let position = Index2::new(self.row_index, self.col_offset + i);
 
             // Check if the current position is selected by any selection
-            let current_is_selected = selections.any(|selection| selection.contains(&position));
+            let current_is_selected = selections
+                .iter()
+                .filter_map(|selection| selection.as_ref())
+                .any(|selection| selection.contains(&position));
 
             // If the selection state has changed, push the current span and start a new one
             if i != 0 && previous_is_selected != current_is_selected {
@@ -209,4 +262,27 @@ fn crop_first(s: &str, pos: usize) -> &str {
 fn displayed_cursor(state: &EditorState) -> Index2 {
     let max_col = max_col(&state.lines, &state.cursor, state.mode);
     Index2::new(state.cursor.row, state.cursor.col.min(max_col))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_internal_line_into_spans() {
+        // given
+        let base = Style::default();
+        let hightlighted = Style::default().red();
+        let line = "Hello".chars().into_iter().collect::<Vec<char>>();
+
+        let selection = Some(Selection::new(Index2::new(0, 0), Index2::new(0, 2)));
+        let selections = vec![&selection];
+
+        // when
+        let spans = InternalLine::new(&line, base, hightlighted, 0, 0).into_spans(&selections);
+
+        // then
+        assert_eq!(spans[0], Span::styled("Hel", hightlighted));
+        assert_eq!(spans[1], Span::styled("lo", base));
+    }
 }
