@@ -88,11 +88,11 @@ event_handler.on_mouse_event(mouse_event, &mut state);
 
 - [x] Clipboard
 - [x] Search
+- [x] Soft-wrap lines
 
 - [ ] Vims `f`/`t` go to first
 - [ ] Support termwiz and termion
 - [ ] Display line numbers
 - [ ] Remap keybindings
-- [ ] Soft-wrap lines
 
 License: MIT
