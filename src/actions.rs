@@ -80,7 +80,12 @@ impl Execute for SwitchMode {
             EditorMode::Visual => {
                 state.selection = Some(Selection::new(state.cursor, state.cursor));
             }
-            EditorMode::Insert | EditorMode::Search => {}
+            EditorMode::Insert => {
+                if state.mode != EditorMode::Insert {
+                    state.capture();
+                }
+            }
+            EditorMode::Search => {}
         }
         state.mode = self.0;
     }
