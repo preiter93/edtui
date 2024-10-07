@@ -82,7 +82,7 @@
 //! event_handler.on_mouse_event(mouse_event, &mut state);
 //! ```
 //!
-//! **Note**: This feature is experimental, so expect potential bugs and breaking changes.
+//! **Note**: This feature is experimental, so expect potential bugs and breaking changes. It does currently not work correctly on wrapped lines.
 //!
 //! ### Roadmap
 //!
