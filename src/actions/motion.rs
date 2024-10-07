@@ -197,9 +197,9 @@ fn is_same_word_class(a: Option<&char>, b: Option<&char>) -> bool {
 
 // Move the cursor to the start of the line.
 #[derive(Clone, Debug, Copy)]
-pub struct MoveToStart();
+pub struct MoveToStartOfLine();
 
-impl Execute for MoveToStart {
+impl Execute for MoveToStartOfLine {
     fn execute(&mut self, state: &mut EditorState) {
         state.cursor.col = 0;
 
@@ -224,11 +224,39 @@ impl Execute for MoveToFirst {
 
 // Move the cursor to the end of the line.
 #[derive(Clone, Debug, Copy)]
-pub struct MoveToEnd();
+pub struct MoveToEndOfLine();
 
-impl Execute for MoveToEnd {
+impl Execute for MoveToEndOfLine {
     fn execute(&mut self, state: &mut EditorState) {
         state.cursor.col = max_col(&state.lines, &state.cursor, state.mode);
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
+    }
+}
+
+// Move the cursor to the start of the buffer.
+#[derive(Clone, Debug, Copy)]
+pub struct MoveToFirstRow();
+
+impl Execute for MoveToFirstRow {
+    fn execute(&mut self, state: &mut EditorState) {
+        state.cursor.row = 0;
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
+    }
+}
+
+// Move the cursor to the end of the buffer.
+#[derive(Clone, Debug, Copy)]
+pub struct MoveToLastRow();
+
+impl Execute for MoveToLastRow {
+    fn execute(&mut self, state: &mut EditorState) {
+        state.cursor.row = state.lines.len().saturating_sub(1);
 
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
@@ -368,7 +396,7 @@ mod tests {
         let mut state = test_state();
         state.cursor = Index2::new(0, 2);
 
-        MoveToStart().execute(&mut state);
+        MoveToStartOfLine().execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 0));
     }
 
@@ -377,7 +405,7 @@ mod tests {
         let mut state = test_state();
         state.cursor = Index2::new(0, 2);
 
-        MoveToEnd().execute(&mut state);
+        MoveToEndOfLine().execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 11));
     }
 }

@@ -1,10 +1,12 @@
+use crate::actions::motion::{MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
     Action, Append, AppendCharToSearch, AppendNewline, Composed, CopySelection, DeleteChar,
     DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious, InsertChar, InsertNewline,
-    LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEnd, MoveToFirst, MoveToMatchinBracket,
-    MoveToStart, MoveUp, MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar,
-    RemoveCharFromSearch, SelectBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
+    LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEndOfLine, MoveToFirst,
+    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward, Paste,
+    Redo, RemoveChar, RemoveCharFromSearch, SelectBetween, SelectLine, StopSearch, SwitchMode,
+    TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 use ratatui::crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
@@ -204,7 +206,7 @@ impl Default for KeyEventHandler {
             // Move cursor to start/first/last position
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('0')]),
-                MoveToStart().into(),
+                MoveToStartOfLine().into(),
             ),
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('_')]),
@@ -212,11 +214,11 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('$')]),
-                MoveToEnd().into(),
+                MoveToEndOfLine().into(),
             ),
             (
                 KeyEventRegister::v(vec![KeyEvent::Char('0')]),
-                MoveToStart().into(),
+                MoveToStartOfLine().into(),
             ),
             (
                 KeyEventRegister::v(vec![KeyEvent::Char('_')]),
@@ -224,7 +226,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::v(vec![KeyEvent::Char('$')]),
-                MoveToEnd().into(),
+                MoveToEndOfLine().into(),
             ),
             // Move cursor to start/first/last position and enter insert mode
             (
@@ -235,7 +237,24 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('A')]),
-                Composed::new(MoveToEnd()).chain(Append).into(),
+                Composed::new(MoveToEndOfLine()).chain(Append).into(),
+            ),
+            // Move cursor to start/last row in the buffer
+            (
+                KeyEventRegister::n(vec![KeyEvent::Char('g'), KeyEvent::Char('g')]),
+                MoveToFirstRow().into(),
+            ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Char('g'), KeyEvent::Char('g')]),
+                MoveToFirstRow().into(),
+            ),
+            (
+                KeyEventRegister::n(vec![KeyEvent::Char('G')]),
+                MoveToLastRow().into(),
+            ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Char('G')]),
+                MoveToLastRow().into(),
             ),
             // Move cursor to the next opening/closing bracket.
             (

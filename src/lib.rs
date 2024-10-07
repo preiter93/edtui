@@ -38,6 +38,8 @@
 //! | `0`                     | Move cursor to start of line                 |
 //! | `^`                     | Move cursor to first non-blank character     |
 //! | `$`                     | Move cursor to end of line                   |
+//! | `gg`                    | Move cursor to the first row                 |
+//! | `G `                    | Move cursor to the last row                  |
 //! | `%`                     | Move cursor to closing/opening bracket       |
 //! | `a`                     | Append after the cursor                      |
 //! | `A`                     | Append at the end of the line                |
