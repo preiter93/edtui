@@ -28,7 +28,7 @@ impl<'a, 'b> EditorView<'a, 'b> {
         Self {
             state,
             theme: EditorTheme::default(),
-            wrap: false,
+            wrap: true,
         }
     }
 
