@@ -126,16 +126,17 @@ impl ViewState {
         let skip = lines.len().saturating_sub(cursor_row + 1);
         for (i, line) in lines.iter_row().rev().skip(skip).enumerate() {
             let line_width = chars_width(line);
-            let wrapped_rows = LineWrapper::determine_split(line_width, max_width).len();
-
-            // Subtract the number of wrapped rows from the remaining height.
-            remaining_height = remaining_height.saturating_sub(wrapped_rows);
+            let current_row_height = LineWrapper::determine_split(line_width, max_width).len();
 
             // If we run out of height or exceed it, scroll the viewport.
-            if remaining_height == 0 {
-                self.viewport.y = cursor_row.saturating_sub(i - 1);
+            if remaining_height < current_row_height {
+                let first_visible_row = cursor_row.saturating_sub(i.saturating_sub(1));
+                self.viewport.y = first_visible_row;
                 break;
             }
+
+            // Subtract the number of wrapped rows from the remaining height.
+            remaining_height = remaining_height.saturating_sub(current_row_height);
         }
     }
 }

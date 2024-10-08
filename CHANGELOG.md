@@ -1,6 +1,10 @@
 Released
 --------
 
+0.8.1 - 08 Okt 2024
+===================
+- Bugfix: Scroll down jumped one cell if wrap was set to true
+
 0.8.0 - 07 Okt 2024
 ===================
 - Support for line-wrapping `EditorView::new().wrap(true);`
