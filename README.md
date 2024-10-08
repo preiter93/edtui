@@ -34,7 +34,6 @@ EditorView::new(&mut state)
 | `h`, `j`, `k`, `l`      | Navigate left, down, up, and right           |
 | `w`, `b`                | Move forward or backward by word             |
 | `x`                     | Delete the character under the cursor        |
-| `Del`                   | Delete the character left of the cursor      |
 | `u`, `<ctrl>+r`         | Undo/Redo last action                        |
 | `Esc`                   | Escape Insert mode or Visual mode            |
 | `0`                     | Move cursor to start of line                 |
@@ -61,6 +60,9 @@ EditorView::new(&mut state)
 | Keybinding | Description                             |
 |------------|-----------------------------------------|
 | `Esc`      | Return to Normal mode                   |
+| `Del`      | Delete the character left of the cursor |
+| `Enter`    | Insert line break                       |
+| `Arrows`   | Navigation                              |
 
 For more keybindings and customization options, refer to the code.
 
