@@ -231,13 +231,13 @@ impl Default for KeyEventHandler {
             // Move cursor to start/first/last position and enter insert mode
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('I')]),
-                Composed::new(MoveToFirst())
-                    .chain(SwitchMode(EditorMode::Insert))
+                Composed::new(SwitchMode(EditorMode::Insert))
+                    .chain(MoveToFirst())
                     .into(),
             ),
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('A')]),
-                Composed::new(MoveToEndOfLine()).chain(Append).into(),
+                Composed::new(Append).chain(MoveToEndOfLine()).into(),
             ),
             // Move cursor to start/last row in the buffer
             (
@@ -268,15 +268,11 @@ impl Default for KeyEventHandler {
             // Append/insert new line and switch into insert mode
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('o')]),
-                Composed::new(AppendNewline(1))
-                    .chain(SwitchMode(EditorMode::Insert))
-                    .into(),
+                Composed::new(AppendNewline(1)).into(),
             ),
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('O')]),
-                Composed::new(InsertNewline(1))
-                    .chain(SwitchMode(EditorMode::Insert))
-                    .into(),
+                Composed::new(InsertNewline(1)).into(),
             ),
             // Insert a line break
             (
