@@ -35,7 +35,7 @@ EditorView::new(&mut state)
 | `w`, `b`                | Move forward or backward by word             |
 | `x`                     | Delete the character under the cursor        |
 | `u`, `<ctrl>+r`         | Undo/Redo last action                        |
-| `Esc`                   | Escape Insert mode or Visual mode            |
+| `Esc`                   | Escape Visual mode                           |
 | `0`                     | Move cursor to start of line                 |
 | `^`                     | Move cursor to first non-blank character     |
 | `$`                     | Move cursor to end of line                   |

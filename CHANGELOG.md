@@ -1,6 +1,10 @@
 Released
 --------
 
+0.8.2 - 09 Okt 2024
+===================
+- Bump edtui-jagged version
+
 0.8.1 - 08 Okt 2024
 ===================
 - Bugfix: Scroll down jumped one cell if wrap was set to true
