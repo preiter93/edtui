@@ -4,6 +4,8 @@ mod key;
 pub(crate) mod mouse;
 
 pub use key::{KeyEvent, KeyEventHandler, KeyEventRegister};
+
+#[cfg(feature = "mouse-support")]
 pub use mouse::{MouseEvent, MouseEventHandler};
 
 use crate::EditorState;
@@ -29,6 +31,7 @@ impl EditorEventHandler {
     {
         match event.into() {
             Event::Key(event) => self.on_key_event(event, state),
+            #[cfg(feature = "mouse-support")]
             Event::Mouse(event) => self.on_mouse_event(event, state),
             Event::None => (),
         }
@@ -42,6 +45,7 @@ impl EditorEventHandler {
         self.key_handler.on_event(event.into(), state);
     }
 
+    #[cfg(feature = "mouse-support")]
     /// Handles mouse events.
     pub fn on_mouse_event<T>(&self, event: T, state: &mut EditorState)
     where
@@ -53,6 +57,7 @@ impl EditorEventHandler {
 
 pub enum Event {
     Key(KeyEvent),
+    #[cfg(feature = "mouse-support")]
     Mouse(MouseEvent),
     None,
 }
@@ -61,6 +66,7 @@ impl From<CTEvent> for Event {
     fn from(value: CTEvent) -> Self {
         match value {
             CTEvent::Key(event) => Self::Key(event.into()),
+            #[cfg(feature = "mouse-support")]
             CTEvent::Mouse(event) => Self::Mouse(event.into()),
             _ => Self::None,
         }
