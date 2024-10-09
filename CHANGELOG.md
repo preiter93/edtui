@@ -5,6 +5,7 @@ Released
 ===================
 - Bugfix: MoveWordForward if out of bounds
 - Bugfix: Capture state before switching to insert mode
+- Bugfig: Render cursor if editor has no content
 
 0.8.2 - 09 Okt 2024
 ===================

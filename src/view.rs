@@ -168,6 +168,13 @@ impl Widget for EditorView<'_, '_> {
             }
         }
 
+        // Render the cursor even if the editor has no content
+        if num_rows == 0 {
+            if let Some(cell) = buf.cell_mut(Position::new(main.left(), main.top())) {
+                cell.set_style(self.theme.cursor_style);
+            }
+        }
+
         // Save the total number of lines displayed in the viewport.
         // This is necessary to correctly handle scrolling.
         self.state.view.update_num_rows(num_rows);
