@@ -46,7 +46,6 @@ EditorView::new(&mut state)
 | `A`                     | Append at the end of the line                |
 | `o`                     | Add a new line below and enter Insert mode   |
 | `O`                     | Add a new line above and enter Insert mode   |
-| `Backspace`             | Delete the previous character                |
 | `d`                     | Delete the selection                         |
 | `dd`                    | Delete the current line                      |
 | `ciw`                   | Select between delimiters. Supported: [`"`]  |
@@ -57,12 +56,12 @@ EditorView::new(&mut state)
 
 ##### Insert Mode:
 
-| Keybinding | Description                             |
-|------------|-----------------------------------------|
-| `Esc`      | Return to Normal mode                   |
-| `Del`      | Delete the character left of the cursor |
-| `Enter`    | Insert line break                       |
-| `Arrows`   | Navigation                              |
+| Keybinding  | Description                             |
+|-------------|-----------------------------------------|
+| `Esc`       | Return to Normal mode                   |
+| `Backspace` | Delete the previous character                |
+| `Enter`     | Insert line break                       |
+| `Arrows`    | Navigation                              |
 
 For more keybindings and customization options, refer to the code.
 

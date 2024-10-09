@@ -4,6 +4,7 @@ Released
 0.8.2 - 09 Okt 2024
 ===================
 - Bump edtui-jagged version
+- README: Fix keymappings
 
 0.8.1 - 08 Okt 2024
 ===================
