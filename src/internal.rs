@@ -11,10 +11,10 @@ pub(crate) struct InternalSpan {
 }
 
 impl InternalSpan {
-    pub(crate) fn new<T: Into<String>>(content: T, style: Style) -> Self {
+    pub(crate) fn new<T: Into<String>>(content: T, style: &Style) -> Self {
         Self {
             content: content.into(),
-            style,
+            style: *style,
         }
     }
 
@@ -31,16 +31,13 @@ impl InternalSpan {
         style: &Style,
     ) -> Option<Vec<InternalSpan>> {
         let spans_len = InternalSpan::spans_len(spans);
-        let Some((start_col, end_col)) = selection.selected_columns_in_row(spans_len, row_index)
-        else {
-            return None;
-        };
+        let (start_col, end_col) = selection.selected_columns_in_row(spans_len, row_index)?;
         debug_assert!(end_col >= start_col, "{start_col} {end_col}");
         Some(Self::split_spans(spans, start_col, end_col, style))
     }
 
-    fn split_spans<'b>(
-        spans: &'b [Self],
+    fn split_spans(
+        spans: &[Self],
         split_start: usize,
         split_end: usize,
         style: &Style,
@@ -48,32 +45,29 @@ impl InternalSpan {
         let mut new_spans: Vec<InternalSpan> = Vec::new();
         let mut offset = 0;
 
-        for span in spans.iter() {
+        for span in spans {
             let span_width = span.content.len();
             let span_start = offset;
             let span_end = offset + span_width.saturating_sub(1);
 
             // Case a: Span ends before split_start, append it unchanged
-            if span_end < split_start {
-                new_spans.push(span.clone());
-            }
             // Case b: Span starts after split_end, append it unchanged
-            else if span_start > split_end {
+            if span_end < split_start || span_start > split_end {
                 new_spans.push(span.clone());
             }
             // Case c: Split front
             else if split_start <= span_start && split_end < span_end {
                 let split_point = split_end - span_start + 1;
                 let (left, right) = span.content.split_at(split_point);
-                new_spans.push(InternalSpan::new(left, style.clone()));
-                new_spans.push(InternalSpan::new(right, span.style));
+                new_spans.push(InternalSpan::new(left, style));
+                new_spans.push(InternalSpan::new(right, &span.style));
             }
             // Case d: Split back
             else if split_start > span_start && split_end >= span_end {
                 let split_point = split_start - span_start;
                 let (left, right) = span.content.split_at(split_point);
-                new_spans.push(InternalSpan::new(left, span.style));
-                new_spans.push(InternalSpan::new(right, style.clone()));
+                new_spans.push(InternalSpan::new(left, &span.style));
+                new_spans.push(InternalSpan::new(right, style));
             }
             // Case e: Split middle
             else if split_start > span_start && split_end < span_end {
@@ -82,13 +76,13 @@ impl InternalSpan {
                 let (left, rest) = span.content.split_at(split_front);
                 let (middle, right) = rest.split_at(split_back - split_front);
 
-                new_spans.push(InternalSpan::new(left, span.style));
-                new_spans.push(InternalSpan::new(middle, style.clone()));
-                new_spans.push(InternalSpan::new(right, span.style));
+                new_spans.push(InternalSpan::new(left, &span.style));
+                new_spans.push(InternalSpan::new(middle, style));
+                new_spans.push(InternalSpan::new(right, &span.style));
             }
             // Case f: Split none (entire span is between split_start and split_end)
             else if split_start <= span_start && split_end >= span_end {
-                new_spans.push(InternalSpan::new(span.content.clone(), style.clone()));
+                new_spans.push(InternalSpan::new(span.content.clone(), style));
             }
 
             offset += span_width;
@@ -100,7 +94,7 @@ impl InternalSpan {
 
 impl<'a> From<Span<'a>> for InternalSpan {
     fn from(value: Span) -> Self {
-        Self::new(value.content, value.style)
+        Self::new(value.content, &value.style)
     }
 }
 
@@ -241,8 +235,8 @@ mod tests {
     #[test]
     fn test_internal_span_split_spans() {
         // given
-        let base = Style::default();
-        let hightlighted = Style::default().red();
+        let base = &Style::default();
+        let hightlighted = &Style::default().red();
         let spans = vec![
             InternalSpan::new("Hel", base),
             InternalSpan::new("lo!", base),
@@ -286,8 +280,8 @@ mod tests {
     #[test]
     fn test_internal_span_apply_selection() {
         // given
-        let base = Style::default();
-        let hightlighted = Style::default().red();
+        let base = &Style::default();
+        let hightlighted = &Style::default().red();
         let spans = vec![
             InternalSpan::new("Hel", base),
             InternalSpan::new("lo!", base),
