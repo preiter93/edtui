@@ -40,7 +40,7 @@ impl SyntaxHighlighter {
             .clone();
         let syntax_ref = SYNTAX_SET
             .find_syntax_by_extension(extension)
-            .expect(&format!("Could not find extension {extension}"))
+            .unwrap_or_else(|| panic!("Could not find extension {extension}"))
             .clone();
 
         Self { theme, syntax_ref }
@@ -64,9 +64,8 @@ impl SyntaxHighlighter {
         let theme = theme_set
             .themes
             .get(theme)
-            .expect("Could not find theme {theme}")
-            .clone();
-        self.theme = theme;
+            .expect("Could not find theme {theme}");
+        self.theme = theme.clone();
         self
     }
 
@@ -79,9 +78,8 @@ impl SyntaxHighlighter {
     pub(crate) fn extension(mut self, extension: &str) -> Self {
         let syntax_ref = SYNTAX_SET
             .find_syntax_by_extension(extension)
-            .expect(&format!("Could not find extension {extension}"))
-            .clone();
-        self.syntax_ref = syntax_ref;
+            .unwrap_or_else(|| panic!("Could not find extension {extension}"));
+        self.syntax_ref = syntax_ref.clone();
         self
     }
 }
@@ -93,10 +91,10 @@ impl SyntaxHighlighter {
 
         // Convert the highlighted lines into spans
         let mut spans = Vec::new();
-        for &(ref style, text) in highlighted_line.iter() {
+        for &(style, text) in &highlighted_line {
             spans.push(InternalSpan::new(
                 text.to_string(),
-                Style::default().fg(Color::Rgb(
+                &Style::default().fg(Color::Rgb(
                     style.foreground.r,
                     style.foreground.g,
                     style.foreground.b,

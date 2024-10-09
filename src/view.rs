@@ -219,7 +219,7 @@ fn crop_first(s: &str, pos: usize) -> &str {
     }
 }
 
-pub(crate) fn spans_width<'a>(spans: &[Span<'a>]) -> usize {
+pub(crate) fn spans_width(spans: &[Span]) -> usize {
     spans.iter().fold(0, |sum, span| sum + span.width())
 }
 
