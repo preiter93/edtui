@@ -2,7 +2,9 @@ use jagged::Index2;
 
 use super::Execute;
 use crate::{
-    helper::{max_col, max_col_normal, set_selection, skip_whitespace, skip_whitespace_rev},
+    helper::{
+        clamp_column, max_col, max_col_normal, set_selection, skip_whitespace, skip_whitespace_rev,
+    },
     EditorMode, EditorState,
 };
 
@@ -112,6 +114,8 @@ impl Execute for MoveWordForward {
         if state.lines.is_empty() {
             return;
         }
+
+        clamp_column(state);
 
         for _ in 0..self.0 {
             move_word_right(state);
@@ -369,6 +373,15 @@ mod tests {
 
         MoveWordForward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(2, 3));
+    }
+
+    #[test]
+    fn test_move_word_forward_out_of_bounds() {
+        let mut state = test_state();
+
+        state.cursor = Index2::new(0, 99);
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(1, 0));
     }
 
     #[test]

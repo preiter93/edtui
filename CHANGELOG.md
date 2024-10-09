@@ -1,6 +1,11 @@
 Released
 --------
 
+0.8.3 - 09 Okt 2024
+===================
+- Bugfix: MoveWordForward if out of bounds
+- Bugfix: Capture state before switching to insert mode
+
 0.8.2 - 09 Okt 2024
 ===================
 - Bump edtui-jagged version
