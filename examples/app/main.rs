@@ -34,10 +34,18 @@ Copy and paste text:
 Built-in search using the '/' command.
 
 Supports syntax highlighting:
-{
-  \"name\": \"edtui\"
+```
+fn main() {
+    let state = EditorState::default();
+    let theme = \"dracula\";
+    let highlighter = SyntaxHighlighter::new(theme, \"rs\");
+    EditorView::new(&mut state)
+        .wrap(true)
+        .theme(Theme::new().editor)
+        .syntax_highlighter(Some(highlighter))
+        .render(area, buf);
 }
-
+```
 This editor is under active development.
 Don't hesitate to open issues or submit pull requests to contribute!
 ",
