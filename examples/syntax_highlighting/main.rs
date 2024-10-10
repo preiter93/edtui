@@ -1,6 +1,6 @@
 use app::{App, AppContext};
 use std::error::Error;
-use syntect::highlighting::ThemeSet;
+use syntect::{dumps::from_binary, highlighting::ThemeSet};
 use term::Term;
 mod app;
 mod term;
@@ -13,13 +13,17 @@ fn main() -> Result<()> {
     let mut app = App {
         context: AppContext::new(),
         should_quit: false,
-        theme_set: load_from_folder(),
+        theme_set: load_binary(),
     };
     app.run(&mut term)
 }
 
-pub fn load_from_folder() -> ThemeSet {
-    let theme_set =
-        ThemeSet::load_from_folder("/Users/philippreiter/Rust/edtui/assets/sublime").unwrap();
-    return theme_set;
+// pub fn load_from_folder() -> ThemeSet {
+//     let theme_set =
+//         ThemeSet::load_from_folder("/Users/philippreiter/Rust/edtui/assets/sublime").unwrap();
+//     return theme_set;
+// }
+
+pub fn load_binary() -> ThemeSet {
+    from_binary(include_bytes!("../../assets/edtui.themedump"))
 }

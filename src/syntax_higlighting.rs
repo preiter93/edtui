@@ -6,9 +6,16 @@ use crate::syntect::{
 };
 use once_cell::sync::Lazy;
 use ratatui::style::{Color, Style};
+use syntect::dumps::from_binary;
 
 pub static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
-pub static THEME_SET: Lazy<ThemeSet> = Lazy::new(ThemeSet::load_defaults);
+pub static THEME_SET: Lazy<ThemeSet> = Lazy::new(load_defaults);
+
+// Themes from
+// https://git.data.coop/emelie/zola/src/commit/b0937fa5b78fa927febdb94f6f6b568249663623/sublime/themes
+pub fn load_defaults() -> ThemeSet {
+    from_binary(include_bytes!("../assets/edtui.themedump"))
+}
 
 /// Syntax highlighter settings including theme and syntax.
 pub struct SyntaxHighlighter {
@@ -29,14 +36,14 @@ impl SyntaxHighlighter {
     /// ```
     /// use edtui::SyntaxHighlighter;
     ///
-    /// let syntax_highlighter = SyntaxHighlighter::new("base16-ocean.dark", "json");
+    /// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
     /// ```
     #[must_use]
     pub fn new(theme: &str, extension: &str) -> Self {
         let theme = THEME_SET
             .themes
             .get(theme)
-            .expect("Could not find theme {theme}")
+            .expect(&format!("Could not find theme {theme}"))
             .clone();
         let syntax_ref = SYNTAX_SET
             .find_syntax_by_extension(extension)
@@ -64,7 +71,7 @@ impl SyntaxHighlighter {
         let theme = theme_set
             .themes
             .get(theme)
-            .expect("Could not find theme {theme}");
+            .expect(&format!("Could not find theme {theme}"));
         self.theme = theme.clone();
         self
     }
