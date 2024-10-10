@@ -70,6 +70,10 @@
 //!
 //!![](resources/app.gif)
 //!
+//! ## Syntax highlighting
+//!
+//!![](resources/syntax_highlighting.gif)
+//!
 //! ## Experimental Mouse Support
 //!
 //! `Edtui` now includes experimental mouse support. To enable it activate the feature
