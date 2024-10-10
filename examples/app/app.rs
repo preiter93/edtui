@@ -56,7 +56,8 @@ impl App {
 
 impl Widget for &mut App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let syntax_highlighter = SyntaxHighlighter::new("base16-ocean.dark", "json");
+        // let syntax_highlighter = SyntaxHighlighter::new("dracula", "json");
+        let syntax_highlighter = SyntaxHighlighter::new("monokai", "json");
         EditorView::new(&mut self.context.state)
             .wrap(true)
             .theme(Theme::new().editor)
