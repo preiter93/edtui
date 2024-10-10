@@ -3,9 +3,9 @@ Output "resources/app.gif"
 Set Margin 10
 Set Padding 2
 Set BorderRadius 10
-Set FontSize 46
-Set Width 2300
-Set Height 1300
+Set FontSize 32
+Set Width 2400
+Set Height 1000
 Set PlaybackSpeed 0.4
 
 Hide
@@ -67,13 +67,13 @@ Type "j0j"
 Sleep 0.2s
 
 # Syntax highlighting
-Sleep 1.0s
-Type "j"
+Sleep 1.5s
+Type "jjwww"
 Type@0.5s "%%%%%"
-Sleep 0.2s
+Sleep 1.0s
 
 # Contribution
 Type "jjvj$"
-Sleep 3.5s
+Sleep 4.5s
 Escape
 Sleep 0.5s
