@@ -27,13 +27,27 @@ Navigate right (l), left (h), up (k) and down (j), using vim motions.
 
 Traverse words forward (w) and backward (b).
 
-Select text (v), including selection between \"delimiters\" (ciw).
+Select text (v), including selection between \"quotes\" (ciw).
 
 Copy and paste text: 
 
 Built-in search using the '/' command.
 
-This editor is under active development. Don't hesitate to open issues or submit pull requests to contribute!
+Supports syntax highlighting:
+```
+fn main() {
+    let state = EditorState::default();
+    let theme = \"dracula\";
+    let highlighter = SyntaxHighlighter::new(theme, \"rs\");
+    EditorView::new(&mut state)
+        .wrap(true)
+        .theme(Theme::new().editor)
+        .syntax_highlighter(Some(highlighter))
+        .render(area, buf);
+}
+```
+This editor is under active development.
+Don't hesitate to open issues or submit pull requests to contribute!
 ",
             )),
             event_handler: EditorEventHandler::default(),
