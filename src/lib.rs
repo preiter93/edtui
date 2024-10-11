@@ -28,6 +28,10 @@
 //! - Syntax highlighting (experimental).
 //! - Mouse support (experimental).
 //!
+//! ## Demo
+//!
+//!![](resources/app.gif)
+//!
 //! ## Keybindings
 //! `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
 //!
@@ -72,26 +76,9 @@
 //!
 //! For more keybindings and customization options, refer to the code.
 //!
-//! ## Demo
-//!
-//!![](resources/app.gif)
-//!
-//! ## Syntax highlighting
-//!
-//! Syntax highlighting is currently highly experimental, and there might be breaking
-//! changes in the future.
-//!
-//!![](resources/syntax_highlighting.gif)
-//!
 //! ## Experimental Mouse Support
 //!
-//! `Edtui` now includes experimental mouse support. To enable it activate the feature
-//! ```toml
-//! [dependencies.edtui]
-//! version = "0.7"
-//! features = ["mouse-support"]
-//! ```
-//! and use the mouse event handler
+//! `Edtui` includes experimental mouse support:
 //! ```ignore
 //! let event_handler = EditorEvent::default();
 //! event_handler.on_mouse_event(mouse_event, &mut state);
@@ -99,13 +86,24 @@
 //!
 //! **Note**: This feature is experimental, so expect potential bugs and breaking changes. It does currently not work correctly on wrapped lines.
 //!
+//! ## Syntax highlighting
+//!
+//! Syntax highlighting is currently highly experimental, and there might be breaking
+//! changes in the future.
+//!
+//!```ignore
+//! use edtui::EditorState;
+//! use edtui::EditorView;
+//! use edtui::SyntaxHighlighter;
+//!
+//! let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
+//! let view = EditorView::new(&mut EditorState::default())
+//!     .syntax_highlighter(Some(syntax_highlighter));
+//!```
+//!
+//!![](resources/syntax_highlighting.gif)
+//!
 //! ### Roadmap
-//!
-//! - [x] Clipboard
-//! - [x] Search
-//! - [x] Soft-wrap lines
-//!
-//! - [ ] Vims `f`/`t` go to first
 //! - [ ] Support termwiz and termion
 //! - [ ] Display line numbers
 //! - [ ] Remap keybindings
