@@ -17,10 +17,10 @@
 //!
 //! ## Features
 //! - Vim-like keybindings and editing modes for efficient text manipulation.
-//! - Normal, Insert and Visual mode.
-//! - Clipboard: Uses the `arboard` clibpboard by default which allows copy pasting between the
-//!   system clipboard and the editor.
-//! - Line wrapping
+//! - Copy paste using the systems clipboard.
+//! - Line wrapping.
+//! - Syntax highlighting (experimental).
+//! - Mouse support (experimental).
 //!
 //! ## Keybindings
 //! `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
@@ -71,6 +71,9 @@
 //!![](resources/app.gif)
 //!
 //! ## Syntax highlighting
+//!
+//! Syntax highlighting is currently highly experimental, and there might be breaking
+//! changes in the future.
 //!
 //!![](resources/syntax_highlighting.gif)
 //!
