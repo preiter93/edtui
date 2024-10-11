@@ -12,7 +12,7 @@ pub static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newl
 pub static THEME_SET: Lazy<ThemeSet> = Lazy::new(load_defaults);
 
 pub fn load_defaults() -> ThemeSet {
-    from_binary(include_bytes!("../assets/edtui.themedump"))
+    from_binary(include_bytes!("../assets/default.themedump"))
 }
 
 /// Syntax highlighter settings including theme and syntax.
@@ -24,6 +24,8 @@ pub struct SyntaxHighlighter {
 impl SyntaxHighlighter {
     /// Creates a new [`SyntaxHighlighter`] with a given theme (e.g. "base16-ocean.dark")
     /// and an extension (e.g. "json").
+    ///
+    /// See [`Self::theme`] for a list of available themes.
     ///
     /// # Panics
     /// - Could not find `theme` in syntect.
@@ -41,7 +43,7 @@ impl SyntaxHighlighter {
         let theme = THEME_SET
             .themes
             .get(theme)
-            .expect(&format!("Could not find theme {theme}"))
+            .unwrap_or_else(|| panic!("Could not find theme {theme}"))
             .clone();
         let syntax_ref = SYNTAX_SET
             .find_syntax_by_extension(extension)
@@ -54,7 +56,7 @@ impl SyntaxHighlighter {
     /// Set a custom theme. If you would like to use a predefined
     /// theme use [`theme_by_name`].
     #[must_use]
-    pub(crate) fn custom_theme(mut self, theme: Theme) -> Self {
+    pub fn custom_theme(mut self, theme: Theme) -> Self {
         self.theme = theme;
         self
     }
@@ -63,13 +65,58 @@ impl SyntaxHighlighter {
     ///
     /// # Panics
     /// - Could not find `theme` in syntect.
+    ///
+    /// # Available themes
+    /// "`1337`"
+    /// "`OneHalfDark`"
+    /// "`OneHalfLight`"
+    /// "`Tomorrow`"
+    /// "`agola-dark`"
+    /// "`ascetic-white`"
+    /// "`axar`"
+    /// "`ayu-dark`"
+    /// "`ayu-light`"
+    /// "`ayu-mirage`"
+    /// "`base16-atelierdune-light`"
+    /// "`base16-ocean-dark`"
+    /// "`base16-ocean-light`"
+    /// "`bbedit`"
+    /// "`boron`"
+    /// "`charcoal`"
+    /// "`cheerfully-light`"
+    /// "`classic-modified`"
+    /// "`demain`"
+    /// "`dimmed-fluid`"
+    /// "`dracula`"
+    /// "`gray-matter-dark`"
+    /// "`green`"
+    /// "`gruvbox-dark`"
+    /// "`gruvbox-light`"
+    /// "`idle`"
+    /// "`inspired-github`"
+    /// "`ir-white`"
+    /// "`kronuz`"
+    /// "`material-dark`"
+    /// "`material-light`"
+    /// "`monokai`"
+    /// "`nord`"
+    /// "`nyx-bold`"
+    /// "`one-dark`"
+    /// "`railsbase16-green-screen-dark`"
+    /// "`solarized-dark`"
+    /// "`solarized-light`"
+    /// "`subway-madrid`"
+    /// "`subway-moscow`"
+    /// "`two-dark`"
+    /// "`visual-studio-dark`"
+    /// "`zenburn`"
     #[must_use]
-    pub(crate) fn theme_by_name(mut self, theme: &str) -> Self {
+    pub fn theme(mut self, theme: &str) -> Self {
         let theme_set = ThemeSet::load_defaults();
         let theme = theme_set
             .themes
             .get(theme)
-            .expect(&format!("Could not find theme {theme}"));
+            .unwrap_or_else(|| panic!("Could not find theme {theme}"));
         self.theme = theme.clone();
         self
     }
