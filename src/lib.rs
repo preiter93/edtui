@@ -1,5 +1,11 @@
 //! ## `EdTUI`
 //!
+//!<div align="center">
+//!     
+//! [![Continuous Integration](https://github.com/preiter93/edtui/actions/workflows/ci.yml/badge.svg)](https://github.com/preiter93/edtui/actions/workflows/ci.yml)
+//!
+//! </div>
+//!
 //! ### Overview
 //! `EdTUI` is a text editor widget for the [Ratatui](https://github.com/ratatui-org/ratatui) ecosystem.
 //! It is designed to provide a light-weight user experience inspired by Vim.
@@ -17,10 +23,10 @@
 //!
 //! ## Features
 //! - Vim-like keybindings and editing modes for efficient text manipulation.
-//! - Normal, Insert and Visual mode.
-//! - Clipboard: Uses the `arboard` clibpboard by default which allows copy pasting between the
-//!   system clipboard and the editor.
-//! - Line wrapping
+//! - Copy paste using the systems clipboard.
+//! - Line wrapping.
+//! - Syntax highlighting (experimental).
+//! - Mouse support (experimental).
 //!
 //! ## Keybindings
 //! `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
@@ -70,6 +76,13 @@
 //!
 //!![](resources/app.gif)
 //!
+//! ## Syntax highlighting
+//!
+//! Syntax highlighting is currently highly experimental, and there might be breaking
+//! changes in the future.
+//!
+//!![](resources/syntax_highlighting.gif)
+//!
 //! ## Experimental Mouse Support
 //!
 //! `Edtui` now includes experimental mouse support. To enable it activate the feature
@@ -106,7 +119,10 @@ pub mod clipboard;
 mod debug;
 pub mod events;
 mod helper;
+mod internal;
 mod state;
+#[cfg(feature = "syntax-highlighting")]
+mod syntax_higlighting;
 mod view;
 
 #[allow(deprecated)]
@@ -114,6 +130,12 @@ pub use events::deprecated_input::EditorInput;
 pub use events::EditorEventHandler;
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView};
+
+#[cfg(feature = "syntax-highlighting")]
+pub use syntax_higlighting::SyntaxHighlighter;
+
+#[cfg(feature = "syntax-highlighting")]
+pub use syntect;
 
 /// A data structure that contains chars organized in rows and columns
 pub type Lines = jagged::Jagged<char>;

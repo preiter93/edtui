@@ -1,7 +1,20 @@
 0.8.4 - 
 ===================
 - Add `D` keymapping: Delete to end of line
- 
+- Syntax highlighting
+```rust
+#[cfg(feature = "syntax-highlighting")]
+{
+    use edtui::EditorState;
+    use edtui::EditorView;
+    use edtui::SyntaxHighlighter;
+
+    let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
+    EditorView::new(&mut EditorState::default())
+        .syntax_highlighter(Some(syntax_highlighter));
+}
+```
+
 Released
 --------
 
