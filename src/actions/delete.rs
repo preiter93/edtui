@@ -3,7 +3,7 @@ use jagged::index::RowIndex;
 use super::Execute;
 use crate::{
     clipboard::ClipboardTrait,
-    helper::{clamp_column, max_col_insert},
+    helper::{clamp_column, is_out_of_bounds, max_col_insert},
     state::selection::Selection,
     EditorMode, EditorState, Index2, Lines,
 };
@@ -95,6 +95,25 @@ impl Execute for DeleteLine {
             state.cursor.col = 0;
             state.cursor.row = state.cursor.row.min(state.lines.len().saturating_sub(1));
         }
+    }
+}
+
+/// Deletes from the current cursor position to the end of the line
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteToEndOfLine;
+
+impl Execute for DeleteToEndOfLine {
+    fn execute(&mut self, state: &mut EditorState) {
+        if is_out_of_bounds(&state.lines, &state.cursor) {
+            return;
+        }
+        state.capture();
+        let Some(row) = state.lines.get_mut(RowIndex::new(state.cursor.row)) else {
+            return;
+        };
+        let deleted_chars = row.drain(state.cursor.col..);
+        state.cursor.col = state.cursor.col.saturating_sub(1);
+        state.clip.set_text(deleted_chars.collect());
     }
 }
 
@@ -199,6 +218,16 @@ mod tests {
         DeleteLine(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 0));
         assert_eq!(state.lines, Lines::from(""));
+    }
+
+    #[test]
+    fn test_delete_to_end_line() {
+        let mut state = test_state();
+        state.cursor = Index2::new(0, 3);
+
+        DeleteToEndOfLine.execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 2));
+        assert_eq!(state.lines, Lines::from("Hel\n\n123."));
     }
 
     #[test]

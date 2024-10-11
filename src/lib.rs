@@ -48,6 +48,7 @@
 //! | `O`                     | Add a new line above and enter Insert mode   |
 //! | `d`                     | Delete the selection                         |
 //! | `dd`                    | Delete the current line                      |
+//! | `D`                     | Delete to the end of the line                |
 //! | `ciw`                   | Select between delimiters. Supported: [`"`]  |
 //! | `u`                     | Undo the last change                         |
 //! | `r`                     | Redo the last undone action                  |

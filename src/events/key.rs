@@ -1,3 +1,4 @@
+use crate::actions::delete::DeleteToEndOfLine;
 use crate::actions::motion::{MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
@@ -293,6 +294,11 @@ impl Default for KeyEventHandler {
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('d'), KeyEvent::Char('d')]),
                 DeleteLine(1).into(),
+            ),
+            // Delete from the cursor to the end of the line
+            (
+                KeyEventRegister::n(vec![KeyEvent::Char('D')]),
+                DeleteToEndOfLine.into(),
             ),
             // Delete the current selection
             (
