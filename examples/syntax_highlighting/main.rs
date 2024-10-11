@@ -18,12 +18,6 @@ fn main() -> Result<()> {
     app.run(&mut term)
 }
 
-// pub fn load_from_folder() -> ThemeSet {
-//     let theme_set =
-//         ThemeSet::load_from_folder("/Users/philippreiter/Rust/edtui/assets/sublime").unwrap();
-//     return theme_set;
-// }
-
 pub fn load_binary() -> ThemeSet {
-    from_binary(include_bytes!("../../assets/edtui.themedump"))
+    from_binary(include_bytes!("../../assets/default.themedump"))
 }
