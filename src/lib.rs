@@ -1,5 +1,11 @@
 //! ## `EdTUI`
 //!
+//!<div align="center">
+//!     
+//! [![Continuous Integration](https://github.com/preiter93/edtui/actions/workflows/ci.yml/badge.svg)](https://github.com/preiter93/edtui/actions/workflows/ci.yml)
+//!
+//! </div>
+//!
 //! ### Overview
 //! `EdTUI` is a text editor widget for the [Ratatui](https://github.com/ratatui-org/ratatui) ecosystem.
 //! It is designed to provide a light-weight user experience inspired by Vim.
