@@ -1,3 +1,7 @@
+0.8.4 - 
+===================
+- Add `D` keymapping: Delete to end of line
+ 
 Released
 --------
 

@@ -8,6 +8,7 @@ pub mod select;
 use crate::helper::clamp_column;
 use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
+use delete::DeleteToEndOfLine;
 use enum_dispatch::enum_dispatch;
 use motion::{MoveToFirstRow, MoveToLastRow};
 
@@ -48,6 +49,7 @@ pub enum Action {
     RemoveChar(RemoveChar),
     DeleteChar(DeleteChar),
     DeleteLine(DeleteLine),
+    DeleteToEndOfLine(DeleteToEndOfLine),
     DeleteSelection(DeleteSelection),
     SelectBetween(SelectBetween),
     SelectLine(SelectLine),
