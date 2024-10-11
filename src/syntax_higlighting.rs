@@ -11,8 +11,6 @@ use syntect::dumps::from_binary;
 pub static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
 pub static THEME_SET: Lazy<ThemeSet> = Lazy::new(load_defaults);
 
-// Themes from
-// https://git.data.coop/emelie/zola/src/commit/b0937fa5b78fa927febdb94f6f6b568249663623/sublime/themes
 pub fn load_defaults() -> ThemeSet {
     from_binary(include_bytes!("../assets/edtui.themedump"))
 }
