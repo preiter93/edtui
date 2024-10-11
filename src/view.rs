@@ -19,16 +19,13 @@ use theme::EditorTheme;
 /// use edtui::EditorState;
 /// use edtui::EditorTheme;
 /// use edtui::EditorView;
-/// use edtui::SyntaxHighlighter;
 ///
 /// let theme = EditorTheme::default();
-/// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
 /// let mut state = EditorState::default();
 ///
 /// EditorView::new(&mut state)
 ///     .wrap(true)
-///     .theme(theme)
-///     .syntax_highlighter(Some(syntax_highlighter));
+///     .theme(theme);
 /// ```
 pub struct EditorView<'a, 'b> {
     pub(crate) state: &'a mut EditorState,
@@ -62,6 +59,19 @@ impl<'a, 'b> EditorView<'a, 'b> {
     #[cfg(feature = "syntax-highlighting")]
     /// Set the syntax highlighter for the [`EditorView`]
     /// See [`SyntaxHighlighter`] for the more information.
+    ///
+    /// ```rust
+    /// #[cfg(feature = "syntax-highlighting")]
+    /// {
+    ///     use edtui::EditorState;
+    ///     use edtui::EditorView;
+    ///     use edtui::SyntaxHighlighter;
+    ///
+    ///     let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
+    ///     EditorView::new(&mut EditorState::default())
+    ///         .syntax_highlighter(Some(syntax_highlighter));
+    /// }
+    /// ```
     #[must_use]
     pub fn syntax_highlighter(mut self, syntax_highlighter: Option<SyntaxHighlighter>) -> Self {
         self.syntax_highlighter = syntax_highlighter;
