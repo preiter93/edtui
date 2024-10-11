@@ -49,6 +49,7 @@ jobs:
           - "--no-default-features"
           - "--no-default-features --features mouse-support"
           - "--no-default-features --features arboard"
+          - "--no-default-features --features syntax-highlighting"
     steps:
       - name: Checkout
         uses: actions/checkout@v4

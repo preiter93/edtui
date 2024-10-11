@@ -1,5 +1,11 @@
 ### `EdTUI`
 
+<div align="center">
+
+[![Continuous Integration](https://github.com/preiter93/edtui/actions/workflows/ci.yml/badge.svg)](https://github.com/preiter93/edtui/actions/workflows/ci.yml)
+
+</div>
+
 #### Overview
 `EdTUI` is a text editor widget for the [Ratatui](https://github.com/ratatui-org/ratatui) ecosystem.
 It is designed to provide a light-weight user experience inspired by Vim.
@@ -17,10 +23,10 @@ EditorView::new(&mut state)
 
 ### Features
 - Vim-like keybindings and editing modes for efficient text manipulation.
-- Normal, Insert and Visual mode.
-- Clipboard: Uses the `arboard` clibpboard by default which allows copy pasting between the
-  system clipboard and the editor.
-- Line wrapping
+- Copy paste using the systems clipboard.
+- Line wrapping.
+- Syntax highlighting (experimental).
+- Mouse support (experimental).
 
 ### Keybindings
 `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
@@ -48,6 +54,7 @@ EditorView::new(&mut state)
 | `O`                     | Add a new line above and enter Insert mode   |
 | `d`                     | Delete the selection                         |
 | `dd`                    | Delete the current line                      |
+| `D`                     | Delete to the end of the line                |
 | `ciw`                   | Select between delimiters. Supported: [`"`]  |
 | `u`                     | Undo the last change                         |
 | `r`                     | Redo the last undone action                  |
@@ -68,6 +75,13 @@ For more keybindings and customization options, refer to the code.
 ### Demo
 
 ![](resources/app.gif)
+
+### Syntax highlighting
+
+Syntax highlighting is currently highly experimental, and there might be breaking
+changes in the future.
+
+![](resources/syntax_highlighting.gif)
 
 ### Experimental Mouse Support
 
