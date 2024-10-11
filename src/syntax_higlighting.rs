@@ -25,6 +25,9 @@ impl SyntaxHighlighter {
     /// Creates a new [`SyntaxHighlighter`] with a given theme (e.g. "base16-ocean.dark")
     /// and an extension (e.g. "json").
     ///
+    /// Syntax highlighting is currently highly experimental, and there might be breaking
+    /// changes in the future.
+    ///
     /// See [`Self::theme`] for a list of available themes.
     ///
     /// # Panics
