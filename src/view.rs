@@ -1,4 +1,3 @@
-//! The editors state
 pub(crate) mod line_wrapper;
 pub mod status_line;
 pub mod theme;
@@ -11,6 +10,26 @@ pub use status_line::EditorStatusLine;
 use std::cmp::min;
 use theme::EditorTheme;
 
+/// Creates the view for the editor. [`EditorView`] and [`EditorState`] are
+/// the core classes of edtui.
+///
+/// ## Example
+///
+/// ```rust
+/// use edtui::EditorState;
+/// use edtui::EditorTheme;
+/// use edtui::EditorView;
+/// use edtui::SyntaxHighlighter;
+///
+/// let theme = EditorTheme::default();
+/// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
+/// let mut state = EditorState::default();
+///
+/// EditorView::new(&mut state)
+///     .wrap(true)
+///     .theme(theme)
+///     .syntax_highlighter(Some(syntax_highlighter));
+/// ```
 pub struct EditorView<'a, 'b> {
     pub(crate) state: &'a mut EditorState,
     pub(crate) theme: EditorTheme<'b>,

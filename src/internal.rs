@@ -33,7 +33,57 @@ impl InternalSpan {
         let spans_len = InternalSpan::spans_len(spans);
         let (start_col, end_col) = selection.selected_columns_in_row(spans_len, row_index)?;
         debug_assert!(end_col >= start_col, "{start_col} {end_col}");
+
         Some(Self::split_spans(spans, start_col, end_col, style))
+    }
+
+    /// Splits spans by `scroll_offset` from the left.
+    ///
+    /// When the editor is scrolled horizontally, we have to crop
+    /// text from the left.
+    fn crop_spans(spans: &mut Vec<Self>, scroll_offset: usize) {
+        if scroll_offset == 0 {
+            return;
+        }
+
+        let mut offset = 0;
+        let mut remove_at = 0; // remove full spans
+        let mut split_at = 0; // split last span from left
+
+        for (i, span) in spans.iter().enumerate() {
+            let span_width = span.content.len();
+            let span_start = offset;
+            let span_end = offset + span_width;
+
+            // span is fully on screen
+            // ---|span|
+            //  |
+            if span_start >= scroll_offset {
+                break;
+            }
+
+            // span must be cut to fit on screen
+            // -|span|
+            //   |
+            if span_end > scroll_offset {
+                split_at = scroll_offset - span_start;
+                break;
+            }
+
+            // span is not shown on screen
+            remove_at = i + 1; // remove the full span
+            offset += span_width;
+        }
+
+        if remove_at > 0 {
+            spans.drain(0..remove_at);
+        }
+
+        if split_at > 0 {
+            let first_span = spans.remove(0);
+            let (_, right) = first_span.content.split_at(split_at);
+            spans.insert(0, InternalSpan::new(right, &first_span.style));
+        }
     }
 
     fn split_spans(
@@ -41,7 +91,7 @@ impl InternalSpan {
         split_start: usize,
         split_end: usize,
         style: &Style,
-    ) -> Vec<InternalSpan> {
+    ) -> Vec<Self> {
         let mut new_spans: Vec<InternalSpan> = Vec::new();
         let mut offset = 0;
 
@@ -109,7 +159,7 @@ pub(crate) struct InternalLine<'a> {
     base: Style,
     pub(crate) highlighted: Style,
     pub(crate) row_index: usize,
-    col_offset: usize,
+    scroll_offset: usize,
 }
 
 impl<'a> InternalLine<'a> {
@@ -125,7 +175,7 @@ impl<'a> InternalLine<'a> {
             base,
             highlighted,
             row_index,
-            col_offset,
+            scroll_offset: col_offset,
         }
     }
 }
@@ -147,8 +197,8 @@ impl<'a> InternalLine<'a> {
         let mut previous_is_selected = false;
 
         // Iterate over the line's characters, starting from the offset
-        for (i, &ch) in self.line.iter().skip(self.col_offset).enumerate() {
-            let position = Index2::new(self.row_index, self.col_offset + i);
+        for (i, &ch) in self.line.iter().skip(self.scroll_offset).enumerate() {
+            let position = Index2::new(self.row_index, self.scroll_offset + i);
 
             // Check if the current position is selected by any selection
             let current_is_selected = selections
@@ -202,6 +252,10 @@ impl<'a> InternalLine<'a> {
             ) {
                 internal_spans = new_span;
             }
+        }
+
+        if self.scroll_offset > 0 {
+            InternalSpan::crop_spans(&mut internal_spans, self.scroll_offset);
         }
 
         internal_spans.into_iter().map(Span::from).collect()
@@ -275,6 +329,43 @@ mod tests {
         assert_eq!(new_spans[0], InternalSpan::new("H", base));
         assert_eq!(new_spans[1], InternalSpan::new("el", hightlighted));
         assert_eq!(new_spans[2], InternalSpan::new("lo!", hightlighted));
+    }
+
+    #[test]
+    fn test_internal_span_crop_spans() {
+        // given
+        let base = &Style::default();
+        let original_spans = vec![
+            InternalSpan::new("Hel", base),
+            InternalSpan::new("lo", base),
+            InternalSpan::new("World!", base),
+        ];
+        let mut spans = original_spans.clone();
+
+        // when
+        InternalSpan::crop_spans(&mut spans, 1);
+
+        // then
+        assert_eq!(spans[0], InternalSpan::new("el", base));
+        assert_eq!(spans[1], InternalSpan::new("lo", base));
+        assert_eq!(spans[2], InternalSpan::new("World!", base));
+
+        // when
+        let mut spans = original_spans.clone();
+        InternalSpan::crop_spans(&mut spans, 2);
+
+        // then
+        assert_eq!(spans[0], InternalSpan::new("l", base));
+        assert_eq!(spans[1], InternalSpan::new("lo", base));
+        assert_eq!(spans[2], InternalSpan::new("World!", base));
+
+        // when
+        let mut spans = original_spans.clone();
+        InternalSpan::crop_spans(&mut spans, 3);
+
+        // then
+        assert_eq!(spans[0], InternalSpan::new("lo", base));
+        assert_eq!(spans[1], InternalSpan::new("World!", base));
     }
 
     #[test]
