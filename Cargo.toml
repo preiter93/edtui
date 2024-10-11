@@ -21,9 +21,11 @@ once_cell = { version = "1.20.2", optional = true }
 
 [[example]]
 name = "app"
+required-features = ["syntax-highlighting"]
 
 [[example]]
 name = "syntax_highlighting"
+required-features = ["syntax-highlighting"]
 
 [features]
 default = ["arboard", "mouse-support", "syntax-highlighting"]
