@@ -59,8 +59,8 @@ EditorView::new(&mut state)
 | `d`                     | Delete the selection                         |
 | `dd`                    | Delete the current line                      |
 | `D`                     | Delete to the end of the line                |
-| `ciw`                   | Select between delimiters. Supported: [`"`]  |
-| `ci` + ",',(,[ or {     | Select between delimiter ",',(,[,{           |
+| `viw`                   | Select between delimiters. Supported: [`"`]  |
+| `vi` + ", ', (, [ or {  | Select between delimiter ", ', (, [ or {     |
 | `u`                     | Undo the last change                         |
 | `r`                     | Redo the last undone action                  |
 | `y`                     | Copy the selected text                       |
