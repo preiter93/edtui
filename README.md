@@ -18,7 +18,7 @@ let mut state = EditorState::default();
 EditorView::new(&mut state)
         .theme(EditorTheme::default())
         .wrap(true) // line wrapping
-        .render(area, buf)
+        .render(area, buf);
 ```
 
 ### Features
@@ -84,21 +84,28 @@ let event_handler = EditorEvent::default();
 event_handler.on_mouse_event(mouse_event, &mut state);
 ```
 
-**Note**: This feature is experimental, so expect potential bugs and breaking changes. It does currently not work correctly on wrapped lines.
+**Note**: This feature is experimental, so expect potential bugs and breaking changes. It does
+currently not work correctly on wrapped lines.
 
 ### Syntax highlighting
 
-Syntax highlighting is currently highly experimental, and there might be breaking
-changes in the future.
+Syntax highlighting was added in version `0.8.4`. It is experimental, so expect breaking changes.
+
+`Edtui` offers a number of custom themes, see [`SyntaxHighlighter::theme`] for a complete list.
+If you want to use a custom theme, see [`SyntaxHighlighter::custom_theme`]. Check [syntect](https://github.com/trishume/syntect)
+for more details about themes and extensions.
 
 ```rust
 use edtui::EditorState;
 use edtui::EditorView;
 use edtui::SyntaxHighlighter;
 
-let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
-let view = EditorView::new(&mut EditorState::default())
-    .syntax_highlighter(Some(syntax_highlighter));
+let theme_name = "dracula";
+let extension = "rs";
+let syntax_highlighter = SyntaxHighlighter::new(theme_name, extension);
+EditorView::new(&mut EditorState::default())
+        .syntax_highlighter(Some(syntax_highlighter))
+        .render(area, buf);
 ```
 
 ![](resources/syntax_highlighting.gif)
