@@ -137,7 +137,7 @@ mod tests {
         let selection_columns = selection.selected_columns_in_row(5, 0);
 
         // then
-        assert_eq!(selection_columns, Some((2, 4)));
+        assert_eq!(selection_columns, Some((2, 5)));
 
         // when
         let selection = Selection::new(Index2::new(1, 2), Index2::new(1, 1));
