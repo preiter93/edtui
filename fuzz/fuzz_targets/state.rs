@@ -3,7 +3,7 @@
 use edtui::{events::KeyEvent, EditorEventHandler, EditorState};
 use libfuzzer_sys::fuzz_target;
 
-// run: cargo fuzz run state -- -rss_limit_mb=4096
+// run: cargo fuzz run state -- -rss_limit_mb=8192
 fuzz_target!(|data: Vec<KeyEvent>| {
     let mut state = EditorState::default();
     let mut input = EditorEventHandler::default();

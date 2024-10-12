@@ -159,6 +159,47 @@ pub fn is_out_of_bounds(lines: &Lines, index: &Index2) -> bool {
     false
 }
 
+/// Finds the index of the matching (closing or opening) bracket from a given starting point.
+#[must_use]
+pub fn find_matching_bracket(lines: &Lines, index: Index2) -> Option<Index2> {
+    let &opening_bracket = lines.get(index)?;
+
+    let (closing_bracket, reverse) = match opening_bracket {
+        '{' => ('}', false),
+        '}' => ('{', true),
+        '(' => (')', false),
+        ')' => ('(', true),
+        '[' => (']', false),
+        ']' => ('[', true),
+        _ => return None,
+    };
+
+    let mut counter = 0;
+
+    let iter: Box<dyn Iterator<Item = (Option<&char>, Index2)>> = if reverse {
+        Box::new(lines.iter().from(index).rev().skip(1))
+    } else {
+        Box::new(lines.iter().from(index).skip(1))
+    };
+
+    for (value, index) in iter {
+        let Some(&value) = value else { continue };
+
+        if value == opening_bracket {
+            counter += 1;
+        }
+
+        if value == closing_bracket {
+            if counter == 0 {
+                return Some(index);
+            }
+            counter -= 1;
+        }
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -239,5 +280,18 @@ mod tests {
         append_str(&mut lines, &mut index, "abc");
         assert_eq!(index, Index2::new(1, 2));
         assert_eq!(lines, Lines::from("Hello World!\nabc\n123."));
+    }
+
+    #[test]
+    fn test_find_matching_bracket() {
+        let cursor = Index2::new(0, 0);
+        let lines = Lines::from("{ab\n{{}}c}d");
+
+        let closing_bracket = find_matching_bracket(&lines, cursor);
+        assert_eq!(closing_bracket, Some(Index2::new(1, 5)));
+
+        let cursor = Index2::new(1, 5);
+        let closing_bracket = find_matching_bracket(&lines, cursor);
+        assert_eq!(closing_bracket, Some(Index2::new(0, 0)));
     }
 }

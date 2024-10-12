@@ -1,3 +1,4 @@
+use crate::helper::find_matching_bracket;
 use jagged::Index2;
 
 use super::Execute;
@@ -278,7 +279,7 @@ impl Execute for MoveToMatchinBracket {
     fn execute(&mut self, state: &mut EditorState) {
         let max_col = max_col_normal(&state.lines, &state.cursor);
         let index = Index2::new(state.cursor.row, state.cursor.col.min(max_col));
-        if let Some(index) = state.lines.find_matching_bracket(index) {
+        if let Some(index) = find_matching_bracket(&state.lines, index) {
             state.cursor = index;
             if state.mode == EditorMode::Visual {
                 set_selection(&mut state.selection, state.cursor);
