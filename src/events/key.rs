@@ -317,7 +317,7 @@ impl Default for KeyEventHandler {
             // Select inner word between delimiters
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char('w'),
                 ]),
@@ -325,7 +325,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char('"'),
                 ]),
@@ -333,7 +333,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char('\''),
                 ]),
@@ -341,7 +341,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char('('),
                 ]),
@@ -349,7 +349,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char(')'),
                 ]),
@@ -357,7 +357,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char('{'),
                 ]),
@@ -365,7 +365,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char('}'),
                 ]),
@@ -373,7 +373,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char('['),
                 ]),
@@ -381,7 +381,7 @@ impl Default for KeyEventHandler {
             ),
             (
                 KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char(']'),
                 ]),
