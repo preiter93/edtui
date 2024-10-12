@@ -135,6 +135,7 @@ impl Execute for DeleteSelection {
 
 pub(crate) fn delete_selection(state: &mut EditorState, selection: &Selection) -> Lines {
     state.cursor = selection.start();
+    clamp_column(state);
     state.lines.extract(selection.start()..=selection.end())
 }
 
