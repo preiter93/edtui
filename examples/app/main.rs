@@ -29,7 +29,7 @@ Traverse words forward (w) and backward (b).
 
 Select text (v), including selection between \"quotes\" (ciw).
 
-Copy and paste text: 
+Copy and paste text:
 
 Built-in search using the '/' command.
 

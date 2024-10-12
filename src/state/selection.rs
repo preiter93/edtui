@@ -95,15 +95,15 @@ impl Selection {
             Ordering::Greater => {
                 return None;
             }
-            Ordering::Equal => start.col.min(row_len.saturating_sub(1)),
+            Ordering::Equal => start.col.min(row_len),
         };
 
         let end_col = match end.row.cmp(&row_index) {
             Ordering::Less => {
                 return None;
             }
-            Ordering::Greater => row_len.saturating_sub(1),
-            Ordering::Equal => end.col.min(row_len.saturating_sub(1)),
+            Ordering::Greater => row_len,
+            Ordering::Equal => end.col.min(row_len),
         };
 
         Some((start_col, end_col))
