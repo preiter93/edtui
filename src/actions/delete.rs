@@ -122,26 +122,33 @@ impl Execute for DeleteToEndOfLine {
 pub struct DeleteSelection;
 
 impl Execute for DeleteSelection {
-    // TODO: Implement a better way to delete a selection,
-    // possibly using a drain iterator.
     fn execute(&mut self, state: &mut EditorState) {
-        state.capture();
         if let Some(selection) = state.selection.take() {
-            state.clip.set_text(selection.extract(&state.lines).into());
-            delete_selection(state, &selection);
+            state.capture();
+            let drained = delete_selection(state, &selection);
+            state.clip.set_text(drained.into());
         }
         state.selection = None;
         state.mode = EditorMode::Normal;
     }
 }
 
-pub(crate) fn delete_selection(state: &mut EditorState, selection: &Selection) {
-    state.cursor = selection.end();
-    if state.lines.len_col(state.cursor.row).unwrap_or_default() > 0 {
-        state.cursor.col += 1;
-    }
-    while state.cursor > selection.start() {
-        delete_char(&mut state.lines, &mut state.cursor);
+pub(crate) fn delete_selection(state: &mut EditorState, selection: &Selection) -> Lines {
+    state.cursor = selection.start();
+    state.lines.extract(selection.start()..=selection.end())
+}
+
+/// Joins line below to the current line.
+#[derive(Clone, Debug, Copy)]
+pub struct JoinLineWithLineBelow;
+
+impl Execute for JoinLineWithLineBelow {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.cursor.row + 1 >= state.lines.len() {
+            return;
+        }
+        state.capture();
+        state.lines.join_lines(state.cursor.row);
     }
 }
 

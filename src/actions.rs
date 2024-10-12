@@ -13,7 +13,9 @@ use enum_dispatch::enum_dispatch;
 use motion::{MoveToFirstRow, MoveToLastRow};
 
 pub use self::cpaste::{CopySelection, Paste};
-pub use self::delete::{DeleteChar, DeleteLine, DeleteSelection, RemoveChar};
+pub use self::delete::{
+    DeleteChar, DeleteLine, DeleteSelection, JoinLineWithLineBelow, RemoveChar,
+};
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
     MoveBackward, MoveDown, MoveForward, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket,
@@ -51,6 +53,7 @@ pub enum Action {
     DeleteLine(DeleteLine),
     DeleteToEndOfLine(DeleteToEndOfLine),
     DeleteSelection(DeleteSelection),
+    JoinLineWithLineBelow(JoinLineWithLineBelow),
     SelectBetween(SelectBetween),
     SelectLine(SelectLine),
     Undo(Undo),
