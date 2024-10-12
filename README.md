@@ -60,6 +60,7 @@ EditorView::new(&mut state)
 | `dd`                    | Delete the current line                      |
 | `D`                     | Delete to the end of the line                |
 | `ciw`                   | Select between delimiters. Supported: [`"`]  |
+| `ci` + ",',(,[ or {     | Select between delimiter ",',(,[,{           |
 | `u`                     | Undo the last change                         |
 | `r`                     | Redo the last undone action                  |
 | `y`                     | Copy the selected text                       |

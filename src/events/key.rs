@@ -6,7 +6,7 @@ use crate::actions::{
     DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious, InsertChar, InsertNewline,
     JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEndOfLine,
     MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward,
-    MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectBetween, SelectLine,
+    MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectInnerBetween, SelectLine,
     StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
@@ -321,7 +321,71 @@ impl Default for KeyEventHandler {
                     KeyEvent::Char('i'),
                     KeyEvent::Char('w'),
                 ]),
-                SelectBetween('"').into(),
+                SelectInnerBetween::new('"', '"').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('"'),
+                ]),
+                SelectInnerBetween::new('"', '"').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('\''),
+                ]),
+                SelectInnerBetween::new('\'', '\'').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('('),
+                ]),
+                SelectInnerBetween::new('(', ')').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char(')'),
+                ]),
+                SelectInnerBetween::new('(', ')').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('{'),
+                ]),
+                SelectInnerBetween::new('{', '}').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('}'),
+                ]),
+                SelectInnerBetween::new('{', '}').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('['),
+                ]),
+                SelectInnerBetween::new('[', ']').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char(']'),
+                ]),
+                SelectInnerBetween::new('[', ']').into(),
             ),
             // Select  the line
             (

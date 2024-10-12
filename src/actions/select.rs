@@ -7,9 +7,18 @@ use crate::{state::selection::Selection, EditorMode, EditorState, Index2};
 /// define the start of the selection, and the next occurrence of any of the delimiter
 /// characters to define the end of the selection.
 #[derive(Clone, Debug, Copy)]
-pub struct SelectBetween(pub char);
+pub struct SelectInnerBetween {
+    opening: char,
+    closing: char,
+}
 
-impl Execute for SelectBetween {
+impl SelectInnerBetween {
+    pub fn new(opening: char, closing: char) -> Self {
+        Self { opening, closing }
+    }
+}
+
+impl Execute for SelectInnerBetween {
     fn execute(&mut self, state: &mut EditorState) {
         let cursor = state.cursor;
         let mut start: Option<Index2> = None;
@@ -17,7 +26,7 @@ impl Execute for SelectBetween {
         let mut prev = cursor;
         for (value, index) in state.lines.iter().from(cursor) {
             if let Some(&c) = value {
-                if c == self.0 {
+                if c == self.closing {
                     end = Some(prev);
                     break;
                 }
@@ -27,7 +36,7 @@ impl Execute for SelectBetween {
         prev = cursor;
         for (value, index) in state.lines.iter().from(cursor).rev() {
             if let Some(&c) = value {
-                if c == self.0 {
+                if c == self.opening {
                     start = Some(prev);
                     break;
                 }
