@@ -44,7 +44,11 @@ impl Execute for AppendNewline {
             if !state.lines.is_empty() {
                 state.cursor.row += 1;
             }
-            state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
+            if state.cursor.row < state.lines.len() {
+                state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
+            } else {
+                state.lines.push(vec![]);
+            }
         }
     }
 }
@@ -156,6 +160,11 @@ mod tests {
         AppendNewline(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(1, 0));
         assert_eq!(state.lines, Lines::from("Hello World!\n\n\n123."));
+
+        state.cursor = Index2::new(3, 0);
+        AppendNewline(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(4, 0));
+        assert_eq!(state.lines, Lines::from("Hello World!\n\n\n123.\n"));
     }
 
     #[test]
