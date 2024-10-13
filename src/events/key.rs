@@ -316,72 +316,40 @@ impl Default for KeyEventHandler {
             ),
             // Select inner word between delimiters
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
-                    KeyEvent::Char('i'),
-                    KeyEvent::Char('w'),
-                ]),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('w')]),
                 SelectInnerBetween::new('"', '"').into(),
             ),
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
-                    KeyEvent::Char('i'),
-                    KeyEvent::Char('"'),
-                ]),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('"')]),
                 SelectInnerBetween::new('"', '"').into(),
             ),
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
-                    KeyEvent::Char('i'),
-                    KeyEvent::Char('\''),
-                ]),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('\'')]),
                 SelectInnerBetween::new('\'', '\'').into(),
             ),
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
-                    KeyEvent::Char('i'),
-                    KeyEvent::Char('('),
-                ]),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('(')]),
                 SelectInnerBetween::new('(', ')').into(),
             ),
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
-                    KeyEvent::Char('i'),
-                    KeyEvent::Char(')'),
-                ]),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char(')')]),
                 SelectInnerBetween::new('(', ')').into(),
             ),
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
-                    KeyEvent::Char('i'),
-                    KeyEvent::Char('{'),
-                ]),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('{')]),
                 SelectInnerBetween::new('{', '}').into(),
             ),
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
-                    KeyEvent::Char('i'),
-                    KeyEvent::Char('}'),
-                ]),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('}')]),
                 SelectInnerBetween::new('{', '}').into(),
             ),
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
-                    KeyEvent::Char('i'),
-                    KeyEvent::Char('['),
-                ]),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('[')]),
                 SelectInnerBetween::new('[', ']').into(),
             ),
             (
-                KeyEventRegister::n(vec![
-                    KeyEvent::Char('c'),
+                KeyEventRegister::v(vec![
+                    KeyEvent::Char('v'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char(']'),
                 ]),

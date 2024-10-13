@@ -40,7 +40,7 @@ Sleep 0.2s
 Type "lllllllvlll"
 Sleep 0.2s
 Escape
-Type "wwwwwwwwciw"
+Type "wwwwwwwwviw"
 Sleep 0.2s
 Type "d"
 Sleep 0.2s
