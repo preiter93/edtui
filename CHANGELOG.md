@@ -1,4 +1,8 @@
-0.8.4 - 
+
+Released
+--------
+
+0.8.4 -  13 Okt 2023=4
 ===================
 - Add `D` keymapping: Delete to end of line
 - Syntax highlighting
@@ -15,9 +19,7 @@
 }
 ```
 - Add `ci*` to change between delimiters, supported [\', ", (, [, {]
-
-Released
---------
+- Improve README
 
 0.8.3 - 11 Okt 2024
 ===================
