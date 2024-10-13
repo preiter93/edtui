@@ -27,7 +27,7 @@ Navigate right (l), left (h), up (k) and down (j), using vim motions.
 
 Traverse words forward (w) and backward (b).
 
-Select text (v), including selection between \"quotes\" (ciw).
+Select text (v), including selection between \"quotes\" (viw/vi\").
 
 Copy and paste text:
 

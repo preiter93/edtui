@@ -34,6 +34,23 @@ impl Execute for RemoveChar {
     }
 }
 
+/// Replaces the character under the cursor with a given character.
+#[derive(Clone, Debug, Copy)]
+pub struct ReplaceChar(pub char);
+
+impl Execute for ReplaceChar {
+    fn execute(&mut self, state: &mut EditorState) {
+        let index = state.cursor;
+        if is_out_of_bounds(&state.lines, &index) {
+            return;
+        }
+        state.capture();
+        if let Some(ch) = state.lines.get_mut(index) {
+            *ch = self.0;
+        };
+    }
+}
+
 /// Deletes a character to the left of the current cursor. Deletes
 /// the line break if the the cursor is in column zero.
 #[derive(Clone, Debug, Copy)]
@@ -165,7 +182,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remove() {
+    fn test_remove_char() {
         let mut state = test_state();
 
         state.cursor = Index2::new(0, 4);
@@ -177,6 +194,28 @@ mod tests {
         RemoveChar(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 9));
         assert_eq!(state.lines, Lines::from("Hell World\n\n123."));
+    }
+
+    #[test]
+    fn test_replace_char() {
+        let mut state = test_state();
+
+        state.cursor = Index2::new(0, 4);
+        ReplaceChar('x').execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 4));
+        assert_eq!(state.lines, Lines::from("Hellx World!\n\n123."));
+
+        // do nothing on empty line
+        state.cursor = Index2::new(1, 0);
+        ReplaceChar('x').execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(1, 0));
+        assert_eq!(state.lines, Lines::from("Hellx World!\n\n123."));
+
+        // do nothing if out of bounds
+        state.cursor = Index2::new(99, 0);
+        ReplaceChar('x').execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(99, 0));
+        assert_eq!(state.lines, Lines::from("Hellx World!\n\n123."));
     }
 
     #[test]
