@@ -35,7 +35,7 @@ EditorView::new(&mut state)
 ### Keybindings
 `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
 
-##### Normal/Visual Mode:
+##### Normal Mode:
 
 | Keybinding                | Description                                  |
 |---------------------------|----------------------------------------------|
@@ -56,7 +56,8 @@ EditorView::new(&mut state)
 | `A`                       | Append at the end of the line                |
 | `o`                       | Add a new line below and enter Insert mode   |
 | `O`                       | Add a new line above and enter Insert mode   |
-| `d`                       | Delete the selection                         |
+| `J`                       | Join current line with the line below        |
+| `d`                       | Delete the selection (Visual mode)           |
 | `dd`                      | Delete the current line                      |
 | `D`                       | Delete to the end of the line                |
 | `viw`                     | Select between delimiters. Supported: [`"`]  |
