@@ -2,12 +2,12 @@ use crate::actions::delete::DeleteToEndOfLine;
 use crate::actions::motion::{MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
-    Action, Append, AppendCharToSearch, AppendNewline, Composed, CopySelection, DeleteChar,
-    DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious, InsertChar, InsertNewline,
-    JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveToEndOfLine,
-    MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward,
-    MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectInnerBetween, SelectLine,
-    StopSearch, SwitchMode, TriggerSearch, Undo,
+    Action, Append, AppendCharToSearch, AppendNewline, ChangeInnerBetween, Composed, CopySelection,
+    DeleteChar, DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious, InsertChar,
+    InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward,
+    MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
+    MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch,
+    SelectInnerBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 use ratatui::crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
@@ -348,12 +348,81 @@ impl Default for KeyEventHandler {
                 SelectInnerBetween::new('[', ']').into(),
             ),
             (
-                KeyEventRegister::v(vec![
-                    KeyEvent::Char('v'),
+                KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char(']')]),
+                SelectInnerBetween::new('[', ']').into(),
+            ),
+            // Change inner word between delimiters
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('w'),
+                ]),
+                ChangeInnerBetween::new('"', '"').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('"'),
+                ]),
+                ChangeInnerBetween::new('"', '"').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('\''),
+                ]),
+                ChangeInnerBetween::new('\'', '\'').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('('),
+                ]),
+                ChangeInnerBetween::new('(', ')').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char(')'),
+                ]),
+                ChangeInnerBetween::new('(', ')').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('{'),
+                ]),
+                ChangeInnerBetween::new('{', '}').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('}'),
+                ]),
+                ChangeInnerBetween::new('{', '}').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
+                    KeyEvent::Char('i'),
+                    KeyEvent::Char('['),
+                ]),
+                ChangeInnerBetween::new('[', ']').into(),
+            ),
+            (
+                KeyEventRegister::n(vec![
+                    KeyEvent::Char('c'),
                     KeyEvent::Char('i'),
                     KeyEvent::Char(']'),
                 ]),
-                SelectInnerBetween::new('[', ']').into(),
+                ChangeInnerBetween::new('[', ']').into(),
             ),
             // Select  the line
             (

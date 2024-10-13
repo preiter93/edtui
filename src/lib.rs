@@ -37,34 +37,35 @@
 //!
 //! #### Normal/Visual Mode:
 //!
-//! | Keybinding              | Description                                  |
-//! |-------------------------|----------------------------------------------|
-//! | `i`                     | Enter Insert mode                            |
-//! | `v`                     | Enter Visual mode                            |
-//! | `h`, `j`, `k`, `l`      | Navigate left, down, up, and right           |
-//! | `w`, `b`                | Move forward or backward by word             |
-//! | `x`                     | Delete the character under the cursor        |
-//! | `u`, `<ctrl>+r`         | Undo/Redo last action                        |
-//! | `Esc`                   | Escape Visual mode                           |
-//! | `0`                     | Move cursor to start of line                 |
-//! | `^`                     | Move cursor to first non-blank character     |
-//! | `$`                     | Move cursor to end of line                   |
-//! | `gg`                    | Move cursor to the first row                 |
-//! | `G `                    | Move cursor to the last row                  |
-//! | `%`                     | Move cursor to closing/opening bracket       |
-//! | `a`                     | Append after the cursor                      |
-//! | `A`                     | Append at the end of the line                |
-//! | `o`                     | Add a new line below and enter Insert mode   |
-//! | `O`                     | Add a new line above and enter Insert mode   |
-//! | `d`                     | Delete the selection                         |
-//! | `dd`                    | Delete the current line                      |
-//! | `D`                     | Delete to the end of the line                |
-//! | `viw`                   | Select between delimiters. Supported: [`"`]  |
-//! | `vi` + ", ', (, [ or {  | Select between delimiter ", ', (, [ or {     |
-//! | `u`                     | Undo the last change                         |
-//! | `r`                     | Redo the last undone action                  |
-//! | `y`                     | Copy the selected text                       |
-//! | `p`                     | Paste the copied text                        |
+//! | Keybinding                | Description                                  |
+//! |---------------------------|----------------------------------------------|
+//! | `i`                       | Enter Insert mode                            |
+//! | `v`                       | Enter Visual mode                            |
+//! | `h`, `j`, `k`, `l`        | Navigate left, down, up, and right           |
+//! | `w`, `b`                  | Move forward or backward by word             |
+//! | `x`                       | Delete the character under the cursor        |
+//! | `u`, `<ctrl>+r`           | Undo/Redo last action                        |
+//! | `Esc`                     | Escape Visual mode                           |
+//! | `0`                       | Move cursor to start of line                 |
+//! | `^`                       | Move cursor to first non-blank character     |
+//! | `$`                       | Move cursor to end of line                   |
+//! | `gg`                      | Move cursor to the first row                 |
+//! | `G `                      | Move cursor to the last row                  |
+//! | `%`                       | Move cursor to closing/opening bracket       |
+//! | `a`                       | Append after the cursor                      |
+//! | `A`                       | Append at the end of the line                |
+//! | `o`                       | Add a new line below and enter Insert mode   |
+//! | `O`                       | Add a new line above and enter Insert mode   |
+//! | `d`                       | Delete the selection                         |
+//! | `dd`                      | Delete the current line                      |
+//! | `D`                       | Delete to the end of the line                |
+//! | `viw`                     | Select between delimiters. Supported: [`"`]  |
+//! | `vi` + `", ', (, [ or {`  | Select between delimiter `", ', (, [ or {`   |
+//! | `ci` + `", ', (, [ or {`  | Change between delimiter `", ', (, [ or {`   |
+//! | `u`                       | Undo the last change                         |
+//! | `r`                       | Redo the last undone action                  |
+//! | `y`                       | Copy the selected text                       |
+//! | `p`                       | Paste the copied text                        |
 //!
 //! #### Insert Mode:
 //!

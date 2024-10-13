@@ -1,5 +1,7 @@
-use super::Execute;
-use crate::{state::selection::Selection, EditorMode, EditorState, Index2};
+use super::{delete::delete_selection, Execute};
+use crate::{
+    clipboard::ClipboardTrait, state::selection::Selection, EditorMode, EditorState, Index2, Lines,
+};
 
 /// Selects text between specified delimiter characters.
 ///
@@ -21,32 +23,73 @@ impl SelectInnerBetween {
 
 impl Execute for SelectInnerBetween {
     fn execute(&mut self, state: &mut EditorState) {
-        let cursor = state.cursor;
-        let mut start: Option<Index2> = None;
-        let mut end: Option<Index2> = None;
-        let mut prev = cursor;
-        for (value, index) in state.lines.iter().from(cursor) {
-            if let Some(&c) = value {
-                if c == self.closing {
-                    end = Some(prev);
-                    break;
-                }
-            }
-            prev = index;
-        }
-        prev = cursor;
-        for (value, index) in state.lines.iter().from(cursor).rev() {
-            if let Some(&c) = value {
-                if c == self.opening {
-                    start = Some(prev);
-                    break;
-                }
-            }
-            prev = index;
-        }
-        if let (Some(start), Some(end)) = (start, end) {
-            state.selection = Some(Selection { start, end });
+        if let Some(selection) =
+            select_inner_between(&state.lines, state.cursor, self.opening, self.closing)
+        {
+            state.selection = Some(selection);
             state.mode = EditorMode::Visual;
+        }
+    }
+}
+
+fn select_inner_between(
+    lines: &Lines,
+    cursor: Index2,
+    opening: char,
+    closing: char,
+) -> Option<Selection> {
+    let mut start: Option<Index2> = None;
+    let mut end: Option<Index2> = None;
+    let mut prev = cursor;
+    for (value, index) in lines.iter().from(cursor) {
+        if let Some(&c) = value {
+            if c == closing {
+                end = Some(prev);
+                break;
+            }
+        }
+        prev = index;
+    }
+    prev = cursor;
+    for (value, index) in lines.iter().from(cursor).rev() {
+        if let Some(&c) = value {
+            if c == opening {
+                start = Some(prev);
+                break;
+            }
+        }
+        prev = index;
+    }
+
+    if let (Some(start), Some(end)) = (start, end) {
+        return Some(Selection::new(start, end));
+    }
+    None
+}
+
+/// Changes text between specified delimiter characters.
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeInnerBetween {
+    opening: char,
+    closing: char,
+}
+
+impl ChangeInnerBetween {
+    #[must_use]
+    pub fn new(opening: char, closing: char) -> Self {
+        Self { opening, closing }
+    }
+}
+
+impl Execute for ChangeInnerBetween {
+    fn execute(&mut self, state: &mut EditorState) {
+        if let Some(selection) =
+            select_inner_between(&state.lines, state.cursor, self.opening, self.closing)
+        {
+            state.capture();
+            let deleted = delete_selection(state, &selection);
+            state.clip.set_text(deleted.into());
+            state.mode = EditorMode::Insert;
         }
     }
 }
