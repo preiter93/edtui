@@ -4,7 +4,7 @@ use crate::{
     EditorMode, EditorState,
 };
 
-use super::{delete::delete_selection, Execute};
+use super::{delete::delete_selection, Execute, SwitchMode};
 
 #[derive(Clone, Debug)]
 pub struct Paste;
@@ -19,7 +19,7 @@ impl Execute for Paste {
         } else {
             append_str(&mut state.lines, &mut state.cursor, &state.clip.get_text());
         }
-        state.mode = EditorMode::Normal;
+        SwitchMode(EditorMode::Normal).execute(state);
     }
 }
 

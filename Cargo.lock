@@ -85,9 +85,9 @@ dependencies = [
 
 [[package]]
 name = "bytemuck"
-version = "1.18.0"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94bbb0ad554ad961ddc5da507a12a29b14e4ae5bda06b19f575a3e6079d2e2ae"
+checksum = "8334215b81e418a0a7bdb8ef0849474f40bb10c8b71f1c4ed315cff49f32494d"
 
 [[package]]
 name = "byteorder-lite"
@@ -244,7 +244,7 @@ dependencies = [
 
 [[package]]
 name = "edtui"
-version = "0.8.4"
+version = "0.8.5"
 dependencies = [
  "arbitrary",
  "arboard",
@@ -258,9 +258,9 @@ dependencies = [
 
 [[package]]
 name = "edtui-jagged"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51be911a23f161b3bf65d3ed8f56b55f39b99de552893eacecbce3941b7af194"
+checksum = "b5a992f520125617a8b5d316d702a77ef46128c7b316514bc22376dfc076331b"
 
 [[package]]
 name = "either"
