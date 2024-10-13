@@ -14,6 +14,7 @@
         .syntax_highlighter(Some(syntax_highlighter));
 }
 ```
+- Add `ci*` to change between delimiters, supported [\', ", (, [, {]
 
 Released
 --------
