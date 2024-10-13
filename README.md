@@ -8,7 +8,8 @@
 
 #### Overview
 `EdTUI` is a text editor widget for the [Ratatui](https://github.com/ratatui-org/ratatui) ecosystem.
-It is designed to provide a light-weight user experience inspired by Vim.
+It is designed to provide a user experience inspired by Vim. Edtui is developed to be used as an
+editor in ratatui apps. It is not supposed to be a stand-alone code editor.
 
 Instantiate the state and render the view:
 ```rust
@@ -20,7 +21,6 @@ EditorView::new(&mut state)
         .theme(EditorTheme::default())
         .wrap(true) // line wrapping
         .render(area, buf);
-
 ```
 
 Handle events:
@@ -83,9 +83,11 @@ event_handler.on_key_event(key_event, &mut state);
 | Keybinding  | Description                             |
 |-------------|-----------------------------------------|
 | `Esc`       | Return to Normal mode                   |
-| `Backspace` | Delete the previous character                |
+| `Backspace` | Delete the previous character           |
 | `Enter`     | Insert line break                       |
 | `Arrows`    | Navigation                              |
+
+\* `Tab` is currently not supported.
 
 For more keybindings and customization options, refer to the code.
 
