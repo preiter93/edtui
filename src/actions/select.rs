@@ -13,6 +13,7 @@ pub struct SelectInnerBetween {
 }
 
 impl SelectInnerBetween {
+    #[must_use]
     pub fn new(opening: char, closing: char) -> Self {
         Self { opening, closing }
     }
