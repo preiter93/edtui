@@ -2,7 +2,7 @@
 Released
 --------
 
-0.8.4 -  13 Okt 2023=4
+0.8.5 -  13 Okt 2023=4
 ===================
 - Add `D` keymapping: Delete to end of line
 - Syntax highlighting
