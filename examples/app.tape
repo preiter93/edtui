@@ -5,7 +5,7 @@ Set Padding 2
 Set BorderRadius 10
 Set FontSize 32
 Set Width 2400
-Set Height 1000
+Set Height 1100
 Set PlaybackSpeed 0.4
 
 Hide
