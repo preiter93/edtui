@@ -16,6 +16,16 @@ impl Execute for InsertChar {
     }
 }
 
+/// Inserts a tab at the current cursor position
+#[derive(Clone, Debug, Copy)]
+pub struct InsertTab;
+
+impl Execute for InsertTab {
+    fn execute(&mut self, state: &mut EditorState) {
+        insert_char(&mut state.lines, &mut state.cursor, '\t', false);
+    }
+}
+
 /// Inserts a newline at the current cursor position
 #[derive(Clone, Debug, Copy)]
 pub struct LineBreak(pub usize);

@@ -1,4 +1,5 @@
 use crate::actions::delete::DeleteToEndOfLine;
+use crate::actions::insert::InsertTab;
 use crate::actions::motion::{MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
@@ -25,6 +26,7 @@ pub enum KeyEvent {
     Enter,
     Esc,
     Backspace,
+    Tab,
     Ctrl(char),
     None,
 }
@@ -47,6 +49,7 @@ impl From<CTKeyEvent> for KeyEvent {
             KeyCode::Left => KeyEvent::Left,
             KeyCode::Esc => KeyEvent::Esc,
             KeyCode::Backspace => KeyEvent::Backspace,
+            KeyCode::Tab => KeyEvent::Tab,
             _ => KeyEvent::None,
         }
     }
@@ -578,6 +581,7 @@ impl KeyEventHandler {
         match key.into() {
             // Always insert characters in insert mode
             KeyEvent::Char(c) if mode == EditorMode::Insert => InsertChar(c).execute(state),
+            KeyEvent::Tab if mode == EditorMode::Insert => InsertTab.execute(state),
             // Always add characters to search in search mode
             KeyEvent::Char(c) if mode == EditorMode::Search => AppendCharToSearch(c).execute(state),
             // Else lookup an action from the register

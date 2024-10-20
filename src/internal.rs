@@ -4,6 +4,11 @@ use crate::SyntaxHighlighter;
 use jagged::Index2;
 use ratatui::{style::Style, text::Span};
 
+pub(crate) enum DisplayLine<'a> {
+    Wrapped(Vec<Vec<Span<'a>>>),
+    Single(Vec<Span<'a>>),
+}
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub(crate) struct InternalSpan {
     pub(crate) content: String,
@@ -37,51 +42,51 @@ impl InternalSpan {
         Some(Self::split_spans(spans, start_col, end_col, style))
     }
 
-    /// Splits spans by `scroll_offset` from the left.
+    /// Splits spans by `crop_at` from the left.
     ///
     /// When the editor is scrolled horizontally, we have to crop
     /// text from the left.
-    fn crop_spans(spans: &mut Vec<Self>, scroll_offset: usize) {
-        if scroll_offset == 0 {
+    fn crop_spans(spans: &mut Vec<Self>, crop_at: usize) {
+        if crop_at == 0 {
             return;
         }
 
-        let mut offset = 0;
-        let mut remove_at = 0; // remove full spans
-        let mut split_at = 0; // split last span from left
+        let mut span_offset = 0;
+        let mut first_visible_span = 0;
+        let mut split_span_at = 0;
 
         for (i, span) in spans.iter().enumerate() {
             let span_width = span.content.len();
-            let span_start = offset;
-            let span_end = offset + span_width;
+            let span_start = span_offset;
+            let span_end = span_offset + span_width;
 
             // span is fully on screen
             // ---|span|
             //  |
-            if span_start >= scroll_offset {
+            if span_start >= crop_at {
                 break;
             }
 
             // span must be cut to fit on screen
             // -|span|
             //   |
-            if span_end > scroll_offset {
-                split_at = scroll_offset - span_start;
+            if span_end > crop_at {
+                split_span_at = crop_at - span_start;
                 break;
             }
 
             // span is not shown on screen
-            remove_at = i + 1; // remove the full span
-            offset += span_width;
+            first_visible_span = i + 1; // remove the full span
+            span_offset += span_width;
         }
 
-        if remove_at > 0 {
-            spans.drain(0..remove_at);
+        if first_visible_span > 0 {
+            spans.drain(0..first_visible_span);
         }
 
-        if split_at > 0 {
+        if split_span_at > 0 {
             let first_span = spans.remove(0);
-            let (_, right) = first_span.content.split_at(split_at);
+            let (_, right) = first_span.content.split_at(split_span_at);
             spans.insert(0, InternalSpan::new(right, &first_span.style));
         }
     }
