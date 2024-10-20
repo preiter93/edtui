@@ -1,4 +1,5 @@
 use jagged::index::RowIndex;
+use ratatui::text::{Line, Span};
 
 use crate::{state::selection::Selection, EditorMode, EditorState, Index2, Lines};
 
@@ -210,6 +211,114 @@ pub fn find_matching_bracket(lines: &Lines, index: Index2) -> Option<Index2> {
     None
 }
 
+pub(crate) fn char_width(ch: char) -> usize {
+    use unicode_width::UnicodeWidthChar;
+    if ch == '\t' {
+        return 4;
+    }
+    ch.width().unwrap_or(0)
+}
+
+pub fn chars_width(chars: &[char]) -> usize {
+    chars.iter().fold(0, |sum, ch| sum + char_width(*ch))
+}
+
+pub(crate) fn str_width(s: &str) -> usize {
+    use unicode_width::UnicodeWidthStr;
+
+    s.replace('\t', &" ".repeat(4)).width()
+}
+
+pub(crate) fn span_width(s: &Span) -> usize {
+    str_width(&s.content)
+}
+
+pub(crate) fn spans_width(spans: &[Span]) -> usize {
+    spans.iter().fold(0, |sum, span| sum + span_width(span))
+}
+
+pub(crate) fn line_replace_tabs(line: &mut Line) {
+    for span in &mut line.spans {
+        span_replace_tabs(span);
+    }
+}
+pub(crate) fn span_replace_tabs(span: &mut Span) {
+    span.content = span.content.replace('\t', &" ".repeat(4)).into();
+}
+
+/// Returns the position of a char in a string taking into
+/// account unicode width.
+///
+/// # Example
+/// ```ignore
+/// use crate::helper::width_of_index_in_str;
+/// let s = String::from("a😀b");
+/// let index = unicode_width_position_in_str(&s, 2);
+/// assert_eq!(index, 3);
+/// ```
+pub(crate) fn unicode_width_position_in_str(s: &str, n: usize) -> usize {
+    if s.len() <= n {
+        return str_width(s) + n.saturating_sub(s.len());
+    }
+    return s.chars().take(n).map(char_width).sum();
+}
+
+pub(crate) fn unicode_width_position_in_spans(spans: &[Span], n: usize) -> usize {
+    let mut total_width = 0;
+    let mut chars_counted = 0;
+
+    for span in spans {
+        for ch in span.content.chars() {
+            if chars_counted >= n {
+                return total_width;
+            }
+            total_width += char_width(ch);
+            chars_counted += 1;
+        }
+    }
+
+    total_width
+}
+
+pub(crate) fn count_characters_in_spans(spans: &[Span]) -> usize {
+    spans.iter().map(|span| span.content.chars().count()).sum()
+}
+
+pub(crate) fn find_position_in_wrapped_spans(
+    wrapped_spans: &[Vec<Span>],
+    char_pos: usize,
+) -> Index2 {
+    if wrapped_spans.is_empty() {
+        return Index2::new(0, char_pos);
+    }
+
+    let mut char_pos = char_pos;
+
+    for (row, spans) in wrapped_spans.iter().enumerate() {
+        let row_char_count = count_characters_in_spans(spans);
+        let max_char_pos = row_char_count.saturating_sub(1);
+
+        if char_pos <= max_char_pos {
+            let col = unicode_width_position_in_spans(spans, char_pos);
+            return Index2::new(row, col);
+        }
+
+        if row + 1 < wrapped_spans.len() {
+            char_pos -= row_char_count;
+        }
+    }
+
+    Index2::new(wrapped_spans.len().saturating_sub(1), char_pos + 1)
+}
+
+pub(crate) fn find_position_in_spans(spans: &[Span], char_pos: usize) -> usize {
+    if spans.is_empty() {
+        return char_pos;
+    }
+
+    unicode_width_position_in_spans(spans, char_pos)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -320,5 +429,47 @@ mod tests {
         let cursor = Index2::new(1, 5);
         let closing_bracket = find_matching_bracket(&lines, cursor);
         assert_eq!(closing_bracket, Some(Index2::new(0, 0)));
+    }
+
+    #[test]
+    fn test_unicode_width_position_in_str() {
+        let s = String::from("a😀b");
+        let index = unicode_width_position_in_str(&s, 2);
+        assert_eq!(index, 3);
+    }
+
+    #[test]
+    fn test_unicode_width_position_in_spans() {
+        let a = String::from("a😀b");
+        let b = String::from("c😀d");
+        let spans = vec![Span::from(a), Span::from(b)];
+
+        let index = unicode_width_position_in_spans(&spans, 2);
+        assert_eq!(index, 3);
+
+        let index = unicode_width_position_in_spans(&spans, 5);
+        assert_eq!(index, 7);
+
+        let index = unicode_width_position_in_spans(&spans, 99);
+        assert_eq!(index, 8);
+    }
+
+    #[test]
+    fn test_find_position_in_wrapped_spans() {
+        let line_1 = vec![Span::from("a😀b")];
+        let line_2 = vec![Span::from("c😀d")];
+        let spans = vec![line_1, line_2];
+
+        let position = find_position_in_wrapped_spans(&spans, 2);
+        assert_eq!(position, Index2::new(0, 3));
+
+        let position = find_position_in_wrapped_spans(&spans, 3);
+        assert_eq!(position, Index2::new(1, 0));
+
+        let position = find_position_in_wrapped_spans(&spans, 5);
+        assert_eq!(position, Index2::new(1, 3));
+
+        let position = find_position_in_wrapped_spans(&spans, 6);
+        assert_eq!(position, Index2::new(1, 4));
     }
 }

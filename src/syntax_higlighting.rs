@@ -138,6 +138,7 @@ impl SyntaxHighlighter {
         self
     }
 }
+
 impl SyntaxHighlighter {
     pub(super) fn highlight_line(&self, line: &str) -> Vec<InternalSpan> {
         // Highlight lines

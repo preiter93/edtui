@@ -10,6 +10,7 @@ use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
 use delete::DeleteToEndOfLine;
 use enum_dispatch::enum_dispatch;
+use insert::InsertTab;
 use motion::{MoveToFirstRow, MoveToLastRow};
 
 pub use self::cpaste::{CopySelection, Paste};
@@ -46,6 +47,7 @@ pub enum Action {
     MoveToLastRow(MoveToLastRow),
     MoveToMatchingBracket(MoveToMatchinBracket),
     InsertChar(InsertChar),
+    InsertTab(InsertTab),
     LineBreak(LineBreak),
     AppendNewline(AppendNewline),
     InsertNewline(InsertNewline),
