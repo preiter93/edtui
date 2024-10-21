@@ -9,7 +9,7 @@ authors = ["preiter <phil.reiter93@gmail.com>"]
 license = "MIT"
 
 [dependencies]
-ratatui = { package = "ratatui", version = "0.28", features = ["unstable"] }
+ratatui = { package = "ratatui", version = "0.29", features = ["unstable"] }
 # jagged = { package = "edtui-jagged", path="../edtui-jagged", version = "0.1.10" }
 jagged = { package = "edtui-jagged", version = "0.1" }
 enum_dispatch = "0.3.12"
