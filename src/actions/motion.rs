@@ -1,11 +1,12 @@
-use crate::helper::{find_matching_bracket, skip_empty_lines};
+use crate::{
+    helper::{find_matching_bracket, skip_empty_lines},
+    state::selection::set_selection,
+};
 use jagged::Index2;
 
 use super::Execute;
 use crate::{
-    helper::{
-        clamp_column, max_col, max_col_normal, set_selection, skip_whitespace, skip_whitespace_rev,
-    },
+    helper::{clamp_column, max_col, max_col_normal, skip_whitespace, skip_whitespace_rev},
     EditorMode, EditorState,
 };
 

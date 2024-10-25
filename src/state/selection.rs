@@ -110,6 +110,16 @@ impl Selection {
     }
 }
 
+/// Set the selections end positions
+pub(crate) fn set_selection(selection: &mut Option<Selection>, index: Index2) {
+    if let Some(selection) = selection {
+        selection.end = index;
+    }
+}
+
+#[test]
+fn test_set_selection() {}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,6 +1,6 @@
-use crate::state::selection::Selection;
 #[cfg(feature = "syntax-highlighting")]
 use crate::SyntaxHighlighter;
+use crate::{helper::split_str_at, state::selection::Selection};
 use jagged::Index2;
 use ratatui::{style::Style, text::Span};
 
@@ -86,7 +86,7 @@ impl InternalSpan {
 
         if split_span_at > 0 {
             let first_span = spans.remove(0);
-            let (_, right) = first_span.content.split_at(split_span_at);
+            let (_, right) = split_str_at(&first_span.content, split_span_at);
             spans.insert(0, InternalSpan::new(right, &first_span.style));
         }
     }
@@ -113,14 +113,14 @@ impl InternalSpan {
             // Case c: Split front
             else if split_start <= span_start && split_end < span_end {
                 let split_point = split_end - span_start + 1;
-                let (left, right) = span.content.split_at(split_point);
+                let (left, right) = split_str_at(&span.content, split_point);
                 new_spans.push(InternalSpan::new(left, style));
                 new_spans.push(InternalSpan::new(right, &span.style));
             }
             // Case d: Split back
             else if split_start > span_start && split_end >= span_end {
                 let split_point = split_start - span_start;
-                let (left, right) = span.content.split_at(split_point);
+                let (left, right) = split_str_at(&span.content, split_point);
                 new_spans.push(InternalSpan::new(left, &span.style));
                 new_spans.push(InternalSpan::new(right, style));
             }
@@ -128,8 +128,8 @@ impl InternalSpan {
             else if split_start > span_start && split_end < span_end {
                 let split_front = split_start - span_start;
                 let split_back = split_end - span_start + 1;
-                let (left, rest) = span.content.split_at(split_front);
-                let (middle, right) = rest.split_at(split_back - split_front);
+                let (left, rest) = split_str_at(&span.content, split_front);
+                let (middle, right) = split_str_at(&rest, split_back - split_front);
 
                 new_spans.push(InternalSpan::new(left, &span.style));
                 new_spans.push(InternalSpan::new(middle, style));
@@ -334,6 +334,22 @@ mod tests {
         assert_eq!(new_spans[0], InternalSpan::new("H", base));
         assert_eq!(new_spans[1], InternalSpan::new("el", hightlighted));
         assert_eq!(new_spans[2], InternalSpan::new("lo!", hightlighted));
+    }
+
+    #[test]
+    fn test_split_spans_with_emoji() {
+        // given
+        let base = &Style::default();
+        let hightlighted = &Style::default().red();
+        let spans = vec![InternalSpan::new("Hell🙂!", base)];
+
+        // when
+        let new_spans = InternalSpan::split_spans(&spans, 2, 4, &hightlighted);
+
+        // then
+        assert_eq!(new_spans[0], InternalSpan::new("He", base));
+        assert_eq!(new_spans[1], InternalSpan::new("ll🙂", hightlighted));
+        assert_eq!(new_spans[2], InternalSpan::new("!", base));
     }
 
     #[test]

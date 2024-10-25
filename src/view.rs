@@ -4,7 +4,7 @@ pub mod theme;
 #[cfg(feature = "syntax-highlighting")]
 pub use crate::syntax_higlighting::SyntaxHighlighter;
 use crate::{
-    helper::{find_position_in_spans, find_position_in_wrapped_spans, line_replace_tabs, max_col},
+    helper::{find_index2_in_wrapped_spans, find_position_in_spans, line_replace_tabs, max_col},
     internal::{DisplayLine, InternalLine},
     state::EditorState,
     EditorMode, Index2,
@@ -204,19 +204,21 @@ impl Widget for EditorView<'_, '_> {
             };
 
             // Determine the cursor position.
-            let cursor_display = if row_index == cursor.row {
+            let cursor_position_on_screen = if row_index == cursor.row {
                 let cursor_position = match display_line {
                     DisplayLine::Wrapped(ref lines) => {
-                        find_position_in_wrapped_spans(lines, cursor.col)
+                        find_index2_in_wrapped_spans(lines, cursor.col)
                     }
+
                     DisplayLine::Single(ref line) => Index2::new(
                         0,
                         find_position_in_spans(line, cursor.col.saturating_sub(offset_x)),
                     ),
                 };
-                let x_cursor = main.left() + min(width, cursor_position.col) as u16;
-                let y_cursor = y + cursor_position.row as u16;
-                Some(Position::new(x_cursor, y_cursor))
+                Some(Position::new(
+                    main.left() + min(width, cursor_position.col) as u16,
+                    y + cursor_position.row as u16,
+                ))
             } else {
                 None
             };
@@ -245,13 +247,13 @@ impl Widget for EditorView<'_, '_> {
             }
 
             // Render the cursor on top.
-            if let Some(cursor_position) = cursor_display {
+            if let Some(cursor_position) = cursor_position_on_screen {
                 if let Some(cell) = buf.cell_mut(cursor_position) {
                     cell.set_style(self.theme.cursor_style);
                 }
             }
 
-            // Increment y after rendering the current visual line.
+            // Increment y after rendering the current line.
             if y >= main.bottom() {
                 break;
             }
@@ -264,8 +266,8 @@ impl Widget for EditorView<'_, '_> {
             }
         }
 
-        // Save the total number of lines displayed in the viewport.
-        // This is necessary to correctly handle scrolling.
+        // Save the total number of lines that are currentyl displayed on the viewport.
+        // Needed to handle scrolling.
         self.state.view.update_num_rows(num_rows);
 
         // Render the status line.
