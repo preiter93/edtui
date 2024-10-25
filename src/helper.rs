@@ -1,7 +1,7 @@
 use jagged::index::RowIndex;
 use ratatui::text::{Line, Span};
 
-use crate::{state::selection::Selection, EditorMode, EditorState, Index2, Lines};
+use crate::{EditorMode, EditorState, Index2, Lines};
 
 /// Inserts a character into the lines data at the given `index`.
 pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: bool) {
@@ -107,13 +107,6 @@ pub(crate) fn max_row(state: &EditorState) -> usize {
 pub(crate) fn clamp_column(state: &mut EditorState) {
     let max_col = max_col(&state.lines, &state.cursor, state.mode);
     state.cursor.col = state.cursor.col.min(max_col);
-}
-
-/// Set the selections end positions
-pub(crate) fn set_selection(selection: &mut Option<Selection>, index: Index2) {
-    if let Some(selection) = selection {
-        selection.end = index;
-    }
 }
 
 /// Skip whitespaces moving to the right. Stop at the end of the line.
@@ -263,6 +256,15 @@ pub(crate) fn unicode_width_position_in_str(s: &str, n: usize) -> usize {
     return s.chars().take(n).map(char_width).sum();
 }
 
+/// Splits span into two at an index. Takes unicode width into account.
+pub(crate) fn split_str_at(s: &str, mid: usize) -> (String, String) {
+    let mut chars = s.chars();
+    let first_half: String = chars.by_ref().take(mid).collect();
+    let second_half: String = chars.collect();
+
+    (first_half, second_half)
+}
+
 pub(crate) fn unicode_width_position_in_spans(spans: &[Span], n: usize) -> usize {
     let mut total_width = 0;
     let mut chars_counted = 0;
@@ -284,10 +286,7 @@ pub(crate) fn count_characters_in_spans(spans: &[Span]) -> usize {
     spans.iter().map(|span| span.content.chars().count()).sum()
 }
 
-pub(crate) fn find_position_in_wrapped_spans(
-    wrapped_spans: &[Vec<Span>],
-    char_pos: usize,
-) -> Index2 {
+pub(crate) fn find_index2_in_wrapped_spans(wrapped_spans: &[Vec<Span>], char_pos: usize) -> Index2 {
     if wrapped_spans.is_empty() {
         return Index2::new(0, char_pos);
     }
@@ -460,16 +459,16 @@ mod tests {
         let line_2 = vec![Span::from("c😀d")];
         let spans = vec![line_1, line_2];
 
-        let position = find_position_in_wrapped_spans(&spans, 2);
+        let position = find_index2_in_wrapped_spans(&spans, 2);
         assert_eq!(position, Index2::new(0, 3));
 
-        let position = find_position_in_wrapped_spans(&spans, 3);
+        let position = find_index2_in_wrapped_spans(&spans, 3);
         assert_eq!(position, Index2::new(1, 0));
 
-        let position = find_position_in_wrapped_spans(&spans, 5);
+        let position = find_index2_in_wrapped_spans(&spans, 5);
         assert_eq!(position, Index2::new(1, 3));
 
-        let position = find_position_in_wrapped_spans(&spans, 6);
+        let position = find_index2_in_wrapped_spans(&spans, 6);
         assert_eq!(position, Index2::new(1, 4));
     }
 }

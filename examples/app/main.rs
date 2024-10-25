@@ -47,7 +47,8 @@ fn main() {
 }
 ```
 This editor is under active development.
-Don't hesitate to open issues or submit pull requests to contribute! 🙂
+Don't hesitate to open issues or submit pull requests to contribute!
+🙂
 ",
             )),
             event_handler: EditorEventHandler::default(),

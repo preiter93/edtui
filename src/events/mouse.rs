@@ -3,7 +3,7 @@ use ratatui::crossterm::event::{MouseEvent as CTMouseEvent, MouseEventKind};
 
 use crate::{
     actions::{Execute, SwitchMode},
-    helper::set_selection,
+    state::selection::set_selection,
     EditorMode, EditorState,
 };
 
