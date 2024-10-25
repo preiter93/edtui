@@ -175,7 +175,7 @@ impl Widget for EditorView<'_, '_> {
         let selections = vec![&self.state.selection, &search_selection];
 
         let mut y = main.top();
-        let mut num_rows = 0;
+        let mut num_rows: usize = 0;
         for (i, line) in lines.iter_row().skip(offset_y).enumerate() {
             let row_index = offset_y + i;
             num_rows += 1;
@@ -259,9 +259,17 @@ impl Widget for EditorView<'_, '_> {
             }
         }
 
-        // Render the cursor even if the editor has no content
+        // Render the cursor even if the editor has no content,
         if num_rows == 0 {
             if let Some(cell) = buf.cell_mut(Position::new(main.left(), main.top())) {
+                cell.set_style(self.theme.cursor_style);
+            }
+        // Render the cursor if the cursor is out of bounds.
+        } else if self.state.cursor.row > num_rows.saturating_sub(1) {
+            if let Some(cell) = buf.cell_mut(Position::new(
+                main.left(),
+                main.top() + self.state.cursor.row as u16,
+            )) {
                 cell.set_style(self.theme.cursor_style);
             }
         }
