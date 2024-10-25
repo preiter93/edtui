@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::{Index2, Lines};
+use crate::{helper::max_col_normal, Index2, Lines};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
@@ -75,9 +75,36 @@ impl Selection {
     }
 
     /// Extracts a selection from `Lines`.
+    ///
+    /// TODO: Move to edtui-jagged.
     #[must_use]
     pub fn extract(&self, lines: &Lines) -> Lines {
-        lines.iter().from(self.start()).to(self.end()).collect()
+        let mut extracted_lines = Lines::default();
+
+        let mut start = self.start();
+        let start_col_max = max_col_normal(lines, &start);
+        if start.col > start_col_max {
+            extracted_lines.push(vec![]);
+            start.row += 1;
+            start.col = 0;
+        }
+
+        let mut append_newline_at_the_end = false;
+        let mut end = self.end();
+        let end_col_max = max_col_normal(lines, &end);
+        if end.col > end_col_max {
+            extracted_lines.push(vec![]);
+            end.col = end_col_max;
+            append_newline_at_the_end = true;
+        }
+
+        extracted_lines.append(&mut lines.iter().from(start).to(end).collect::<Lines>());
+
+        if append_newline_at_the_end {
+            extracted_lines.push(vec![]);
+        }
+
+        extracted_lines
     }
 
     /// Returns the start and end column of the selection in the given row.
@@ -124,10 +151,7 @@ fn test_set_selection() {}
 mod tests {
     use super::*;
     fn test_data() -> Lines {
-        Lines::from(
-            "Hello\n\
-            World",
-        )
+        Lines::from("Hello\nWorld")
     }
 
     #[test]
@@ -136,6 +160,14 @@ mod tests {
         let selection = Selection::new(Index2::new(0, 3), Index2::new(1, 1));
 
         assert_eq!(selection.extract(&data), Lines::from("lo\nWo"));
+    }
+
+    #[test]
+    fn test_extract_out_of_bounds() {
+        let data = test_data();
+        let selection = Selection::new(Index2::new(0, 5), Index2::new(1, 1));
+
+        assert_eq!(selection.extract(&data), Lines::from("\nWo"));
     }
 
     #[test]
