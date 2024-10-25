@@ -101,9 +101,9 @@ impl InternalSpan {
         let mut offset = 0;
 
         for span in spans {
-            let span_width = span.content.len();
+            let span_len = span.content.chars().count();
             let span_start = offset;
-            let span_end = offset + span_width.saturating_sub(1);
+            let span_end = offset + span_len.saturating_sub(1);
 
             // Case a: Span ends before split_start, append it unchanged
             // Case b: Span starts after split_end, append it unchanged
@@ -140,7 +140,7 @@ impl InternalSpan {
                 new_spans.push(InternalSpan::new(span.content.clone(), style));
             }
 
-            offset += span_width;
+            offset += span_len;
         }
 
         new_spans
@@ -409,5 +409,26 @@ mod tests {
         assert_eq!(new_spans[1], InternalSpan::new("el", hightlighted));
         assert_eq!(new_spans[2], InternalSpan::new("l", hightlighted));
         assert_eq!(new_spans[3], InternalSpan::new("o!", base));
+    }
+
+    #[test]
+    fn test_internal_span_apply_selection_with_emoji() {
+        // given
+        let base = &Style::default();
+        let hightlighted = &Style::default().red();
+        let spans = vec![
+            InternalSpan::new("Hell🙂", base),
+            InternalSpan::new("!", base),
+        ];
+
+        // when
+        let selection = Selection::new(Index2::new(0, 3), Index2::new(0, 5));
+        let new_spans =
+            InternalSpan::apply_selection(&spans, 0, &selection, &hightlighted).unwrap();
+
+        // then
+        assert_eq!(new_spans[0], InternalSpan::new("Hel", base));
+        assert_eq!(new_spans[1], InternalSpan::new("l🙂", hightlighted));
+        assert_eq!(new_spans[2], InternalSpan::new("!", hightlighted));
     }
 }

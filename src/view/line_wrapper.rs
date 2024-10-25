@@ -1,6 +1,6 @@
 use ratatui::text::Span;
 
-use crate::helper::{char_width, span_width};
+use crate::helper::{char_width, span_width, split_str_at};
 
 #[derive(Default)]
 pub(crate) struct LineWrapper;
@@ -44,7 +44,7 @@ impl LineWrapper {
                     // Prepare for the next line
                     current_line.clear();
                     remaining_span = rest;
-                    split_at = max_width; // FIXME: Take unicode size into account
+                    split_at = max_width;
                 }
 
                 // Add remaining part to the current line
@@ -72,7 +72,7 @@ impl LineWrapper {
         for (i, ch) in span_content.chars().enumerate() {
             current_width += char_width(ch);
             if current_width > split_at {
-                let (a, b) = span_content.split_at(i);
+                let (a, b) = split_str_at(span_content, i);
                 return (
                     Span::styled(a.to_string(), style),
                     Span::styled(b.to_string(), style),
@@ -89,7 +89,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_line_wrapper() {
+    fn test_wrap_spans() {
         let spans = vec![Span::raw("Hello"), Span::raw("World")];
         let wrapped_spans = LineWrapper::wrap_spans(spans, 3);
 
@@ -97,6 +97,24 @@ mod tests {
         assert_eq!(wrapped_spans[1], vec![Span::raw("lo"), Span::raw("W")]);
         assert_eq!(wrapped_spans[2], vec![Span::raw("orl")]);
         assert_eq!(wrapped_spans[3], vec![Span::raw("d")]);
+    }
+
+    #[test]
+    fn test_wrap_spans_with_emoji() {
+        let spans = vec![Span::raw("Hell🙂!")];
+        let wrapped_spans = LineWrapper::wrap_spans(spans, 4);
+
+        assert_eq!(wrapped_spans[0], vec![Span::raw("Hell")]);
+        assert_eq!(wrapped_spans[1], vec![Span::raw("🙂!")]);
+    }
+
+    #[test]
+    fn test_split_span_at_with_emoji() {
+        let span = Span::raw("🙂!");
+        let (left, right) = LineWrapper::split_span_at(span, 2);
+
+        assert_eq!(left, Span::raw("🙂"));
+        assert_eq!(right, Span::raw("!"));
     }
 
     fn test_line_wrapper_determine_split() {
