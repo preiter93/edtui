@@ -216,10 +216,10 @@ pub fn chars_width(chars: &[char]) -> usize {
     chars.iter().fold(0, |sum, ch| sum + char_width(*ch))
 }
 
-pub(crate) fn str_width(s: &str) -> usize {
+pub(crate) fn str_width<T: AsRef<str>>(s: T) -> usize {
     use unicode_width::UnicodeWidthStr;
 
-    s.replace('\t', &" ".repeat(4)).width()
+    s.as_ref().replace('\t', &" ".repeat(4)).width()
 }
 
 pub(crate) fn span_width(s: &Span) -> usize {
@@ -257,8 +257,8 @@ pub(crate) fn unicode_width_position_in_str(s: &str, n: usize) -> usize {
 }
 
 /// Splits span into two at an index. Takes unicode width into account.
-pub(crate) fn split_str_at(s: &str, mid: usize) -> (String, String) {
-    let mut chars = s.chars();
+pub(crate) fn split_str_at<T: AsRef<str>>(s: T, mid: usize) -> (String, String) {
+    let mut chars = s.as_ref().chars();
     let first_half: String = chars.by_ref().take(mid).collect();
     let second_half: String = chars.collect();
 
