@@ -286,7 +286,11 @@ pub(crate) fn count_characters_in_spans(spans: &[Span]) -> usize {
     spans.iter().map(|span| span.content.chars().count()).sum()
 }
 
-pub(crate) fn find_index2_in_wrapped_spans(wrapped_spans: &[Vec<Span>], char_pos: usize) -> Index2 {
+pub(crate) fn find_index2_in_wrapped_spans(
+    wrapped_spans: &[Vec<Span>],
+    char_pos: usize,
+    max_width: usize,
+) -> Index2 {
     if wrapped_spans.is_empty() {
         return Index2::new(0, char_pos);
     }
@@ -307,7 +311,16 @@ pub(crate) fn find_index2_in_wrapped_spans(wrapped_spans: &[Vec<Span>], char_pos
         }
     }
 
-    Index2::new(wrapped_spans.len().saturating_sub(1), char_pos + 1)
+    let last_span_width = match wrapped_spans.last() {
+        Some(span) => spans_width(span),
+        None => 0,
+    };
+
+    if last_span_width >= max_width {
+        Index2::new(wrapped_spans.len(), 0)
+    } else {
+        Index2::new(wrapped_spans.len().saturating_sub(1), last_span_width)
+    }
 }
 
 pub(crate) fn find_position_in_spans(spans: &[Span], char_pos: usize) -> usize {
@@ -455,20 +468,39 @@ mod tests {
 
     #[test]
     fn test_find_position_in_wrapped_spans() {
-        let line_1 = vec![Span::from("a😀b")];
-        let line_2 = vec![Span::from("c😀d")];
+        let line_1 = vec![Span::from("abc")];
+        let line_2 = vec![Span::from("def")];
         let spans = vec![line_1, line_2];
 
-        let position = find_index2_in_wrapped_spans(&spans, 2);
-        assert_eq!(position, Index2::new(0, 3));
+        let position = find_index2_in_wrapped_spans(&spans, 2, 3);
+        assert_eq!(position, Index2::new(0, 2));
 
-        let position = find_index2_in_wrapped_spans(&spans, 3);
+        let position = find_index2_in_wrapped_spans(&spans, 3, 3);
         assert_eq!(position, Index2::new(1, 0));
 
-        let position = find_index2_in_wrapped_spans(&spans, 5);
-        assert_eq!(position, Index2::new(1, 3));
+        let position = find_index2_in_wrapped_spans(&spans, 5, 3);
+        assert_eq!(position, Index2::new(1, 2));
 
-        let position = find_index2_in_wrapped_spans(&spans, 6);
-        assert_eq!(position, Index2::new(1, 4));
+        let position = find_index2_in_wrapped_spans(&spans, 6, 3);
+        assert_eq!(position, Index2::new(2, 0));
+    }
+
+    #[test]
+    fn test_find_position_in_wrapped_spans_with_emoji() {
+        let line_1 = vec![Span::from("a😀b")];
+        let line_2 = vec![Span::from("c😀")];
+        let spans = vec![line_1, line_2];
+
+        let position = find_index2_in_wrapped_spans(&spans, 2, 4);
+        assert_eq!(position, Index2::new(0, 3));
+
+        let position = find_index2_in_wrapped_spans(&spans, 3, 4);
+        assert_eq!(position, Index2::new(1, 0));
+
+        let position = find_index2_in_wrapped_spans(&spans, 4, 4);
+        assert_eq!(position, Index2::new(1, 1));
+
+        let position = find_index2_in_wrapped_spans(&spans, 5, 4);
+        assert_eq!(position, Index2::new(1, 3));
     }
 }
