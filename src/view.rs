@@ -207,7 +207,7 @@ impl Widget for EditorView<'_, '_> {
             let cursor_position_on_screen = if row_index == cursor.row {
                 let cursor_position = match display_line {
                     DisplayLine::Wrapped(ref lines) => {
-                        find_index2_in_wrapped_spans(lines, cursor.col)
+                        find_index2_in_wrapped_spans(lines, cursor.col, main.width as usize)
                     }
 
                     DisplayLine::Single(ref line) => Index2::new(
