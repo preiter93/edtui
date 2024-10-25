@@ -89,8 +89,12 @@ impl ViewState {
             let mut new_viewport_x = cursor_col;
 
             // Iterate backward from max_cursor_pos to find the first fitting character
-            for &ch in line.iter().take(cursor_col).rev() {
-                backward_width += char_width(ch);
+            for i in (0..=cursor_col).rev() {
+                let char_width = match line.get(i) {
+                    Some(&ch) => char_width(ch),
+                    None => 1,
+                };
+                backward_width += char_width;
                 if backward_width >= width {
                     break;
                 }
@@ -195,7 +199,6 @@ mod tests {
     macro_rules! update_view_vertical_test {
         ($name:ident: {
         view: $given_view:expr,
-        width: $given_width:expr,
         height: $given_height:expr,
         cursor: $given_cursor:expr,
         expected: $expected_offset:expr
@@ -204,11 +207,11 @@ mod tests {
             fn $name() {
                 // given
                 let mut view = $given_view;
-                let width = $given_width;
                 let height = $given_height;
+                let cursor = $given_cursor;
 
                 // when
-                let offset = view.update_viewport_vertical(width, height);
+                let offset = view.update_viewport_vertical(height, cursor);
 
                 // then
                 assert_eq!(offset, $expected_offset);
@@ -219,7 +222,7 @@ mod tests {
     macro_rules! update_view_horizontal_test {
         ($name:ident: {
         view: $given_view:expr,
-        size: $given_size:expr,
+        width: $given_width:expr,
         cursor: $given_cursor:expr,
         expected: $expected_offset:expr
     }) => {
@@ -227,12 +230,12 @@ mod tests {
             fn $name() {
                 // given
                 let mut view = $given_view;
-                let size = $given_size;
-                let cursor_row = $given_cursor;
+                let width = $given_width;
+                let cursor = $given_cursor;
                 let line = vec![];
 
                 // when
-                let offset = view.update_viewport_horizontal(size, cursor_row, Some(&line));
+                let offset = view.update_viewport_horizontal(width, cursor, Some(&line));
 
                 // then
                 assert_eq!(offset, $expected_offset);
@@ -241,8 +244,8 @@ mod tests {
     }
 
     update_view_vertical_test!(
-        // 0 <-   | --<-
-        // 1 ---- | ----
+        // 0      | --<-
+        // 1 --<- | ----
         // 2 ---- |
         scroll_up: {
             view: ViewState{
@@ -251,7 +254,6 @@ mod tests {
                 num_rows: 0,
                 tab_size: 2,
             },
-            width: 1,
             height:  2,
             cursor: 0,
             expected: 0
@@ -269,7 +271,6 @@ mod tests {
                 num_rows: 0,
                 tab_size: 2,
             },
-            width: 1,
             height:  2,
             cursor: 2,
             expected: 1
@@ -284,7 +285,7 @@ mod tests {
                 num_rows: 0,
                 tab_size: 2,
             },
-            size: 2,
+            width: 2,
             cursor: 0,
             expected: 0
         }
@@ -298,7 +299,7 @@ mod tests {
                 num_rows: 0,
                 tab_size: 2,
             },
-            size: 2,
+            width: 2,
             cursor: 2,
             expected: 1
         }
