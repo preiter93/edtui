@@ -29,7 +29,7 @@ pub struct CopySelection;
 impl Execute for CopySelection {
     fn execute(&mut self, state: &mut EditorState) {
         if let Some(s) = &state.selection {
-            state.clip.set_text(s.extract(&state.lines).into());
+            state.clip.set_text(s.copy_from(&state.lines).into());
             state.mode = EditorMode::Normal;
             state.selection = None;
         }

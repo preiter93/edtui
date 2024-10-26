@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use crate::{helper::max_col_normal, Index2, Lines};
+use crate::{Index2, Lines};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
@@ -74,37 +74,16 @@ impl Selection {
         (self.start, self.end) = (self.end, self.start);
     }
 
-    /// Extracts a selection from `Lines`.
-    ///
-    /// TODO: Move to edtui-jagged.
+    /// Copies a selection from `Lines`.
     #[must_use]
-    pub fn extract(&self, lines: &Lines) -> Lines {
-        let mut extracted_lines = Lines::default();
+    pub fn copy_from(&self, lines: &Lines) -> Lines {
+        lines.copy_range(self.start()..=self.end())
+    }
 
-        let mut start = self.start();
-        let start_col_max = max_col_normal(lines, &start);
-        if start.col > start_col_max {
-            extracted_lines.push(vec![]);
-            start.row += 1;
-            start.col = 0;
-        }
-
-        let mut append_newline_at_the_end = false;
-        let mut end = self.end();
-        let end_col_max = max_col_normal(lines, &end);
-        if end.col > end_col_max {
-            extracted_lines.push(vec![]);
-            end.col = end_col_max;
-            append_newline_at_the_end = true;
-        }
-
-        extracted_lines.append(&mut lines.iter().from(start).to(end).collect::<Lines>());
-
-        if append_newline_at_the_end {
-            extracted_lines.push(vec![]);
-        }
-
-        extracted_lines
+    /// Extracts a selection from `Lines`.
+    #[must_use]
+    pub fn extract_from(&self, lines: &mut Lines) -> Lines {
+        lines.extract(self.start()..=self.end())
     }
 
     /// Returns the start and end column of the selection in the given row.
@@ -152,19 +131,19 @@ mod tests {
     }
 
     #[test]
-    fn test_extract() {
+    fn test_copy_from() {
         let data = test_data();
         let selection = Selection::new(Index2::new(0, 3), Index2::new(1, 1));
 
-        assert_eq!(selection.extract(&data), Lines::from("lo\nWo"));
+        assert_eq!(selection.copy_from(&data), Lines::from("lo\nWo"));
     }
 
     #[test]
-    fn test_extract_out_of_bounds() {
+    fn test_copy_from_out_of_bounds() {
         let data = test_data();
         let selection = Selection::new(Index2::new(0, 5), Index2::new(1, 1));
 
-        assert_eq!(selection.extract(&data), Lines::from("\nWo"));
+        assert_eq!(selection.copy_from(&data), Lines::from("\nWo"));
     }
 
     #[test]
