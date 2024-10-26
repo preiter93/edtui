@@ -153,7 +153,7 @@ impl Execute for DeleteSelection {
 pub(crate) fn delete_selection(state: &mut EditorState, selection: &Selection) -> Lines {
     state.cursor = selection.start();
     state.clamp_column();
-    state.lines.extract(selection.start()..=selection.end())
+    selection.extract_from(&mut state.lines)
 }
 
 /// Joins line below to the current line.
