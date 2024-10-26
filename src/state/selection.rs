@@ -144,9 +144,6 @@ pub(crate) fn set_selection(selection: &mut Option<Selection>, index: Index2) {
     }
 }
 
-#[test]
-fn test_set_selection() {}
-
 #[cfg(test)]
 mod tests {
     use super::*;

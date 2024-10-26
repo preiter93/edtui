@@ -27,6 +27,9 @@ required-features = ["syntax-highlighting"]
 name = "syntax_highlighting"
 required-features = ["syntax-highlighting"]
 
+[[example]]
+name = "test_text"
+
 [features]
 default = ["arboard", "mouse-support", "syntax-highlighting"]
 arboard = ["dep:arboard"]
