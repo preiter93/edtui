@@ -221,8 +221,8 @@ pub(crate) fn span_width(s: &Span, tab_width: usize) -> usize {
         .width()
 }
 
-/// Splits span into two at an index. [str::split_at] does fail on strings
-/// with characters that have irregular (!=1) unicode widths.
+/// Splits span into two at an index. Other than [`str::split_at`], this method
+/// does not fail on splits outside of unicode character boundaries.
 pub(crate) fn split_str_at<T: AsRef<str>>(s: T, mid: usize) -> (String, String) {
     let mut chars = s.as_ref().chars();
     let first_half: String = chars.by_ref().take(mid).collect();
