@@ -19,7 +19,7 @@ pub(crate) struct ViewState {
     /// within the editor.
     pub(crate) editor_to_textarea_offset: Offset,
     /// The number of spaces used to display a tab.
-    pub(crate) tab_size: usize,
+    pub(crate) tab_width: usize,
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
@@ -76,7 +76,7 @@ impl ViewState {
         let mut max_cursor_pos = self.viewport.x;
         let mut current_width = 0;
         for &ch in line.iter().skip(self.viewport.x) {
-            current_width += char_width(ch);
+            current_width += char_width(ch, self.tab_width);
             if current_width >= width {
                 break;
             }
@@ -91,7 +91,7 @@ impl ViewState {
             // Iterate backward from max_cursor_pos to find the first fitting character
             for i in (0..=cursor_col).rev() {
                 let char_width = match line.get(i) {
-                    Some(&ch) => char_width(ch),
+                    Some(&ch) => char_width(ch, self.tab_width),
                     None => 1,
                 };
                 backward_width += char_width;
@@ -176,7 +176,7 @@ impl ViewState {
 
         let skip = lines.len().saturating_sub(cursor_row + 1);
         for (i, line) in lines.iter_row().rev().skip(skip).enumerate() {
-            let line_width = chars_width(line);
+            let line_width = chars_width(line, self.tab_width);
             let current_row_height = LineWrapper::determine_split(line_width, max_width).len();
 
             // If we run out of height or exceed it, scroll the viewport.
@@ -252,7 +252,7 @@ mod tests {
                 viewport: Offset::new(0, 1),
                 editor_to_textarea_offset: Offset::default(),
                 num_rows: 0,
-                tab_size: 2,
+                tab_width: 2,
             },
             height:  2,
             cursor: 0,
@@ -269,7 +269,7 @@ mod tests {
                 viewport: Offset::new(0, 0),
                 editor_to_textarea_offset: Offset::default(),
                 num_rows: 0,
-                tab_size: 2,
+                tab_width: 2,
             },
             height:  2,
             cursor: 2,
@@ -283,7 +283,7 @@ mod tests {
                 viewport: Offset::new(1, 0),
                 editor_to_textarea_offset: Offset::default(),
                 num_rows: 0,
-                tab_size: 2,
+                tab_width: 2,
             },
             width: 2,
             cursor: 0,
@@ -297,7 +297,7 @@ mod tests {
                 viewport: Offset::new(0, 0),
                 editor_to_textarea_offset: Offset::default(),
                 num_rows: 0,
-                tab_size: 2,
+                tab_width: 2,
             },
             width: 2,
             cursor: 2,

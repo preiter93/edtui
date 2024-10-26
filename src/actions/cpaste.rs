@@ -1,6 +1,6 @@
 use crate::{
     clipboard::ClipboardTrait,
-    helper::{append_str, clamp_column, insert_str},
+    helper::{append_str, insert_str},
     EditorMode, EditorState,
 };
 
@@ -12,7 +12,7 @@ pub struct Paste;
 impl Execute for Paste {
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
-        clamp_column(state);
+        state.clamp_column();
         if let Some(selection) = state.selection.take() {
             let _ = delete_selection(state, &selection);
             insert_str(&mut state.lines, &mut state.cursor, &state.clip.get_text());

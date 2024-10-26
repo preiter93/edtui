@@ -5,12 +5,10 @@ pub mod insert;
 pub mod motion;
 pub mod search;
 pub mod select;
-use crate::helper::clamp_column;
 use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
 use delete::DeleteToEndOfLine;
 use enum_dispatch::enum_dispatch;
-use insert::InsertTab;
 use motion::{MoveToFirstRow, MoveToLastRow};
 
 pub use self::cpaste::{CopySelection, Paste};
@@ -47,7 +45,6 @@ pub enum Action {
     MoveToLastRow(MoveToLastRow),
     MoveToMatchingBracket(MoveToMatchinBracket),
     InsertChar(InsertChar),
-    InsertTab(InsertTab),
     LineBreak(LineBreak),
     AppendNewline(AppendNewline),
     InsertNewline(InsertNewline),
@@ -85,7 +82,7 @@ pub struct SwitchMode(pub EditorMode);
 
 impl Execute for SwitchMode {
     fn execute(&mut self, state: &mut EditorState) {
-        clamp_column(state);
+        state.clamp_column();
         match self.0 {
             EditorMode::Normal => {
                 state.selection = None;

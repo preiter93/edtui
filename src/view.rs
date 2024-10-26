@@ -1,14 +1,15 @@
+mod internal;
 pub(crate) mod line_wrapper;
 pub mod status_line;
-pub mod theme;
 #[cfg(feature = "syntax-highlighting")]
-pub use crate::syntax_higlighting::SyntaxHighlighter;
-use crate::{
-    helper::{find_index2_in_wrapped_spans, find_position_in_spans, line_replace_tabs, max_col},
-    internal::{DisplayLine, InternalLine},
-    state::EditorState,
-    EditorMode, Index2,
-};
+pub(crate) mod syntax_higlighting;
+pub mod theme;
+
+#[cfg(feature = "syntax-highlighting")]
+use syntax_higlighting::SyntaxHighlighter;
+
+use crate::{helper::max_col, state::EditorState, EditorMode, Index2};
+use internal::{find_position_in_spans, find_position_in_wrapped_spans, DisplayLine, InternalLine};
 use jagged::index::RowIndex;
 use line_wrapper::LineWrapper;
 use ratatui::{prelude::*, widgets::Widget};
@@ -39,7 +40,7 @@ pub struct EditorView<'a, 'b> {
     pub(crate) wrap: bool,
     #[cfg(feature = "syntax-highlighting")]
     pub(crate) syntax_highlighter: Option<SyntaxHighlighter>,
-    pub(crate) tab_size: usize,
+    pub(crate) tab_width: usize,
 }
 
 impl<'a, 'b> EditorView<'a, 'b> {
@@ -52,7 +53,7 @@ impl<'a, 'b> EditorView<'a, 'b> {
             wrap: true,
             #[cfg(feature = "syntax-highlighting")]
             syntax_highlighter: None,
-            tab_size: 4,
+            tab_width: 2,
         }
     }
 
@@ -96,10 +97,10 @@ impl<'a, 'b> EditorView<'a, 'b> {
         self
     }
 
-    /// Sets the number of spaces used to render a tab.
+    /// Configures the number of spaces that are used to render at tab.
     #[must_use]
-    pub fn tab_size(mut self, tab_size: usize) -> Self {
-        self.tab_size = tab_size;
+    pub fn tab_width(mut self, tab_width: usize) -> Self {
+        self.tab_width = tab_width;
         self
     }
 
@@ -149,7 +150,7 @@ impl Widget for EditorView<'_, '_> {
         self.state.view.set_editor_to_textarea_offset(area);
 
         // Set how many spaces are used to render a tab.
-        self.state.view.tab_size = self.tab_size;
+        self.state.view.tab_width = self.tab_width;
 
         // Update the view offset. Requuires the screen size and the position
         // of the cursor. Updates the view offset only if the cursor is out
@@ -198,7 +199,11 @@ impl Widget for EditorView<'_, '_> {
             let spans = { internal_line.into_spans(&selections) };
 
             let display_line = if self.wrap {
-                DisplayLine::Wrapped(LineWrapper::wrap_spans(spans, main.width as usize))
+                DisplayLine::Wrapped(LineWrapper::wrap_spans(
+                    spans,
+                    main.width as usize,
+                    self.tab_width,
+                ))
             } else {
                 DisplayLine::Single(spans)
             };
@@ -206,13 +211,20 @@ impl Widget for EditorView<'_, '_> {
             // Determine the cursor position.
             let cursor_position_on_screen = if row_index == cursor.row {
                 let cursor_position = match display_line {
-                    DisplayLine::Wrapped(ref lines) => {
-                        find_index2_in_wrapped_spans(lines, cursor.col, main.width as usize)
-                    }
+                    DisplayLine::Wrapped(ref lines) => find_position_in_wrapped_spans(
+                        lines,
+                        cursor.col,
+                        main.width as usize,
+                        self.tab_width,
+                    ),
 
                     DisplayLine::Single(ref line) => Index2::new(
                         0,
-                        find_position_in_spans(line, cursor.col.saturating_sub(offset_x)),
+                        find_position_in_spans(
+                            line,
+                            cursor.col.saturating_sub(offset_x),
+                            self.tab_width,
+                        ),
                     ),
                 };
                 Some(Position::new(
@@ -231,7 +243,7 @@ impl Widget for EditorView<'_, '_> {
                 DisplayLine::Wrapped(lines) => {
                     for line in lines {
                         let area = Rect::new(main.left(), y, main.width, main.height);
-                        render_line(area, buf, line);
+                        render_line(area, buf, line, self.tab_width);
                         y += 1;
 
                         if y >= main.bottom() {
@@ -241,7 +253,7 @@ impl Widget for EditorView<'_, '_> {
                 }
                 DisplayLine::Single(line) => {
                     let area = Rect::new(main.left(), y, main.width, main.height);
-                    render_line(area, buf, line);
+                    render_line(area, buf, line, self.tab_width);
                     y += 1;
                 }
             }
@@ -265,7 +277,7 @@ impl Widget for EditorView<'_, '_> {
                 cell.set_style(self.theme.cursor_style);
             }
         // Render the cursor if the cursor is out of bounds.
-        } else if self.state.cursor.row > num_rows.saturating_sub(1) {
+        } else if self.state.cursor.row + 1 > self.state.lines.len() {
             if let Some(cell) = buf.cell_mut(Position::new(
                 main.left(),
                 main.top() + self.state.cursor.row as u16,
@@ -291,9 +303,12 @@ impl Widget for EditorView<'_, '_> {
     }
 }
 
-fn render_line(area: Rect, buf: &mut Buffer, spans: Vec<Span>) {
+fn render_line(area: Rect, buf: &mut Buffer, spans: Vec<Span>, tab_width: usize) {
     let mut line: Line = spans.into_iter().collect();
-    line_replace_tabs(&mut line);
+    // Replace tabs
+    for span in &mut line.spans {
+        span.content = span.content.replace('\t', &" ".repeat(tab_width)).into();
+    }
     line.render(area, buf);
 }
 

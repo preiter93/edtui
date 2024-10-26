@@ -6,7 +6,7 @@ use jagged::Index2;
 
 use super::Execute;
 use crate::{
-    helper::{clamp_column, max_col, max_col_normal, skip_whitespace, skip_whitespace_rev},
+    helper::{max_col, max_col_normal, skip_whitespace, skip_whitespace_rev},
     EditorMode, EditorState,
 };
 
@@ -94,7 +94,7 @@ impl Execute for MoveWordForward {
             return;
         }
 
-        clamp_column(state);
+        state.clamp_column();
 
         for _ in 0..self.0 {
             move_word_forward(state);

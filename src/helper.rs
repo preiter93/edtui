@@ -1,10 +1,10 @@
 use jagged::index::RowIndex;
-use ratatui::text::{Line, Span};
+use ratatui::text::Span;
 
 use crate::{EditorMode, EditorState, Index2, Lines};
 
 /// Inserts a character into the lines data at the given `index`.
-pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: bool) {
+pub(crate) fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: bool) {
     if lines.len() == index.row {
         lines.push(Vec::new());
     }
@@ -25,7 +25,7 @@ pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: b
 }
 
 /// Inserts a string into the lines data at the given `index`.
-pub fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
+pub(crate) fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
     for (i, ch) in text.chars().enumerate() {
         let is_last = i == text.len().saturating_sub(1);
         insert_char(lines, index, ch, is_last);
@@ -33,7 +33,7 @@ pub fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
 }
 
 /// Appends a string into the lines data next to a given `index`.
-pub fn append_str(lines: &mut Lines, index: &mut Index2, text: &str) {
+pub(crate) fn append_str(lines: &mut Lines, index: &mut Index2, text: &str) {
     if !lines.is_empty() && lines.len_col(index.row).unwrap_or_default() > 0 {
         index.col += 1;
     }
@@ -101,14 +101,6 @@ pub(crate) fn max_row(state: &EditorState) -> usize {
     }
 }
 
-/// Clamps the column of the cursor if the cursor is out of bounds.
-/// In normal or visual mode, clamps on `col = len() - 1`, in insert
-/// mode on `col = len()`.
-pub(crate) fn clamp_column(state: &mut EditorState) {
-    let max_col = max_col(&state.lines, &state.cursor, state.mode);
-    state.cursor.col = state.cursor.col.min(max_col);
-}
-
 /// Skip whitespaces moving to the right. Stop at the end of the line.
 pub(crate) fn skip_whitespace(lines: &Lines, index: &mut Index2) {
     if let Some(line) = lines.get(RowIndex::new(index.row)) {
@@ -151,7 +143,7 @@ pub(crate) fn len_col(state: &EditorState) -> usize {
 }
 
 /// Checks whether an index is out of bounds of the `Lines` buffer.
-pub fn is_out_of_bounds(lines: &Lines, index: &Index2) -> bool {
+pub(crate) fn is_out_of_bounds(lines: &Lines, index: &Index2) -> bool {
     if index.row >= lines.len() {
         return true;
     }
@@ -165,7 +157,7 @@ pub fn is_out_of_bounds(lines: &Lines, index: &Index2) -> bool {
 
 /// Finds the index of the matching (closing or opening) bracket from a given starting point.
 #[must_use]
-pub fn find_matching_bracket(lines: &Lines, index: Index2) -> Option<Index2> {
+pub(crate) fn find_matching_bracket(lines: &Lines, index: Index2) -> Option<Index2> {
     let &opening_bracket = lines.get(index)?;
 
     let (closing_bracket, reverse) = match opening_bracket {
@@ -204,131 +196,39 @@ pub fn find_matching_bracket(lines: &Lines, index: Index2) -> Option<Index2> {
     None
 }
 
-pub(crate) fn char_width(ch: char) -> usize {
+/// Determines the unicode width of a char.
+pub(crate) fn char_width(ch: char, tab_width: usize) -> usize {
     use unicode_width::UnicodeWidthChar;
     if ch == '\t' {
-        return 4;
+        return tab_width;
     }
     ch.width().unwrap_or(0)
 }
 
-pub fn chars_width(chars: &[char]) -> usize {
-    chars.iter().fold(0, |sum, ch| sum + char_width(*ch))
+/// Determines the unicode width of chars.
+pub(crate) fn chars_width(chars: &[char], tab_width: usize) -> usize {
+    chars
+        .iter()
+        .fold(0, |sum, ch| sum + char_width(*ch, tab_width))
 }
 
-pub(crate) fn str_width<T: AsRef<str>>(s: T) -> usize {
+/// Determines the unicode width of a span.
+pub(crate) fn span_width(s: &Span, tab_width: usize) -> usize {
     use unicode_width::UnicodeWidthStr;
-
-    s.as_ref().replace('\t', &" ".repeat(4)).width()
+    s.content
+        .as_ref()
+        .replace('\t', &" ".repeat(tab_width))
+        .width()
 }
 
-pub(crate) fn span_width(s: &Span) -> usize {
-    str_width(&s.content)
-}
-
-pub(crate) fn spans_width(spans: &[Span]) -> usize {
-    spans.iter().fold(0, |sum, span| sum + span_width(span))
-}
-
-pub(crate) fn line_replace_tabs(line: &mut Line) {
-    for span in &mut line.spans {
-        span_replace_tabs(span);
-    }
-}
-pub(crate) fn span_replace_tabs(span: &mut Span) {
-    span.content = span.content.replace('\t', &" ".repeat(4)).into();
-}
-
-/// Returns the position of a char in a string taking into
-/// account unicode width.
-///
-/// # Example
-/// ```ignore
-/// use crate::helper::width_of_index_in_str;
-/// let s = String::from("a😀b");
-/// let index = unicode_width_position_in_str(&s, 2);
-/// assert_eq!(index, 3);
-/// ```
-pub(crate) fn unicode_width_position_in_str(s: &str, n: usize) -> usize {
-    if s.len() <= n {
-        return str_width(s) + n.saturating_sub(s.len());
-    }
-    return s.chars().take(n).map(char_width).sum();
-}
-
-/// Splits span into two at an index. Takes unicode width into account.
+/// Splits span into two at an index. [str::split_at] does fail on strings
+/// with characters that have irregular (!=1) unicode widths.
 pub(crate) fn split_str_at<T: AsRef<str>>(s: T, mid: usize) -> (String, String) {
     let mut chars = s.as_ref().chars();
     let first_half: String = chars.by_ref().take(mid).collect();
     let second_half: String = chars.collect();
 
     (first_half, second_half)
-}
-
-pub(crate) fn unicode_width_position_in_spans(spans: &[Span], n: usize) -> usize {
-    let mut total_width = 0;
-    let mut chars_counted = 0;
-
-    for span in spans {
-        for ch in span.content.chars() {
-            if chars_counted >= n {
-                return total_width;
-            }
-            total_width += char_width(ch);
-            chars_counted += 1;
-        }
-    }
-
-    total_width
-}
-
-pub(crate) fn count_characters_in_spans(spans: &[Span]) -> usize {
-    spans.iter().map(|span| span.content.chars().count()).sum()
-}
-
-pub(crate) fn find_index2_in_wrapped_spans(
-    wrapped_spans: &[Vec<Span>],
-    char_pos: usize,
-    max_width: usize,
-) -> Index2 {
-    if wrapped_spans.is_empty() {
-        return Index2::new(0, char_pos);
-    }
-
-    let mut char_pos = char_pos;
-
-    for (row, spans) in wrapped_spans.iter().enumerate() {
-        let row_char_count = count_characters_in_spans(spans);
-        let max_char_pos = row_char_count.saturating_sub(1);
-
-        if char_pos <= max_char_pos {
-            let col = unicode_width_position_in_spans(spans, char_pos);
-            return Index2::new(row, col);
-        }
-
-        if row + 1 < wrapped_spans.len() {
-            char_pos -= row_char_count;
-        }
-    }
-
-    let last_span_width = match wrapped_spans.last() {
-        Some(span) => spans_width(span),
-        None => 0,
-    };
-
-    if last_span_width >= max_width {
-        Index2::new(wrapped_spans.len(), 0)
-    } else {
-        Index2::new(wrapped_spans.len().saturating_sub(1), last_span_width)
-    }
-}
-
-pub(crate) fn find_position_in_spans(spans: &[Span], char_pos: usize) -> usize {
-    if spans.is_empty() {
-        return char_pos;
-    }
-
-    unicode_width_position_in_spans(spans, char_pos)
 }
 
 #[cfg(test)]
@@ -441,66 +341,5 @@ mod tests {
         let cursor = Index2::new(1, 5);
         let closing_bracket = find_matching_bracket(&lines, cursor);
         assert_eq!(closing_bracket, Some(Index2::new(0, 0)));
-    }
-
-    #[test]
-    fn test_unicode_width_position_in_str() {
-        let s = String::from("a😀b");
-        let index = unicode_width_position_in_str(&s, 2);
-        assert_eq!(index, 3);
-    }
-
-    #[test]
-    fn test_unicode_width_position_in_spans() {
-        let a = String::from("a😀b");
-        let b = String::from("c😀d");
-        let spans = vec![Span::from(a), Span::from(b)];
-
-        let index = unicode_width_position_in_spans(&spans, 2);
-        assert_eq!(index, 3);
-
-        let index = unicode_width_position_in_spans(&spans, 5);
-        assert_eq!(index, 7);
-
-        let index = unicode_width_position_in_spans(&spans, 99);
-        assert_eq!(index, 8);
-    }
-
-    #[test]
-    fn test_find_position_in_wrapped_spans() {
-        let line_1 = vec![Span::from("abc")];
-        let line_2 = vec![Span::from("def")];
-        let spans = vec![line_1, line_2];
-
-        let position = find_index2_in_wrapped_spans(&spans, 2, 3);
-        assert_eq!(position, Index2::new(0, 2));
-
-        let position = find_index2_in_wrapped_spans(&spans, 3, 3);
-        assert_eq!(position, Index2::new(1, 0));
-
-        let position = find_index2_in_wrapped_spans(&spans, 5, 3);
-        assert_eq!(position, Index2::new(1, 2));
-
-        let position = find_index2_in_wrapped_spans(&spans, 6, 3);
-        assert_eq!(position, Index2::new(2, 0));
-    }
-
-    #[test]
-    fn test_find_position_in_wrapped_spans_with_emoji() {
-        let line_1 = vec![Span::from("a😀b")];
-        let line_2 = vec![Span::from("c😀")];
-        let spans = vec![line_1, line_2];
-
-        let position = find_index2_in_wrapped_spans(&spans, 2, 4);
-        assert_eq!(position, Index2::new(0, 3));
-
-        let position = find_index2_in_wrapped_spans(&spans, 3, 4);
-        assert_eq!(position, Index2::new(1, 0));
-
-        let position = find_index2_in_wrapped_spans(&spans, 4, 4);
-        assert_eq!(position, Index2::new(1, 1));
-
-        let position = find_index2_in_wrapped_spans(&spans, 5, 4);
-        assert_eq!(position, Index2::new(1, 3));
     }
 }
