@@ -1,3 +1,6 @@
+//! A collection of internal datatypes for rendering.
+//!
+//! TODO: Refactor.
 #[cfg(feature = "syntax-highlighting")]
 use crate::SyntaxHighlighter;
 use crate::{
@@ -39,7 +42,7 @@ impl InternalSpan {
         style: &Style,
     ) -> Option<Vec<InternalSpan>> {
         let spans_len = InternalSpan::spans_len(spans);
-        let (start_col, end_col) = selection.selected_columns_in_row(spans_len, row_index)?;
+        let (start_col, end_col) = selection.get_selected_columns_in_row(row_index, spans_len)?;
         debug_assert!(end_col >= start_col, "{start_col} {end_col}");
 
         Some(Self::split_spans(spans, start_col, end_col, style))

@@ -89,25 +89,21 @@ impl Selection {
     /// Returns the start and end column of the selection in the given row.
     /// If the selection does not intersect with the row, the function returns None.
     #[must_use]
-    pub fn selected_columns_in_row(
+    pub(crate) fn get_selected_columns_in_row(
         &self,
-        row_len: usize,
         row_index: usize,
+        row_len: usize,
     ) -> Option<(usize, usize)> {
         let (start, end) = (self.start(), self.end());
 
         let start_col = match start.row.cmp(&row_index) {
             Ordering::Less => 0,
-            Ordering::Greater => {
-                return None;
-            }
+            Ordering::Greater => return None,
             Ordering::Equal => start.col.min(row_len),
         };
 
         let end_col = match end.row.cmp(&row_index) {
-            Ordering::Less => {
-                return None;
-            }
+            Ordering::Less => return None,
             Ordering::Greater => row_len,
             Ordering::Equal => end.col.min(row_len),
         };
@@ -152,14 +148,14 @@ mod tests {
         let selection = Selection::new(Index2::new(0, 2), Index2::new(1, 1));
 
         // when
-        let selection_columns = selection.selected_columns_in_row(5, 0);
+        let selection_columns = selection.get_selected_columns_in_row(0, 5);
 
         // then
         assert_eq!(selection_columns, Some((2, 5)));
 
         // when
         let selection = Selection::new(Index2::new(1, 2), Index2::new(1, 1));
-        let selection_columns = selection.selected_columns_in_row(5, 0);
+        let selection_columns = selection.get_selected_columns_in_row(0, 5);
 
         // then
         assert_eq!(selection_columns, None);
