@@ -9,7 +9,7 @@ pub mod theme;
 use syntax_higlighting::SyntaxHighlighter;
 
 use crate::{helper::max_col, state::EditorState, EditorMode, Index2};
-use internal::{find_position_in_spans, find_position_in_wrapped_spans, DisplayLine, InternalLine};
+use internal::{find_position_in_spans, find_position_in_wrapped_spans, InternalLine, RenderLine};
 use jagged::index::RowIndex;
 use line_wrapper::LineWrapper;
 use ratatui::{prelude::*, widgets::Widget};
@@ -199,26 +199,26 @@ impl Widget for EditorView<'_, '_> {
             let spans = { internal_line.into_spans(&selections) };
 
             let display_line = if self.wrap {
-                DisplayLine::Wrapped(LineWrapper::wrap_spans(
+                RenderLine::Wrapped(LineWrapper::wrap_spans(
                     spans,
                     main.width as usize,
                     self.tab_width,
                 ))
             } else {
-                DisplayLine::Single(spans)
+                RenderLine::Single(spans)
             };
 
             // Determine the cursor position.
             let cursor_position_on_screen = if row_index == cursor.row {
                 let cursor_position = match display_line {
-                    DisplayLine::Wrapped(ref lines) => find_position_in_wrapped_spans(
+                    RenderLine::Wrapped(ref lines) => find_position_in_wrapped_spans(
                         lines,
                         cursor.col,
                         main.width as usize,
                         self.tab_width,
                     ),
 
-                    DisplayLine::Single(ref line) => Index2::new(
+                    RenderLine::Single(ref line) => Index2::new(
                         0,
                         find_position_in_spans(
                             line,
@@ -237,10 +237,10 @@ impl Widget for EditorView<'_, '_> {
 
             // Rendering the content line by line.
             match display_line {
-                DisplayLine::Wrapped(lines) if lines.is_empty() => {
+                RenderLine::Wrapped(lines) if lines.is_empty() => {
                     y += 1;
                 }
-                DisplayLine::Wrapped(lines) => {
+                RenderLine::Wrapped(lines) => {
                     for line in lines {
                         let area = Rect::new(main.left(), y, main.width, main.height);
                         render_line(area, buf, line, self.tab_width);
@@ -251,7 +251,7 @@ impl Widget for EditorView<'_, '_> {
                         }
                     }
                 }
-                DisplayLine::Single(line) => {
+                RenderLine::Single(line) => {
                     let area = Rect::new(main.left(), y, main.width, main.height);
                     render_line(area, buf, line, self.tab_width);
                     y += 1;

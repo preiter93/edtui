@@ -139,7 +139,7 @@ impl Execute for MoveWordForwardToEndOfWord {
             return;
         }
 
-        clamp_column(state);
+        state.clamp_column();
 
         for _ in 0..self.0 {
             move_word_forward_to_end_of_word(state);

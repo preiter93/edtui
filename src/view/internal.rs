@@ -10,15 +10,29 @@ use crate::{
 use jagged::Index2;
 use ratatui::{style::Style, text::Span};
 
-pub(crate) enum DisplayLine<'a> {
+/// An internal data type that represents a line for rendering.
+/// A vector of spans represents a line. Wrapped lines consist of an array of lines.
+pub(crate) enum RenderLine<'a> {
     Wrapped(Vec<Vec<Span<'a>>>),
     Single(Vec<Span<'a>>),
 }
 
+/// An internal data type that represent a styled span.
+/// Unlike [`ratatui::text::Span`], it holds and owned string, which simplifies the
+/// code because we don't have to keep track of the lifetimes.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub(crate) struct InternalSpan {
     pub(crate) content: String,
     pub(crate) style: Style,
+}
+
+/// An internal data type that represents a styled line.
+pub(crate) struct InternalLine<'a> {
+    pub(crate) line: &'a [char],
+    base: Style,
+    pub(crate) highlighted: Style,
+    pub(crate) row_index: usize,
+    scroll_offset: usize,
 }
 
 impl InternalSpan {
@@ -163,14 +177,6 @@ impl<'a> From<InternalSpan> for Span<'a> {
     fn from(value: InternalSpan) -> Self {
         Self::styled(value.content, value.style)
     }
-}
-
-pub(crate) struct InternalLine<'a> {
-    pub(crate) line: &'a [char],
-    base: Style,
-    pub(crate) highlighted: Style,
-    pub(crate) row_index: usize,
-    scroll_offset: usize,
 }
 
 impl<'a> InternalLine<'a> {
