@@ -6,8 +6,9 @@ use crate::actions::{
     DeleteChar, DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious, InsertChar,
     InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward,
     MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
-    MoveWordBackward, MoveWordForward, Paste, Redo, RemoveChar, RemoveCharFromSearch,
-    SelectInnerBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
+    MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar,
+    RemoveCharFromSearch, SelectInnerBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch,
+    Undo,
 };
 use crate::{EditorMode, EditorState};
 use ratatui::crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
@@ -193,12 +194,20 @@ impl Default for KeyEventHandler {
                 MoveWordForward(1).into(),
             ),
             (
-                KeyEventRegister::n(vec![KeyEvent::Char('b')]),
-                MoveWordBackward(1).into(),
-            ),
-            (
                 KeyEventRegister::v(vec![KeyEvent::Char('w')]),
                 MoveWordForward(1).into(),
+            ),
+            (
+                KeyEventRegister::n(vec![KeyEvent::Char('e')]),
+                MoveWordForwardToEndOfWord(1).into(),
+            ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Char('e')]),
+                MoveWordForwardToEndOfWord(1).into(),
+            ),
+            (
+                KeyEventRegister::n(vec![KeyEvent::Char('b')]),
+                MoveWordBackward(1).into(),
             ),
             (
                 KeyEventRegister::v(vec![KeyEvent::Char('b')]),

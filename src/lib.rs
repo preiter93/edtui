@@ -52,7 +52,9 @@
 //! | `i`                       | Enter Insert mode                            |
 //! | `v`                       | Enter Visual mode                            |
 //! | `h`, `j`, `k`, `l`        | Navigate left, down, up, and right           |
-//! | `w`, `b`                  | Move forward or backward by word             |
+//! | `w`                       | Move forward to the start of a word          |
+//! | `e`                       | Move forward to the end of a word            |
+//! | `b`                       | Move backward to the start of a word         |
 //! | `x`                       | Delete the character under the cursor        |
 //! | `u`, `<ctrl>+r`           | Undo/Redo last action                        |
 //! | `Esc`                     | Escape Visual mode                           |
