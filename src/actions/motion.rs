@@ -1,4 +1,4 @@
-use crate::helper::find_matching_bracket;
+use crate::helper::{find_matching_bracket, skip_empty_lines};
 use jagged::Index2;
 
 use super::Execute;
@@ -127,6 +127,54 @@ fn move_word_forward(state: &mut EditorState) {
     }
 
     skip_whitespace(&state.lines, &mut state.cursor);
+}
+
+/// Move one word forward to the end of the word.
+#[derive(Clone, Debug, Copy)]
+pub struct MoveWordForwardToEndOfWord(pub usize);
+impl Execute for MoveWordForwardToEndOfWord {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+
+        clamp_column(state);
+
+        for _ in 0..self.0 {
+            move_word_forward_to_end_of_word(state);
+        }
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
+    }
+}
+
+fn move_word_forward_to_end_of_word(state: &mut EditorState) {
+    let mut start_index = match (
+        state.lines.is_last_col(state.cursor),
+        state.lines.is_last_row(state.cursor),
+    ) {
+        (true, true) => return,
+        (true, false) => Index2::new(state.cursor.row.saturating_add(1), 0),
+        _ => Index2::new(state.cursor.row, state.cursor.col.saturating_add(1)),
+    };
+    skip_empty_lines(&state.lines, &mut start_index.row);
+    skip_whitespace(&state.lines, &mut start_index);
+    let start_character_class = CharacterClass::from(state.lines.get(start_index));
+
+    for (next_char, index) in state.lines.iter().from(start_index) {
+        // Break loop if characters don't belong to the same class
+        if CharacterClass::from(next_char) != start_character_class {
+            break;
+        }
+        state.cursor = index;
+
+        // Break loop if it reaches the end of the line
+        if state.lines.is_last_col(index) {
+            break;
+        }
+    }
 }
 
 /// Move one word forward. Breaks on the first character that is not of
@@ -407,6 +455,29 @@ mod tests {
         state.cursor = Index2::new(0, 99);
         MoveWordForward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(1, 0));
+    }
+
+    #[test]
+    fn test_move_word_forward_to_end_of_word() {
+        let mut state = test_state();
+
+        MoveWordForwardToEndOfWord(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 4));
+
+        MoveWordForwardToEndOfWord(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 10));
+
+        MoveWordForwardToEndOfWord(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 11));
+
+        MoveWordForwardToEndOfWord(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(2, 2));
+
+        MoveWordForwardToEndOfWord(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(2, 3));
+
+        MoveWordForwardToEndOfWord(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(2, 3));
     }
 
     #[test]
