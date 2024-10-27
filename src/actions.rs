@@ -7,11 +7,12 @@ pub mod search;
 pub mod select;
 use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
+use cpaste::PasteOverSelection;
 use delete::DeleteToEndOfLine;
 use enum_dispatch::enum_dispatch;
 use motion::{MoveToFirstRow, MoveToLastRow};
 
-pub use self::cpaste::{CopySelection, Paste};
+pub use self::cpaste::{CopyLine, CopySelection, Paste};
 pub use self::delete::{
     DeleteChar, DeleteLine, DeleteSelection, JoinLineWithLineBelow, RemoveChar, ReplaceChar,
 };
@@ -61,7 +62,9 @@ pub enum Action {
     Undo(Undo),
     Redo(Redo),
     Paste(Paste),
+    PasteOverSelection(PasteOverSelection),
     CopySelection(CopySelection),
+    CopyLine(CopyLine),
     Composed(Composed),
     StartSearch(StartSearch),
     StopSearch(StopSearch),

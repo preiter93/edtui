@@ -77,7 +77,8 @@ event_handler.on_key_event(key_event, &mut state);
 | `ci` + `", ', (, [ or {`  | Change between delimiter `", ', (, [ or {`   |
 | `u`                       | Undo the last change                         |
 | `r`                       | Redo the last undone action                  |
-| `y`                       | Copy the selected text                       |
+| `y`                       | Copy the selected text in visual mode        |
+| `yy`                      | Copy the current line in normal mode         |
 | `p`                       | Paste the copied text                        |
 
 ##### Insert Mode:
