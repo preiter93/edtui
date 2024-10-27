@@ -1,9 +1,10 @@
 use jagged::index::RowIndex;
+use ratatui::text::Span;
 
-use crate::{state::selection::Selection, EditorMode, EditorState, Index2, Lines};
+use crate::{EditorMode, EditorState, Index2, Lines};
 
 /// Inserts a character into the lines data at the given `index`.
-pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: bool) {
+pub(crate) fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: bool) {
     if lines.len() == index.row {
         lines.push(Vec::new());
     }
@@ -24,7 +25,7 @@ pub fn insert_char(lines: &mut Lines, index: &mut Index2, ch: char, skip_move: b
 }
 
 /// Inserts a string into the lines data at the given `index`.
-pub fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
+pub(crate) fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
     for (i, ch) in text.chars().enumerate() {
         let is_last = i == text.len().saturating_sub(1);
         insert_char(lines, index, ch, is_last);
@@ -32,7 +33,7 @@ pub fn insert_str(lines: &mut Lines, index: &mut Index2, text: &str) {
 }
 
 /// Appends a string into the lines data next to a given `index`.
-pub fn append_str(lines: &mut Lines, index: &mut Index2, text: &str) {
+pub(crate) fn append_str(lines: &mut Lines, index: &mut Index2, text: &str) {
     if !lines.is_empty() && lines.len_col(index.row).unwrap_or_default() > 0 {
         index.col += 1;
     }
@@ -100,21 +101,6 @@ pub(crate) fn max_row(state: &EditorState) -> usize {
     }
 }
 
-/// Clamps the column of the cursor if the cursor is out of bounds.
-/// In normal or visual mode, clamps on `col = len() - 1`, in insert
-/// mode on `col = len()`.
-pub(crate) fn clamp_column(state: &mut EditorState) {
-    let max_col = max_col(&state.lines, &state.cursor, state.mode);
-    state.cursor.col = state.cursor.col.min(max_col);
-}
-
-/// Set the selections end positions
-pub(crate) fn set_selection(selection: &mut Option<Selection>, index: Index2) {
-    if let Some(selection) = selection {
-        selection.end = index;
-    }
-}
-
 /// Skip whitespaces moving to the right. Stop at the end of the line.
 pub(crate) fn skip_whitespace(lines: &Lines, index: &mut Index2) {
     if let Some(line) = lines.get(RowIndex::new(index.row)) {
@@ -157,7 +143,7 @@ pub(crate) fn len_col(state: &EditorState) -> usize {
 }
 
 /// Checks whether an index is out of bounds of the `Lines` buffer.
-pub fn is_out_of_bounds(lines: &Lines, index: &Index2) -> bool {
+pub(crate) fn is_out_of_bounds(lines: &Lines, index: &Index2) -> bool {
     if index.row >= lines.len() {
         return true;
     }
@@ -171,7 +157,7 @@ pub fn is_out_of_bounds(lines: &Lines, index: &Index2) -> bool {
 
 /// Finds the index of the matching (closing or opening) bracket from a given starting point.
 #[must_use]
-pub fn find_matching_bracket(lines: &Lines, index: Index2) -> Option<Index2> {
+pub(crate) fn find_matching_bracket(lines: &Lines, index: Index2) -> Option<Index2> {
     let &opening_bracket = lines.get(index)?;
 
     let (closing_bracket, reverse) = match opening_bracket {
@@ -208,6 +194,41 @@ pub fn find_matching_bracket(lines: &Lines, index: Index2) -> Option<Index2> {
     }
 
     None
+}
+
+/// Determines the unicode width of a char.
+pub(crate) fn char_width(ch: char, tab_width: usize) -> usize {
+    use unicode_width::UnicodeWidthChar;
+    if ch == '\t' {
+        return tab_width;
+    }
+    ch.width().unwrap_or(0)
+}
+
+/// Determines the unicode width of chars.
+pub(crate) fn chars_width(chars: &[char], tab_width: usize) -> usize {
+    chars
+        .iter()
+        .fold(0, |sum, ch| sum + char_width(*ch, tab_width))
+}
+
+/// Determines the unicode width of a span.
+pub(crate) fn span_width(s: &Span, tab_width: usize) -> usize {
+    use unicode_width::UnicodeWidthStr;
+    s.content
+        .as_ref()
+        .replace('\t', &" ".repeat(tab_width))
+        .width()
+}
+
+/// Splits span into two at an index. Other than [`str::split_at`], this method
+/// does not fail on splits outside of unicode character boundaries.
+pub(crate) fn split_str_at<T: AsRef<str>>(s: T, mid: usize) -> (String, String) {
+    let mut chars = s.as_ref().chars();
+    let first_half: String = chars.by_ref().take(mid).collect();
+    let second_half: String = chars.collect();
+
+    (first_half, second_half)
 }
 
 #[cfg(test)]

@@ -89,8 +89,6 @@
 //! | `Enter`     | Insert line break                       |
 //! | `Arrows`    | Navigation                              |
 //!
-//! \* `Tab` is currently not supported.
-//!
 //! For more keybindings and customization options, refer to the code.
 //!
 //! ## Experimental Mouse Support
@@ -143,10 +141,7 @@ pub mod clipboard;
 mod debug;
 pub mod events;
 mod helper;
-mod internal;
 mod state;
-#[cfg(feature = "syntax-highlighting")]
-mod syntax_higlighting;
 mod view;
 
 #[allow(deprecated)]
@@ -156,7 +151,7 @@ pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView};
 
 #[cfg(feature = "syntax-highlighting")]
-pub use syntax_higlighting::SyntaxHighlighter;
+pub use view::syntax_higlighting::SyntaxHighlighter;
 
 #[cfg(feature = "syntax-highlighting")]
 pub use syntect;

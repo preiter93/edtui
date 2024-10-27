@@ -9,6 +9,7 @@ use self::search::SearchState;
 use self::view::ViewState;
 use self::{mode::EditorMode, selection::Selection, undo::Stack};
 use crate::clipboard::{Clipboard, ClipboardTrait};
+use crate::helper::max_col;
 use crate::{Index2, Lines};
 
 /// Represents the state of an editor.
@@ -83,5 +84,13 @@ impl EditorState {
     #[must_use]
     pub fn search_pattern(&self) -> String {
         self.search.pattern.clone()
+    }
+
+    /// Clamps the column of the cursor if the cursor is out of bounds.
+    /// In normal or visual mode, clamps on `col = len() - 1`, in insert
+    /// mode on `col = len()`.
+    pub(crate) fn clamp_column(&mut self) {
+        let max_col = max_col(&self.lines, &self.cursor, self.mode);
+        self.cursor.col = self.cursor.col.min(max_col);
     }
 }

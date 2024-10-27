@@ -1,6 +1,9 @@
-use crate::{view::line_wrapper::LineWrapper, Index2, Lines};
+use crate::{
+    helper::{char_width, chars_width},
+    view::line_wrapper::LineWrapper,
+    Lines,
+};
 use ratatui::layout::Rect;
-use unicode_width::UnicodeWidthChar;
 
 /// Represents the (x, y) offset of the editor's viewport.
 /// It represents the top-left local editor coordinate.
@@ -15,6 +18,8 @@ pub(crate) struct ViewState {
     /// This offset is necessary to calculate the mouse position in relation to the text
     /// within the editor.
     pub(crate) editor_to_textarea_offset: Offset,
+    /// The number of spaces used to display a tab.
+    pub(crate) tab_width: usize,
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
@@ -49,47 +54,93 @@ impl ViewState {
         self.editor_to_textarea_offset = offset.into();
     }
 
-    /// Updates the view's offset and returns the new offset.
-    /// This method is used internally to modify the view's offset coordinates.
-    /// The given cursor coordinates are assumed to be in the editors absolute
-    /// coordinates.
-    pub(crate) fn update_viewport_offset(
+    /// Updates the viewports horizontal offset.
+    pub(crate) fn update_viewport_horizontal(
         &mut self,
-        size: (usize, usize),
-        cursor: Index2,
-        lines: &Lines,
-        wrap: bool,
-    ) -> Offset {
-        let max_cursor_pos = (
-            size.0.saturating_sub(1) + self.viewport.x,
-            size.1.saturating_sub(1) + self.viewport.y,
-        );
-
-        if wrap {
+        width: usize,
+        cursor_col: usize,
+        line: Option<&Vec<char>>,
+    ) -> usize {
+        let Some(line) = line else {
             self.viewport.x = 0;
-        } else {
-            // scroll left
-            if cursor.col < self.viewport.x {
-                self.viewport.x = cursor.col;
-            }
-            // scroll right
-            if cursor.col > max_cursor_pos.0 {
-                self.viewport.x += cursor.col.saturating_sub(max_cursor_pos.0);
-            }
+            return self.viewport.x;
+        };
+
+        // scroll left
+        if cursor_col < self.viewport.x {
+            self.viewport.x = cursor_col;
+            return self.viewport.x;
         }
 
+        // Iterate forward from the viewport.x position and calculate width
+        let mut max_cursor_pos = self.viewport.x;
+        let mut current_width = 0;
+        for &ch in line.iter().skip(self.viewport.x) {
+            current_width += char_width(ch, self.tab_width);
+            if current_width >= width {
+                break;
+            }
+            max_cursor_pos += 1;
+        }
+
+        // scroll right
+        if cursor_col > max_cursor_pos {
+            let mut backward_width = 0;
+            let mut new_viewport_x = cursor_col;
+
+            // Iterate backward from max_cursor_pos to find the first fitting character
+            for i in (0..=cursor_col).rev() {
+                let char_width = match line.get(i) {
+                    Some(&ch) => char_width(ch, self.tab_width),
+                    None => 1,
+                };
+                backward_width += char_width;
+                if backward_width >= width {
+                    break;
+                }
+                new_viewport_x = new_viewport_x.saturating_sub(1);
+            }
+
+            self.viewport.x = new_viewport_x;
+        }
+
+        self.viewport.x
+    }
+
+    /// Updates the view ports vertical offset.
+    pub(crate) fn update_viewport_vertical(&mut self, height: usize, cursor_row: usize) -> usize {
+        let max_cursor_pos = height.saturating_sub(1) + self.viewport.y;
+
         // scroll up
-        if cursor.row < self.viewport.y {
-            self.viewport.y = cursor.row;
+        if cursor_row < self.viewport.y {
+            self.viewport.y = cursor_row;
         }
 
         // scroll down
-        if wrap {
-            self.scroll_down(lines, size.0, size.1, cursor.row);
-        } else if cursor.row >= max_cursor_pos.1 {
-            self.viewport.y += cursor.row.saturating_sub(max_cursor_pos.1);
+        if cursor_row >= max_cursor_pos {
+            self.viewport.y += cursor_row.saturating_sub(max_cursor_pos);
         }
-        self.viewport
+
+        self.viewport.y
+    }
+
+    /// Updates the view ports vertical offset.
+    pub(crate) fn update_viewport_vertical_wrap(
+        &mut self,
+        width: usize,
+        height: usize,
+        cursor_row: usize,
+        lines: &Lines,
+    ) -> usize {
+        // scroll up
+        if cursor_row < self.viewport.y {
+            self.viewport.y = cursor_row;
+        }
+
+        // scroll down
+        self.scroll_down(lines, width, height, cursor_row);
+
+        self.viewport.y
     }
 
     /// Updates the number of rows that are currently shown on the viewport.
@@ -125,7 +176,7 @@ impl ViewState {
 
         let skip = lines.len().saturating_sub(cursor_row + 1);
         for (i, line) in lines.iter_row().rev().skip(skip).enumerate() {
-            let line_width = chars_width(line);
+            let line_width = chars_width(line, self.tab_width);
             let current_row_height = LineWrapper::determine_split(line_width, max_width).len();
 
             // If we run out of height or exceed it, scroll the viewport.
@@ -141,20 +192,14 @@ impl ViewState {
     }
 }
 
-fn chars_width(chars: &[char]) -> usize {
-    chars
-        .iter()
-        .fold(0, |sum, ch| sum + ch.width().unwrap_or(0))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    macro_rules! update_view_offset_test {
+    macro_rules! update_view_vertical_test {
         ($name:ident: {
         view: $given_view:expr,
-        size: $given_size:expr,
+        height: $given_height:expr,
         cursor: $given_cursor:expr,
         expected: $expected_offset:expr
     }) => {
@@ -162,12 +207,11 @@ mod tests {
             fn $name() {
                 // given
                 let mut view = $given_view;
-                let size = $given_size;
+                let height = $given_height;
                 let cursor = $given_cursor;
-                let lines = Lines::default();
 
                 // when
-                let offset = view.update_viewport_offset(size, cursor, &lines, false);
+                let offset = view.update_viewport_vertical(height, cursor);
 
                 // then
                 assert_eq!(offset, $expected_offset);
@@ -175,23 +219,48 @@ mod tests {
         };
     }
 
-    update_view_offset_test!(
-        // 0 <-   | --<-
-        // 1 ---- | ----
+    macro_rules! update_view_horizontal_test {
+        ($name:ident: {
+        view: $given_view:expr,
+        width: $given_width:expr,
+        cursor: $given_cursor:expr,
+        expected: $expected_offset:expr
+    }) => {
+            #[test]
+            fn $name() {
+                // given
+                let mut view = $given_view;
+                let width = $given_width;
+                let cursor = $given_cursor;
+                let line = vec![];
+
+                // when
+                let offset = view.update_viewport_horizontal(width, cursor, Some(&line));
+
+                // then
+                assert_eq!(offset, $expected_offset);
+            }
+        };
+    }
+
+    update_view_vertical_test!(
+        // 0      | --<-
+        // 1 --<- | ----
         // 2 ---- |
         scroll_up: {
             view: ViewState{
                 viewport: Offset::new(0, 1),
                 editor_to_textarea_offset: Offset::default(),
                 num_rows: 0,
+                tab_width: 2,
             },
-            size: (1, 2),
-            cursor: Index2::new(0, 0),
-            expected: Offset::new(0, 0)
+            height:  2,
+            cursor: 0,
+            expected: 0
         }
     );
 
-    update_view_offset_test!(
+    update_view_vertical_test!(
         // 0 ---- |
         // 1 ---- | ----
         // 2 <-   | --<-
@@ -200,36 +269,39 @@ mod tests {
                 viewport: Offset::new(0, 0),
                 editor_to_textarea_offset: Offset::default(),
                 num_rows: 0,
+                tab_width: 2,
             },
-            size: (1, 2),
-            cursor: Index2::new(2, 0),
-            expected: Offset::new(0, 1)
+            height:  2,
+            cursor: 2,
+            expected: 1
         }
     );
 
-    update_view_offset_test!(
+    update_view_horizontal_test!(
         scroll_left: {
             view: ViewState{
                 viewport: Offset::new(1, 0),
                 editor_to_textarea_offset: Offset::default(),
                 num_rows: 0,
+                tab_width: 2,
             },
-            size: (2, 1),
-            cursor: Index2::new(0, 0),
-            expected: Offset::new(0, 0)
+            width: 2,
+            cursor: 0,
+            expected: 0
         }
     );
 
-    update_view_offset_test!(
+    update_view_horizontal_test!(
         scroll_right: {
             view: ViewState{
                 viewport: Offset::new(0, 0),
                 editor_to_textarea_offset: Offset::default(),
                 num_rows: 0,
+                tab_width: 2,
             },
-            size: (2, 1),
-            cursor: Index2::new(0, 2),
-            expected: Offset::new(1, 0)
+            width: 2,
+            cursor: 2,
+            expected: 1
         }
     );
 }

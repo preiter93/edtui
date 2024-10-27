@@ -1,11 +1,12 @@
-use crate::helper::{find_matching_bracket, skip_empty_lines};
+use crate::{
+    helper::{find_matching_bracket, skip_empty_lines},
+    state::selection::set_selection,
+};
 use jagged::Index2;
 
 use super::Execute;
 use crate::{
-    helper::{
-        clamp_column, max_col, max_col_normal, set_selection, skip_whitespace, skip_whitespace_rev,
-    },
+    helper::{max_col, max_col_normal, skip_whitespace, skip_whitespace_rev},
     EditorMode, EditorState,
 };
 
@@ -93,7 +94,7 @@ impl Execute for MoveWordForward {
             return;
         }
 
-        clamp_column(state);
+        state.clamp_column();
 
         for _ in 0..self.0 {
             move_word_forward(state);
@@ -138,7 +139,7 @@ impl Execute for MoveWordForwardToEndOfWord {
             return;
         }
 
-        clamp_column(state);
+        state.clamp_column();
 
         for _ in 0..self.0 {
             move_word_forward_to_end_of_word(state);
