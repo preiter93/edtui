@@ -127,6 +127,16 @@ pub(crate) fn skip_whitespace(lines: &Lines, index: &mut Index2) {
     }
 }
 
+/// Skip empty lines.
+pub(crate) fn skip_empty_lines(lines: &Lines, row_index: &mut usize) {
+    for line in lines.iter_row().skip(*row_index) {
+        if !line.is_empty() {
+            break;
+        }
+        *row_index += 1;
+    }
+}
+
 /// Skip whitespaces moving to the left. Stop at the start of the line.
 pub(crate) fn skip_whitespace_rev(lines: &Lines, index: &mut Index2) {
     if let Some(line) = lines.get(RowIndex::new(index.row)) {
@@ -218,6 +228,23 @@ mod tests {
 
         skip_whitespace(&lines, &mut index);
         assert_eq!(index.col, 2);
+    }
+
+    #[test]
+    fn test_skip_empty_lines() {
+        let lines = test_lines();
+
+        let mut row_index = 0;
+        skip_empty_lines(&lines, &mut row_index);
+        assert_eq!(row_index, 0);
+
+        let mut row_index = 1;
+        skip_empty_lines(&lines, &mut row_index);
+        assert_eq!(row_index, 2);
+
+        let mut row_index = 2;
+        skip_empty_lines(&lines, &mut row_index);
+        assert_eq!(row_index, 2);
     }
 
     #[test]
