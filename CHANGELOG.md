@@ -1,6 +1,15 @@
 Released
 --------
 
+0.9.1 - 27 Okt 2024
+===================
+- Support <Tab>. Tabs are currently visually interpreted as spaces. The number of spaces can be set via (by default 2)
+```rust
+EditorView::new(&mut state).tab_width(2);
+```
+
+- Add 'e' keymap: Move word forward to end of a word
+
 0.9.0 - 22 Okt 2024
 ===================
 - Bump ratatui to v0.29.0
