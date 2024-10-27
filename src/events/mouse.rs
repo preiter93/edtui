@@ -3,7 +3,7 @@ use ratatui::crossterm::event::{MouseEvent as CTMouseEvent, MouseEventKind};
 
 use crate::{
     actions::{Execute, SwitchMode},
-    helper::set_selection,
+    state::selection::set_selection,
     EditorMode, EditorState,
 };
 
@@ -51,12 +51,12 @@ impl MouseEventHandler {
                         .saturating_add(viewport_offset.x)
                         .saturating_sub(total_textarea_offset.x),
                 );
-                let last_row = lines.len().saturating_sub(1);
-                let last_col = lines.len_col(cursor.row).unwrap_or(0).saturating_sub(1);
+                let last_row = lines.last_row_index();
+                let last_col = lines.last_col_index(cursor.row);
 
                 // row is out of bounds
                 if last_row < cursor.row {
-                    let last_col = lines.len_col(last_row).unwrap_or(0).saturating_sub(1);
+                    let last_col = lines.last_col_index(last_row);
                     state.cursor = Index2::new(last_row, last_col);
                 // col is out of bounds
                 } else if last_col < cursor.col {

@@ -74,34 +74,36 @@ impl Selection {
         (self.start, self.end) = (self.end, self.start);
     }
 
+    /// Copies a selection from `Lines`.
+    #[must_use]
+    pub fn copy_from(&self, lines: &Lines) -> Lines {
+        lines.copy_range(self.start()..=self.end())
+    }
+
     /// Extracts a selection from `Lines`.
     #[must_use]
-    pub fn extract(&self, lines: &Lines) -> Lines {
-        lines.iter().from(self.start()).to(self.end()).collect()
+    pub fn extract_from(&self, lines: &mut Lines) -> Lines {
+        lines.extract(self.start()..=self.end())
     }
 
     /// Returns the start and end column of the selection in the given row.
     /// If the selection does not intersect with the row, the function returns None.
     #[must_use]
-    pub fn selected_columns_in_row(
+    pub(crate) fn get_selected_columns_in_row(
         &self,
-        row_len: usize,
         row_index: usize,
+        row_len: usize,
     ) -> Option<(usize, usize)> {
         let (start, end) = (self.start(), self.end());
 
         let start_col = match start.row.cmp(&row_index) {
             Ordering::Less => 0,
-            Ordering::Greater => {
-                return None;
-            }
+            Ordering::Greater => return None,
             Ordering::Equal => start.col.min(row_len),
         };
 
         let end_col = match end.row.cmp(&row_index) {
-            Ordering::Less => {
-                return None;
-            }
+            Ordering::Less => return None,
             Ordering::Greater => row_len,
             Ordering::Equal => end.col.min(row_len),
         };
@@ -110,22 +112,34 @@ impl Selection {
     }
 }
 
+/// Set the selections end positions
+pub(crate) fn set_selection(selection: &mut Option<Selection>, index: Index2) {
+    if let Some(selection) = selection {
+        selection.end = index;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     fn test_data() -> Lines {
-        Lines::from(
-            "Hello\n\
-            World",
-        )
+        Lines::from("Hello\nWorld")
     }
 
     #[test]
-    fn test_extract() {
+    fn test_copy_from() {
         let data = test_data();
         let selection = Selection::new(Index2::new(0, 3), Index2::new(1, 1));
 
-        assert_eq!(selection.extract(&data), Lines::from("lo\nWo"));
+        assert_eq!(selection.copy_from(&data), Lines::from("lo\nWo"));
+    }
+
+    #[test]
+    fn test_copy_from_out_of_bounds() {
+        let data = test_data();
+        let selection = Selection::new(Index2::new(0, 5), Index2::new(1, 1));
+
+        assert_eq!(selection.copy_from(&data), Lines::from("\nWo"));
     }
 
     #[test]
@@ -134,14 +148,14 @@ mod tests {
         let selection = Selection::new(Index2::new(0, 2), Index2::new(1, 1));
 
         // when
-        let selection_columns = selection.selected_columns_in_row(5, 0);
+        let selection_columns = selection.get_selected_columns_in_row(0, 5);
 
         // then
         assert_eq!(selection_columns, Some((2, 5)));
 
         // when
         let selection = Selection::new(Index2::new(1, 2), Index2::new(1, 1));
-        let selection_columns = selection.selected_columns_in_row(5, 0);
+        let selection_columns = selection.get_selected_columns_in_row(0, 5);
 
         // then
         assert_eq!(selection_columns, None);

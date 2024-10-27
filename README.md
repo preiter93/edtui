@@ -89,8 +89,6 @@ event_handler.on_key_event(key_event, &mut state);
 | `Enter`     | Insert line break                       |
 | `Arrows`    | Navigation                              |
 
-\* `Tab` is currently not supported.
-
 For more keybindings and customization options, refer to the code.
 
 ### Experimental Mouse Support

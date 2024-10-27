@@ -3,7 +3,7 @@ use jagged::index::RowIndex;
 use super::Execute;
 use crate::{
     clipboard::ClipboardTrait,
-    helper::{clamp_column, is_out_of_bounds, max_col_insert},
+    helper::{is_out_of_bounds, max_col_insert},
     state::selection::Selection,
     EditorMode, EditorState, Index2, Lines,
 };
@@ -15,8 +15,8 @@ pub struct RemoveChar(pub usize);
 
 impl Execute for RemoveChar {
     fn execute(&mut self, state: &mut EditorState) {
-        clamp_column(state);
         state.capture();
+        state.clamp_column();
         for _ in 0..self.0 {
             let lines = &mut state.lines;
             let index = &mut state.cursor;
@@ -152,8 +152,8 @@ impl Execute for DeleteSelection {
 
 pub(crate) fn delete_selection(state: &mut EditorState, selection: &Selection) -> Lines {
     state.cursor = selection.start();
-    clamp_column(state);
-    state.lines.extract(selection.start()..=selection.end())
+    state.clamp_column();
+    selection.extract_from(&mut state.lines)
 }
 
 /// Joins line below to the current line.

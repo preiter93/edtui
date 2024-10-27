@@ -1,4 +1,3 @@
-use crate::internal::InternalSpan;
 use crate::syntect::{
     easy::HighlightLines,
     highlighting::{Theme, ThemeSet},
@@ -8,11 +7,13 @@ use once_cell::sync::Lazy;
 use ratatui::style::{Color, Style};
 use syntect::dumps::from_binary;
 
+use super::internal::InternalSpan;
+
 pub static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
 pub static THEME_SET: Lazy<ThemeSet> = Lazy::new(load_defaults);
 
 pub fn load_defaults() -> ThemeSet {
-    from_binary(include_bytes!("../assets/default.themedump"))
+    from_binary(include_bytes!("../../assets/default.themedump"))
 }
 
 /// Syntax highlighter settings including theme and syntax.
@@ -138,6 +139,7 @@ impl SyntaxHighlighter {
         self
     }
 }
+
 impl SyntaxHighlighter {
     pub(super) fn highlight_line(&self, line: &str) -> Vec<InternalSpan> {
         // Highlight lines
