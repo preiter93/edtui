@@ -1,11 +1,12 @@
+use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::DeleteToEndOfLine;
 use crate::actions::motion::{MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
-    Action, Append, AppendCharToSearch, AppendNewline, ChangeInnerBetween, Composed, CopySelection,
-    DeleteChar, DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious, InsertChar,
-    InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward,
-    MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
+    Action, Append, AppendCharToSearch, AppendNewline, ChangeInnerBetween, Composed, CopyLine,
+    CopySelection, DeleteChar, DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious,
+    InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown,
+    MoveForward, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
     MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar,
     RemoveCharFromSearch, SelectInnerBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch,
     Undo,
@@ -449,9 +450,16 @@ impl Default for KeyEventHandler {
                 KeyEventRegister::v(vec![KeyEvent::Char('y')]),
                 CopySelection.into(),
             ),
+            (
+                KeyEventRegister::n(vec![KeyEvent::Char('y'), KeyEvent::Char('y')]),
+                CopyLine.into(),
+            ),
             // Paste
             (KeyEventRegister::n(vec![KeyEvent::Char('p')]), Paste.into()),
-            (KeyEventRegister::v(vec![KeyEvent::Char('p')]), Paste.into()),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Char('p')]),
+                PasteOverSelection.into(),
+            ),
         ]);
 
         Self {
