@@ -1,3 +1,8 @@
+0.9.2 - 27 Okt 2024
+===================
+- Impl 'yy': Yank current line
+- Handle cases where yanked buffer starts with a new line character. In this case we paste the yank buffer into the start of a next new line, instead of breaking the current line. This matches vim behaviour. 
+
 Released
 --------
 
