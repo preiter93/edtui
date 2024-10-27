@@ -89,29 +89,6 @@ pub struct MoveWordForward(pub usize);
 
 impl Execute for MoveWordForward {
     fn execute(&mut self, state: &mut EditorState) {
-        fn move_word_right(state: &mut EditorState) {
-            let lines = &state.lines;
-            let mut index = state.cursor;
-            let first_char = state.lines.get(index);
-            let mut iter = state.lines.iter().from(index);
-            iter.next();
-            for (val, i) in iter {
-                index = i;
-                // Break loop if it reaches the end of the line
-                if state.cursor.col >= max_col(&state.lines, &state.cursor, state.mode) {
-                    break;
-                }
-                // Break loop if characters don't belong to the same class
-                if !is_same_word_class(val, first_char) {
-                    break;
-                }
-            }
-            // Skip whitespaces moving to the right.
-            skip_whitespace(lines, &mut index);
-
-            state.cursor = index;
-        }
-
         if state.lines.is_empty() {
             return;
         }
@@ -119,13 +96,37 @@ impl Execute for MoveWordForward {
         clamp_column(state);
 
         for _ in 0..self.0 {
-            move_word_right(state);
+            move_word_forward(state);
         }
 
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
         }
     }
+}
+
+fn move_word_forward(state: &mut EditorState) {
+    let start_index = match (
+        state.lines.is_last_col(state.cursor),
+        state.lines.is_last_row(state.cursor),
+    ) {
+        (true, true) => return,
+        (true, false) => {
+            state.cursor = Index2::new(state.cursor.row.saturating_add(1), 0);
+            return;
+        }
+        _ => Index2::new(state.cursor.row, state.cursor.col.saturating_add(1)),
+    };
+    let start_character_class = CharacterClass::from(state.lines.get(start_index));
+
+    for (next_char, index) in state.lines.iter().from(start_index) {
+        state.cursor = index;
+        if CharacterClass::from(next_char) != start_character_class {
+            break;
+        }
+    }
+
+    skip_whitespace(&state.lines, &mut state.cursor);
 }
 
 /// Move one word forward. Breaks on the first character that is not of
@@ -136,41 +137,6 @@ pub struct MoveWordBackward(pub usize);
 
 impl Execute for MoveWordBackward {
     fn execute(&mut self, state: &mut EditorState) {
-        fn move_word_left(state: &mut EditorState) {
-            let lines = &state.lines;
-            let mut index = state.cursor;
-            if index.row == 0 && index.col == 0 {
-                return;
-            }
-
-            if index.col == 0 {
-                index.row = index.row.saturating_sub(1);
-                state.cursor.col = lines
-                    .len_col(index.row)
-                    .unwrap_or_default()
-                    .saturating_sub(1);
-                state.cursor.row = index.row;
-                return;
-            }
-
-            index.col = index.col.saturating_sub(1);
-            skip_whitespace_rev(lines, &mut index);
-            let first_char = lines.get(index);
-            for (val, i) in lines.iter().from(index).rev() {
-                // Break loop if it reaches the start of the line
-                if i.col == 0 {
-                    index = i;
-                    break;
-                }
-                // Break loop if characters don't belong to the same class
-                if !is_same_word_class(val, first_char) {
-                    break;
-                }
-                index = i;
-            }
-            state.cursor = index;
-        }
-
         if state.lines.is_empty() {
             return;
         }
@@ -181,7 +147,7 @@ impl Execute for MoveWordBackward {
         }
 
         for _ in 0..self.0 {
-            move_word_left(state);
+            move_word_backward(state);
         }
 
         if state.mode == EditorMode::Visual {
@@ -190,16 +156,36 @@ impl Execute for MoveWordBackward {
     }
 }
 
-/// Whether two characters are considered of the same class.
-fn is_same_word_class(a: Option<&char>, b: Option<&char>) -> bool {
-    match (a, b) {
-        (Some(a), Some(b)) => {
-            a.is_ascii_alphanumeric() && b.is_ascii_alphanumeric()
-                || (a.is_ascii_punctuation() && b.is_ascii_punctuation())
-                || (a.is_ascii_whitespace() && b.is_ascii_whitespace())
-        }
-        _ => false,
+fn move_word_backward(state: &mut EditorState) {
+    let mut start_index = state.cursor;
+    if start_index.row == 0 && start_index.col == 0 {
+        return;
     }
+
+    if start_index.col == 0 {
+        state.cursor.row = start_index.row.saturating_sub(1);
+        state.cursor.col = state.lines.last_col_index(state.cursor.row);
+        return;
+    }
+
+    start_index.col = start_index.col.saturating_sub(1);
+    skip_whitespace_rev(&state.lines, &mut start_index);
+    let start_character_class = CharacterClass::from(state.lines.get(start_index));
+
+    for (next_char, i) in state.lines.iter().from(start_index).rev() {
+        // Break loop if it reaches the start of the line
+        if i.col == 0 {
+            start_index = i;
+            break;
+        }
+        // Break loop if characters don't belong to the same class
+        if CharacterClass::from(next_char) != start_character_class {
+            break;
+        }
+        start_index = i;
+    }
+
+    state.cursor = start_index;
 }
 
 // Move the cursor to the start of the line.
@@ -285,6 +271,44 @@ impl Execute for MoveToMatchinBracket {
                 set_selection(&mut state.selection, state.cursor);
             }
         };
+    }
+}
+
+#[derive(Debug, Clone, Eq)]
+enum CharacterClass {
+    Unknown,
+    Alphanumeric,
+    Punctuation,
+    Whitespace,
+}
+
+impl From<&char> for CharacterClass {
+    fn from(value: &char) -> Self {
+        if value.is_ascii_alphanumeric() {
+            return Self::Alphanumeric;
+        }
+        if value.is_ascii_punctuation() {
+            return Self::Punctuation;
+        }
+        if value.is_ascii_whitespace() {
+            return Self::Whitespace;
+        }
+        Self::Unknown
+    }
+}
+
+impl From<Option<&char>> for CharacterClass {
+    fn from(value: Option<&char>) -> Self {
+        value.map_or(CharacterClass::Unknown, Self::from)
+    }
+}
+
+impl PartialEq for CharacterClass {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (CharacterClass::Unknown, _) | (_, CharacterClass::Unknown) => false,
+            _ => std::mem::discriminant(self) == std::mem::discriminant(other),
+        }
     }
 }
 
