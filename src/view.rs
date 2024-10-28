@@ -176,6 +176,7 @@ impl Widget for EditorView<'_, '_> {
         let selections = vec![&self.state.selection, &search_selection];
 
         let mut y = main.top();
+        let width = main.width as usize;
         let mut num_rows: usize = 0;
         for (i, line) in lines.iter_row().skip(offset_y).enumerate() {
             let row_index = offset_y + i;
@@ -199,11 +200,8 @@ impl Widget for EditorView<'_, '_> {
             let spans = { internal_line.into_spans(&selections) };
 
             let display_line = if self.wrap {
-                RenderLine::Wrapped(LineWrapper::wrap_spans(
-                    spans,
-                    main.width as usize,
-                    self.tab_width,
-                ))
+                let wrapped_spans = LineWrapper::wrap_spans(spans, width, self.tab_width);
+                RenderLine::Wrapped(wrapped_spans)
             } else {
                 RenderLine::Single(spans)
             };
@@ -211,21 +209,13 @@ impl Widget for EditorView<'_, '_> {
             // Determine the cursor position.
             let cursor_position_on_screen = if row_index == cursor.row {
                 let cursor_position = match display_line {
-                    RenderLine::Wrapped(ref lines) => find_position_in_wrapped_spans(
-                        lines,
-                        cursor.col,
-                        main.width as usize,
-                        self.tab_width,
-                    ),
-
-                    RenderLine::Single(ref line) => Index2::new(
-                        0,
-                        find_position_in_spans(
-                            line,
-                            cursor.col.saturating_sub(offset_x),
-                            self.tab_width,
-                        ),
-                    ),
+                    RenderLine::Wrapped(ref lines) => {
+                        find_position_in_wrapped_spans(lines, cursor.col, width, self.tab_width)
+                    }
+                    RenderLine::Single(ref line) => {
+                        let buffer_col = cursor.col.saturating_sub(offset_x);
+                        Index2::new(0, find_position_in_spans(line, buffer_col, self.tab_width))
+                    }
                 };
                 Some(Position::new(
                     main.left() + min(width, cursor_position.col) as u16,
@@ -272,12 +262,8 @@ impl Widget for EditorView<'_, '_> {
         }
 
         // Render the cursor even if the editor has no content,
-        if num_rows == 0 {
-            if let Some(cell) = buf.cell_mut(Position::new(main.left(), main.top())) {
-                cell.set_style(self.theme.cursor_style);
-            }
-        // Render the cursor if the cursor is out of bounds.
-        } else if self.state.cursor.row + 1 > self.state.lines.len() {
+        // or if the cursor is out of bounds.
+        if num_rows == 0 || self.state.cursor.row + 1 > self.state.lines.len() {
             if let Some(cell) = buf.cell_mut(Position::new(
                 main.left(),
                 main.top() + self.state.cursor.row as u16,
@@ -286,7 +272,7 @@ impl Widget for EditorView<'_, '_> {
             }
         }
 
-        // Save the total number of lines that are currentyl displayed on the viewport.
+        // Save the total number of lines that are currently displayed on the viewport.
         // Needed to handle scrolling.
         self.state.view.update_num_rows(num_rows);
 
