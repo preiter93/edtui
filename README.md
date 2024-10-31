@@ -102,9 +102,6 @@ event_handler.on_mouse_event(mouse_event, &mut state);
 event_handler.on_event(event, &mut state);
 ```
 
-**Note**: This feature is experimental, so expect potential bugs and breaking changes. It does
-currently not work correctly on wrapped lines.
-
 ### Syntax highlighting
 
 Syntax highlighting was added in version `0.8.4`. It is experimental, so expect breaking changes.
