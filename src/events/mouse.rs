@@ -21,7 +21,7 @@ impl MouseEventHandler {
             return;
         }
 
-        let total_textarea_offset = state.view.editor_to_textarea_offset;
+        let total_textarea_offset = state.view.screen_coordinates;
         let viewport_offset = state.view.viewport;
 
         if let MouseEvent::Down(_) = event {
