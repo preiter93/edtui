@@ -151,9 +151,8 @@ impl Widget for EditorView<'_, '_> {
         let max_col = max_col(&self.state.lines, &self.state.cursor, self.state.mode);
         let cursor = Index2::new(self.state.cursor.row, self.state.cursor.col.min(max_col));
 
-        // Store the offset from the current buffer to the textarea inside the state.
-        // This is required to calculate mouse positions correctly.
-        self.state.view.set_editor_to_textarea_offset(area);
+        // Store the coordinats of the current editor.
+        self.state.view.set_screen_coordinates(area);
 
         // Set how many spaces are used to render a tab.
         self.state.view.tab_width = self.tab_width;

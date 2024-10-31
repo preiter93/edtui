@@ -13,11 +13,11 @@ pub(crate) struct ViewState {
     pub(crate) viewport: Offset,
     /// The number of rows that are displayed on the viewport
     pub(crate) num_rows: usize,
-    /// Sets the offset from the upper-left corner of the terminal window to the start of the textarea buffer.
+    /// Sets the coordinates (upper-left corner of the terminal window) where
+    /// the editor text is rendered to.
     ///
-    /// This offset is necessary to calculate the mouse position in relation to the text
-    /// within the editor.
-    pub(crate) editor_to_textarea_offset: Offset,
+    /// Required to calculate the mouse position in relation to the text within the editor.
+    pub(crate) screen_coordinates: Offset,
     /// The number of spaces used to display a tab.
     pub(crate) tab_width: usize,
 }
@@ -50,8 +50,8 @@ impl ViewState {
     ///
     /// Equivalent to the upper left coordinate of the editor in the
     /// buffers coordinate system.
-    pub(crate) fn set_editor_to_textarea_offset<T: Into<Offset>>(&mut self, offset: T) {
-        self.editor_to_textarea_offset = offset.into();
+    pub(crate) fn set_screen_coordinates<T: Into<Offset>>(&mut self, offset: T) {
+        self.screen_coordinates = offset.into();
     }
 
     /// Updates the viewports horizontal offset.
@@ -250,7 +250,7 @@ mod tests {
         scroll_up: {
             view: ViewState{
                 viewport: Offset::new(0, 1),
-                editor_to_textarea_offset: Offset::default(),
+                screen_coordinates: Offset::default(),
                 num_rows: 0,
                 tab_width: 2,
             },
@@ -267,7 +267,7 @@ mod tests {
         scroll_down: {
             view: ViewState{
                 viewport: Offset::new(0, 0),
-                editor_to_textarea_offset: Offset::default(),
+                screen_coordinates: Offset::default(),
                 num_rows: 0,
                 tab_width: 2,
             },
@@ -281,7 +281,7 @@ mod tests {
         scroll_left: {
             view: ViewState{
                 viewport: Offset::new(1, 0),
-                editor_to_textarea_offset: Offset::default(),
+                screen_coordinates: Offset::default(),
                 num_rows: 0,
                 tab_width: 2,
             },
@@ -295,7 +295,7 @@ mod tests {
         scroll_right: {
             view: ViewState{
                 viewport: Offset::new(0, 0),
-                editor_to_textarea_offset: Offset::default(),
+                screen_coordinates: Offset::default(),
                 num_rows: 0,
                 tab_width: 2,
             },
