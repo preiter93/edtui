@@ -238,7 +238,7 @@ pub(crate) fn replace_tabs_in_span(span: &mut Span, tab_width: usize) {
 pub(crate) fn rect_indent_y(rect: Rect, offset: usize) -> Rect {
     Rect {
         y: rect.y.saturating_add(offset as u16),
-        height: rect.width.saturating_sub(offset as u16),
+        height: rect.height.saturating_sub(offset as u16),
         ..rect
     }
 }
