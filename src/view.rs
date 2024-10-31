@@ -43,12 +43,15 @@ use theme::EditorTheme;
 ///     .theme(theme);
 /// ```
 pub struct EditorView<'a, 'b> {
+    /// The editor state.
     pub(crate) state: &'a mut EditorState,
+
+    /// The editor theme.
     pub(crate) theme: EditorTheme<'b>,
-    pub(crate) wrap: bool,
+
+    /// An optional syntax highlighter.
     #[cfg(feature = "syntax-highlighting")]
     pub(crate) syntax_highlighter: Option<SyntaxHighlighter>,
-    pub(crate) tab_width: usize,
 }
 
 impl<'a, 'b> EditorView<'a, 'b> {
@@ -58,10 +61,8 @@ impl<'a, 'b> EditorView<'a, 'b> {
         Self {
             state,
             theme: EditorTheme::default(),
-            wrap: true,
             #[cfg(feature = "syntax-highlighting")]
             syntax_highlighter: None,
-            tab_width: 2,
         }
     }
 
@@ -100,16 +101,24 @@ impl<'a, 'b> EditorView<'a, 'b> {
     /// # Note
     /// Line wrapping currently has issues when used with mouse events.
     #[must_use]
-    pub fn wrap(mut self, wrap: bool) -> Self {
-        self.wrap = wrap;
+    pub fn wrap(self, wrap: bool) -> Self {
+        self.state.view.wrap = wrap;
         self
+    }
+
+    pub(super) fn get_wrap(&self) -> bool {
+        self.state.view.wrap
     }
 
     /// Configures the number of spaces that are used to render at tab.
     #[must_use]
-    pub fn tab_width(mut self, tab_width: usize) -> Self {
-        self.tab_width = tab_width;
+    pub fn tab_width(self, tab_width: usize) -> Self {
+        self.state.view.tab_width = tab_width;
         self
+    }
+
+    pub(super) fn get_tab_width(&self) -> usize {
+        self.state.view.tab_width
     }
 
     /// Returns a reference to the [`EditorState`].
@@ -147,6 +156,8 @@ impl Widget for EditorView<'_, '_> {
         .areas(area);
         let width = main.width as usize;
         let height = main.height as usize;
+        let wrap_lines = self.get_wrap();
+        let tab_width = self.get_tab_width();
         let lines = &self.state.lines;
 
         // Retrieve the displayed cursor position. The column of the displayed
@@ -155,16 +166,13 @@ impl Widget for EditorView<'_, '_> {
         let cursor = Index2::new(self.state.cursor.row, self.state.cursor.col.min(max_col));
 
         // Store the coordinats of the current editor.
-        self.state.view.set_screen_coordinates(area);
-
-        // Set how many spaces are used to render a tab.
-        self.state.view.tab_width = self.tab_width;
+        self.state.view.set_screen_area(area);
 
         // Update the view offset. Requuires the screen size and the position
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let view_state = &mut self.state.view;
-        let (offset_x, offset_y) = if self.wrap {
+        let (offset_x, offset_y) = if wrap_lines {
             (
                 0,
                 view_state.update_viewport_vertical_wrap(width, height, cursor.row, lines),
@@ -188,12 +196,12 @@ impl Widget for EditorView<'_, '_> {
         let mut content_area = main;
         let mut num_rendered_rows = 0;
 
-        for (i, line) in lines.iter_row().skip(offset_y).enumerate() {
+        let mut row_index = offset_y;
+        for line in lines.iter_row().skip(row_index) {
             if content_area.height == 0 {
                 break;
             }
 
-            let row_index = offset_y + i;
             let col_skips = offset_x;
             num_rendered_rows += 1;
 
@@ -208,27 +216,29 @@ impl Widget for EditorView<'_, '_> {
                 self.syntax_highlighter.as_ref(),
             );
 
-            let render_line = if self.wrap {
-                RenderLine::Wrapped(LineWrapper::wrap_spans(spans, width, self.tab_width))
+            let render_line = if wrap_lines {
+                RenderLine::Wrapped(LineWrapper::wrap_spans(spans, width, tab_width))
             } else {
                 RenderLine::Single(spans)
             };
 
             // Determine the cursor position.
             if row_index == cursor.row {
-                cursor_position = Some(render_line.get_position_on_screen(
+                cursor_position = Some(render_line.data_coordinate_to_screen_coordinate(
                     cursor.col.saturating_sub(offset_x),
                     content_area,
-                    self.tab_width,
+                    tab_width,
                 ));
             }
 
             // Render the current line.
             content_area = {
                 let num_lines = render_line.num_lines();
-                render_line.render(content_area, buf, self.tab_width);
+                render_line.render(content_area, buf, tab_width);
                 rect_indent_y(content_area, num_lines)
             };
+
+            row_index += 1;
         }
 
         // Render the cursor on top.

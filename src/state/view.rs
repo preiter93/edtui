@@ -7,19 +7,33 @@ use ratatui::layout::Rect;
 
 /// Represents the (x, y) offset of the editor's viewport.
 /// It represents the top-left local editor coordinate.
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub(crate) struct ViewState {
     /// The offset of the viewport.
     pub(crate) viewport: Offset,
     /// The number of rows that are displayed on the viewport
     pub(crate) num_rows: usize,
-    /// Sets the coordinates (upper-left corner of the terminal window) where
+    /// Sets the area (starting upper-left corner of the terminal window) where
     /// the editor text is rendered to.
     ///
     /// Required to calculate the mouse position in relation to the text within the editor.
-    pub(crate) screen_coordinates: Offset,
+    pub(crate) screen_area: Rect,
+    /// Whether the lines are wrapped.
+    pub(crate) wrap: bool,
     /// The number of spaces used to display a tab.
     pub(crate) tab_width: usize,
+}
+
+impl Default for ViewState {
+    fn default() -> Self {
+        Self {
+            viewport: Offset::default(),
+            num_rows: 0,
+            screen_area: Rect::default(),
+            wrap: true,
+            tab_width: 2,
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
@@ -46,12 +60,12 @@ impl From<Rect> for Offset {
 }
 
 impl ViewState {
-    /// Sets the editors position on the screen.
+    /// Sets the editors area on the screen.
     ///
     /// Equivalent to the upper left coordinate of the editor in the
     /// buffers coordinate system.
-    pub(crate) fn set_screen_coordinates<T: Into<Offset>>(&mut self, offset: T) {
-        self.screen_coordinates = offset.into();
+    pub(crate) fn set_screen_area<T: Into<Rect>>(&mut self, area: T) {
+        self.screen_area = area.into();
     }
 
     /// Updates the viewports horizontal offset.
@@ -250,9 +264,7 @@ mod tests {
         scroll_up: {
             view: ViewState{
                 viewport: Offset::new(0, 1),
-                screen_coordinates: Offset::default(),
-                num_rows: 0,
-                tab_width: 2,
+                ..Default::default()
             },
             height:  2,
             cursor: 0,
@@ -267,9 +279,7 @@ mod tests {
         scroll_down: {
             view: ViewState{
                 viewport: Offset::new(0, 0),
-                screen_coordinates: Offset::default(),
-                num_rows: 0,
-                tab_width: 2,
+                ..Default::default()
             },
             height:  2,
             cursor: 2,
@@ -281,9 +291,7 @@ mod tests {
         scroll_left: {
             view: ViewState{
                 viewport: Offset::new(1, 0),
-                screen_coordinates: Offset::default(),
-                num_rows: 0,
-                tab_width: 2,
+                ..Default::default()
             },
             width: 2,
             cursor: 0,
@@ -295,9 +303,7 @@ mod tests {
         scroll_right: {
             view: ViewState{
                 viewport: Offset::new(0, 0),
-                screen_coordinates: Offset::default(),
-                num_rows: 0,
-                tab_width: 2,
+                ..Default::default()
             },
             width: 2,
             cursor: 2,

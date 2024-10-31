@@ -25,18 +25,19 @@ impl RenderLine<'_> {
         }
     }
 
-    pub(super) fn get_position_on_screen(
+    /// Transforms from data coordinate to screen coordinate.
+    pub(super) fn data_coordinate_to_screen_coordinate(
         &self,
-        col_index: usize,
+        data_col: usize,
         area: Rect,
         tab_width: usize,
     ) -> Position {
         let index2 = match self {
             RenderLine::Wrapped(lines) => {
-                find_position_in_wrapped_spans(lines, col_index, area.width as usize, tab_width)
+                find_position_in_wrapped_spans(lines, data_col, area.width as usize, tab_width)
             }
 
-            RenderLine::Single(line) => find_position_in_spans(line, col_index, tab_width),
+            RenderLine::Single(line) => find_position_in_spans(line, data_col, tab_width),
         };
 
         Position::new(
