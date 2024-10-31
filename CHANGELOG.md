@@ -2,6 +2,7 @@
 ===================
 - Impl 'yy': Yank current line
 - Handle cases where yanked buffer starts with a new line character. In this case we paste the yank buffer into the start of a next new line, instead of breaking the current line. This matches vim behaviour. 
+- Fix mouse selection on wrapped lines
 
 Released
 --------
@@ -19,7 +20,7 @@ EditorView::new(&mut state).tab_width(2);
 ===================
 - Bump ratatui to v0.29.0
 
-0.8.5 -  13 Okt 2023=4
+0.8.5 -  13 Okt 2024
 ===================
 - Add `D` keymapping: Delete to end of line
 - Syntax highlighting
