@@ -1,20 +1,25 @@
 mod internal;
 pub(crate) mod line_wrapper;
+mod render_line;
 pub mod status_line;
 #[cfg(feature = "syntax-highlighting")]
 pub(crate) mod syntax_higlighting;
 pub mod theme;
 
+use render_line::RenderLine;
 #[cfg(feature = "syntax-highlighting")]
 use syntax_higlighting::SyntaxHighlighter;
 
-use crate::{helper::max_col, state::EditorState, EditorMode, Index2};
-use internal::{find_position_in_spans, find_position_in_wrapped_spans, InternalLine, RenderLine};
+use crate::{
+    helper::{max_col, rect_indent_y},
+    state::{selection::Selection, EditorState},
+    EditorMode, Index2,
+};
+use internal::{into_spans_with_selections, line_into_highlighted_spans_with_selections};
 use jagged::index::RowIndex;
 use line_wrapper::LineWrapper;
 use ratatui::{prelude::*, widgets::Widget};
 pub use status_line::EditorStatusLine;
-use std::cmp::min;
 use theme::EditorTheme;
 
 /// Creates the view for the editor. [`EditorView`] and [`EditorState`] are
@@ -143,7 +148,8 @@ impl Widget for EditorView<'_, '_> {
 
         // Retrieve the displayed cursor position. The column of the displayed
         // cursor is clamped to the maximum line length.
-        let cursor = displayed_cursor(self.state);
+        let max_col = max_col(&self.state.lines, &self.state.cursor, self.state.mode);
+        let cursor = Index2::new(self.state.cursor.row, self.state.cursor.col.min(max_col));
 
         // Store the offset from the current buffer to the textarea inside the state.
         // This is required to calculate mouse positions correctly.
@@ -156,125 +162,86 @@ impl Widget for EditorView<'_, '_> {
         // of the cursor. Updates the view offset only if the cursor is out
         // side of the view port. The state is stored in the `ViewOffset`.
         let view_state = &mut self.state.view;
-        let offset_y = if self.wrap {
-            view_state.update_viewport_vertical_wrap(width, height, cursor.row, lines)
-        } else {
-            view_state.update_viewport_vertical(height, cursor.row)
-        };
-        let offset_x = if self.wrap {
-            0
+        let (offset_x, offset_y) = if self.wrap {
+            (
+                0,
+                view_state.update_viewport_vertical_wrap(width, height, cursor.row, lines),
+            )
         } else {
             let line = lines.get(RowIndex::new(cursor.row));
-            view_state.update_viewport_horizontal(width, cursor.col, line)
+            (
+                view_state.update_viewport_horizontal(width, cursor.col, line),
+                view_state.update_viewport_vertical(height, cursor.row),
+            )
         };
 
         // Predetermine highlighted sections.
-        let mut search_selection = None;
+        let mut search_selection: Option<Selection> = None;
         if self.state.mode == EditorMode::Search {
-            search_selection = self.state.search.selected_range();
+            search_selection = (&self.state.search).into();
         };
         let selections = vec![&self.state.selection, &search_selection];
 
-        let mut y = main.top();
-        let width = main.width as usize;
-        let mut num_rows: usize = 0;
-        for (i, line) in lines.iter_row().skip(offset_y).enumerate() {
-            let row_index = offset_y + i;
-            num_rows += 1;
+        let mut cursor_position: Option<Position> = None;
+        let mut content_area = main;
+        let mut num_rendered_rows = 0;
 
-            let internal_line = InternalLine::new(
+        for (i, line) in lines.iter_row().skip(offset_y).enumerate() {
+            if content_area.height == 0 {
+                break;
+            }
+
+            let row_index = offset_y + i;
+            let col_skips = offset_x;
+            num_rendered_rows += 1;
+
+            let spans = generate_spans(
                 line,
-                self.theme.base,
-                self.theme.selection_style,
-                offset_y + i,
-                offset_x,
+                &selections,
+                row_index,
+                col_skips,
+                &self.theme.base,
+                &self.theme.selection_style,
+                #[cfg(feature = "syntax-highlighting")]
+                self.syntax_highlighter.as_ref(),
+                #[cfg(not(feature = "syntax-highlighting"))]
+                None,
             );
 
-            #[cfg(feature = "syntax-highlighting")]
-            let spans = if let Some(syntax_highlighter) = &self.syntax_highlighter {
-                internal_line.into_highlighted_spans(&selections, syntax_highlighter)
-            } else {
-                internal_line.into_spans(&selections)
-            };
-            #[cfg(not(feature = "syntax-highlighting"))]
-            let spans = { internal_line.into_spans(&selections) };
-
-            let display_line = if self.wrap {
-                let wrapped_spans = LineWrapper::wrap_spans(spans, width, self.tab_width);
-                RenderLine::Wrapped(wrapped_spans)
+            let render_line = if self.wrap {
+                RenderLine::Wrapped(LineWrapper::wrap_spans(spans, width, self.tab_width))
             } else {
                 RenderLine::Single(spans)
             };
 
             // Determine the cursor position.
-            let cursor_position_on_screen = if row_index == cursor.row {
-                let cursor_position = match display_line {
-                    RenderLine::Wrapped(ref lines) => {
-                        find_position_in_wrapped_spans(lines, cursor.col, width, self.tab_width)
-                    }
-                    RenderLine::Single(ref line) => {
-                        let buffer_col = cursor.col.saturating_sub(offset_x);
-                        Index2::new(0, find_position_in_spans(line, buffer_col, self.tab_width))
-                    }
-                };
-                Some(Position::new(
-                    main.left() + min(width, cursor_position.col) as u16,
-                    y + cursor_position.row as u16,
-                ))
-            } else {
-                None
+            if row_index == cursor.row {
+                cursor_position = Some(render_line.get_position_on_screen(
+                    cursor.col.saturating_sub(offset_x),
+                    content_area,
+                    self.tab_width,
+                ));
+            }
+
+            // Render the current line.
+            content_area = {
+                let num_lines = render_line.num_lines();
+                render_line.render(content_area, buf, self.tab_width);
+                rect_indent_y(content_area, num_lines)
             };
-
-            // Rendering the content line by line.
-            match display_line {
-                RenderLine::Wrapped(lines) if lines.is_empty() => {
-                    y += 1;
-                }
-                RenderLine::Wrapped(lines) => {
-                    for line in lines {
-                        let area = Rect::new(main.left(), y, main.width, main.height);
-                        render_line(area, buf, line, self.tab_width);
-                        y += 1;
-
-                        if y >= main.bottom() {
-                            break;
-                        }
-                    }
-                }
-                RenderLine::Single(line) => {
-                    let area = Rect::new(main.left(), y, main.width, main.height);
-                    render_line(area, buf, line, self.tab_width);
-                    y += 1;
-                }
-            }
-
-            // Render the cursor on top.
-            if let Some(cursor_position) = cursor_position_on_screen {
-                if let Some(cell) = buf.cell_mut(cursor_position) {
-                    cell.set_style(self.theme.cursor_style);
-                }
-            }
-
-            // Increment y after rendering the current line.
-            if y >= main.bottom() {
-                break;
-            }
         }
 
-        // Render the cursor even if the editor has no content,
-        // or if the cursor is out of bounds.
-        if num_rows == 0 || self.state.cursor.row + 1 > self.state.lines.len() {
-            if let Some(cell) = buf.cell_mut(Position::new(
-                main.left(),
-                main.top() + self.state.cursor.row as u16,
-            )) {
-                cell.set_style(self.theme.cursor_style);
-            }
+        // Render the cursor on top.
+        if let Some(cell) = buf.cell_mut(cursor_position.unwrap_or(Position::new(
+            main.left(),
+            main.top() + self.state.cursor.row as u16,
+        ))) {
+            cell.set_style(self.theme.cursor_style);
         }
 
         // Save the total number of lines that are currently displayed on the viewport.
-        // Needed to handle scrolling.
-        self.state.view.update_num_rows(num_rows);
+        // Required to handle scrolling.
+        self.state.view.update_num_rows(num_rendered_rows);
 
         // Render the status line.
         if let Some(s) = self.theme.status_line {
@@ -289,28 +256,32 @@ impl Widget for EditorView<'_, '_> {
     }
 }
 
-fn render_line(area: Rect, buf: &mut Buffer, spans: Vec<Span>, tab_width: usize) {
-    let mut line: Line = spans.into_iter().collect();
-    // Replace tabs
-    for span in &mut line.spans {
-        span.content = span.content.replace('\t', &" ".repeat(tab_width)).into();
+fn generate_spans<'a>(
+    line: &[char],
+    selections: &[&Option<Selection>],
+    row_index: usize,
+    col_skips: usize,
+    base_style: &Style,
+    highlight_style: &Style,
+    syntax_highlighter: Option<&SyntaxHighlighter>,
+) -> Vec<Span<'a>> {
+    if let Some(syntax) = syntax_highlighter {
+        line_into_highlighted_spans_with_selections(
+            line,
+            selections,
+            syntax,
+            row_index,
+            col_skips,
+            highlight_style,
+        )
+    } else {
+        into_spans_with_selections(
+            line,
+            selections,
+            row_index,
+            col_skips,
+            base_style,
+            highlight_style,
+        )
     }
-    line.render(area, buf);
-}
-
-fn crop_first(s: &str, pos: usize) -> &str {
-    match s.char_indices().nth(pos) {
-        Some((pos, _)) => &s[pos..],
-        None => "",
-    }
-}
-
-/// Retrieves the displayed cursor position based on the editor state.
-///
-/// Ensures that the displayed cursor position doesn't exceed the line length.
-/// If the internal cursor position exceeds the maximum column, clamp it to
-/// the maximum.
-fn displayed_cursor(state: &EditorState) -> Index2 {
-    let max_col = max_col(&state.lines, &state.cursor, state.mode);
-    Index2::new(state.cursor.row, state.cursor.col.min(max_col))
 }

@@ -10,13 +10,6 @@ use crate::{
 use jagged::Index2;
 use ratatui::{style::Style, text::Span};
 
-/// An internal data type that represents a line for rendering.
-/// A vector of spans represents a line. Wrapped lines consist of an array of lines.
-pub(crate) enum RenderLine<'a> {
-    Wrapped(Vec<Vec<Span<'a>>>),
-    Single(Vec<Span<'a>>),
-}
-
 /// An internal data type that represent a styled span.
 /// Unlike [`ratatui::text::Span`], it holds and owned string, which simplifies the
 /// code because we don't have to keep track of the lifetimes.
@@ -24,15 +17,6 @@ pub(crate) enum RenderLine<'a> {
 pub(crate) struct InternalSpan {
     pub(crate) content: String,
     pub(crate) style: Style,
-}
-
-/// An internal data type that represents a styled line.
-pub(crate) struct InternalLine<'a> {
-    pub(crate) line: &'a [char],
-    base: Style,
-    pub(crate) highlighted: Style,
-    pub(crate) row_index: usize,
-    scroll_offset: usize,
 }
 
 impl InternalSpan {
@@ -179,104 +163,85 @@ impl<'a> From<InternalSpan> for Span<'a> {
     }
 }
 
-impl<'a> InternalLine<'a> {
-    pub(crate) fn new(
-        line: &'a [char],
-        base: Style,
-        highlighted: Style,
-        row_index: usize,
-        col_offset: usize,
-    ) -> Self {
-        Self {
-            line,
-            base,
-            highlighted,
-            row_index,
-            scroll_offset: col_offset,
+/// Converts an `InternalLine` into a vector of `Span`s, applying styles based on the
+/// given selections.
+pub(crate) fn into_spans_with_selections<'a>(
+    line: &[char],
+    selections: &[&Option<Selection>],
+    row_index: usize,
+    col_skips: usize,
+    base_style: &Style,
+    highlight_style: &Style,
+) -> Vec<Span<'a>> {
+    let mut spans = Vec::new();
+    let mut push_span = |span: String, is_selected: bool| {
+        let style = if is_selected {
+            highlight_style
+        } else {
+            base_style
+        };
+
+        spans.push(Span::styled(span, *style));
+    };
+
+    let mut current_span = String::new();
+    let mut previous_is_selected = false;
+
+    // Iterate over the line's characters, starting from the offset
+    for (i, &ch) in line.iter().skip(col_skips).enumerate() {
+        let position = Index2::new(row_index, col_skips + i);
+
+        // Check if the current position is selected by any selection
+        let current_is_selected = selections
+            .iter()
+            .filter_map(|selection| selection.as_ref())
+            .any(|selection| selection.contains(&position));
+
+        // If the selection state has changed, push the current span and start a new one
+        if i != 0 && previous_is_selected != current_is_selected {
+            push_span(current_span.clone(), previous_is_selected);
+            current_span.clear();
         }
+
+        previous_is_selected = current_is_selected;
+        current_span.push(ch);
     }
+
+    // Push the final span
+    push_span(current_span.clone(), previous_is_selected);
+
+    spans
 }
 
-impl<'a> InternalLine<'a> {
-    fn get_style(&self, is_selected: bool) -> Style {
-        if is_selected {
-            self.highlighted
-        } else {
-            self.base
+#[cfg(feature = "syntax-highlighting")]
+pub(crate) fn line_into_highlighted_spans_with_selections<'a>(
+    line: &[char],
+    selections: &[&Option<Selection>],
+    syntax_highligher: &SyntaxHighlighter,
+    row_index: usize,
+    col_skips: usize,
+    highlight_style: &Style,
+) -> Vec<Span<'a>> {
+    let line: String = line.iter().collect();
+    let mut internal_spans = syntax_highligher.highlight_line(&line);
+
+    let selections = selections
+        .iter()
+        .filter_map(|selection| selection.as_ref().filter(|s| s.contains_row(row_index)));
+
+    for selection in selections {
+        if let Some(new_span) =
+            InternalSpan::apply_selection(&internal_spans, row_index, selection, highlight_style)
+        {
+            internal_spans = new_span;
         }
     }
 
-    /// Converts an `InternalLine` into a vector of `Span`s, applying styles based on the
-    /// given selections.
-    pub(crate) fn into_spans(self, selections: &[&Option<Selection>]) -> Vec<Span<'a>> {
-        let mut spans = Vec::new();
-        let mut current_span = String::new();
-        let mut previous_is_selected = false;
-
-        // Iterate over the line's characters, starting from the offset
-        for (i, &ch) in self.line.iter().skip(self.scroll_offset).enumerate() {
-            let position = Index2::new(self.row_index, self.scroll_offset + i);
-
-            // Check if the current position is selected by any selection
-            let current_is_selected = selections
-                .iter()
-                .filter_map(|selection| selection.as_ref())
-                .any(|selection| selection.contains(&position));
-
-            // If the selection state has changed, push the current span and start a new one
-            if i != 0 && previous_is_selected != current_is_selected {
-                spans.push(Span::styled(
-                    current_span.clone(),
-                    self.get_style(previous_is_selected),
-                ));
-                current_span.clear();
-            }
-
-            previous_is_selected = current_is_selected;
-            current_span.push(ch);
-        }
-
-        // Push the final span
-        spans.push(Span::styled(
-            current_span,
-            self.get_style(previous_is_selected),
-        ));
-
-        spans
+    if col_skips > 0 {
+        InternalSpan::crop_spans(&mut internal_spans, col_skips);
     }
 
-    #[cfg(feature = "syntax-highlighting")]
-    pub(crate) fn into_highlighted_spans(
-        self,
-        selections: &[&Option<Selection>],
-        syntax_highligher: &SyntaxHighlighter,
-    ) -> Vec<Span<'a>> {
-        let line = self.line.iter().collect::<String>();
-        let mut internal_spans = syntax_highligher.highlight_line(&line);
-
-        let selections = selections.iter().filter_map(|selection| {
-            selection
-                .as_ref()
-                .filter(|s| s.contains_row(self.row_index))
-        });
-
-        for selection in selections {
-            if let Some(new_span) = InternalSpan::apply_selection(
-                &internal_spans,
-                self.row_index,
-                selection,
-                &self.highlighted,
-            ) {
-                internal_spans = new_span;
-            }
-        }
-
-        if self.scroll_offset > 0 {
-            InternalSpan::crop_spans(&mut internal_spans, self.scroll_offset);
-        }
-
-        internal_spans.into_iter().map(Span::from).collect()
-    }
+    internal_spans.into_iter().map(Span::from).collect()
 }
 
 /// Finds the position of a character within wrapped spans based on a given
@@ -290,15 +255,15 @@ impl<'a> InternalLine<'a> {
 /// ```
 pub(super) fn find_position_in_wrapped_spans(
     wrapped_spans: &[Vec<Span>],
-    position: usize,
+    col_index: usize,
     max_width: usize,
     tab_width: usize,
 ) -> Index2 {
     if wrapped_spans.is_empty() {
-        return Index2::new(0, position);
+        return Index2::new(0, col_index);
     }
 
-    let mut char_pos = position;
+    let mut char_pos = col_index;
 
     for (row, spans) in wrapped_spans.iter().enumerate() {
         let row_char_count = count_characters_in_spans(spans);
@@ -345,12 +310,15 @@ pub(super) fn unicode_width_position_in_spans(spans: &[Span], n: usize, tab_widt
     total_width
 }
 
-pub(crate) fn find_position_in_spans(spans: &[Span], char_pos: usize, tab_width: usize) -> usize {
+pub(crate) fn find_position_in_spans(spans: &[Span], char_pos: usize, tab_width: usize) -> Index2 {
     if spans.is_empty() {
-        return char_pos;
+        return Index2::new(0, char_pos);
     }
 
-    unicode_width_position_in_spans(spans, char_pos, tab_width)
+    Index2::new(
+        0,
+        unicode_width_position_in_spans(spans, char_pos, tab_width),
+    )
 }
 
 fn count_characters_in_spans(spans: &[Span]) -> usize {
@@ -380,7 +348,7 @@ mod tests {
         let selections = vec![&selection];
 
         // when
-        let spans = InternalLine::new(&line, base, hightlighted, 0, 0).into_spans(&selections);
+        let spans = into_spans_with_selections(&line, &selections, 0, 0, &base, &hightlighted);
 
         // then
         assert_eq!(spans[0], Span::styled("Hel", hightlighted));

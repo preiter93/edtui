@@ -1,5 +1,5 @@
 use jagged::index::RowIndex;
-use ratatui::text::Span;
+use ratatui::{layout::Rect, text::Span};
 
 use crate::{EditorMode, EditorState, Index2, Lines};
 
@@ -229,6 +229,18 @@ pub(crate) fn split_str_at<T: AsRef<str>>(s: T, mid: usize) -> (String, String) 
     let second_half: String = chars.collect();
 
     (first_half, second_half)
+}
+
+pub(crate) fn replace_tabs_in_span(span: &mut Span, tab_width: usize) {
+    span.content = span.content.replace('\t', &" ".repeat(tab_width)).into();
+}
+
+pub(crate) fn rect_indent_y(rect: Rect, offset: usize) -> Rect {
+    Rect {
+        y: rect.y.saturating_add(offset as u16),
+        height: rect.width.saturating_sub(offset as u16),
+        ..rect
+    }
 }
 
 #[cfg(test)]

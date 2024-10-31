@@ -94,20 +94,16 @@ impl SearchState {
         }
         None
     }
+}
 
-    /// Returns the index of the currently selected match.
-    fn selected_match(&self) -> Option<&Index2> {
-        if let Some(index) = self.selected_index {
-            return self.matches.get(index);
-        }
-        None
-    }
-
-    /// Returns the currently selected match as a range from start index to end index.
-    pub(crate) fn selected_range(&self) -> Option<Selection> {
-        self.selected_match().map(|&start| {
-            let end = Index2::new(start.row, start.col + self.pattern_len().saturating_sub(1));
-            Selection::new(start, end)
-        })
+impl From<&SearchState> for Option<Selection> {
+    fn from(value: &SearchState) -> Self {
+        value
+            .selected_index
+            .and_then(|index| value.matches.get(index))
+            .map(|&start| {
+                let end = Index2::new(start.row, start.col + value.pattern_len().saturating_sub(1));
+                Selection::new(start, end)
+            })
     }
 }
