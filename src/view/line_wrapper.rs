@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use ratatui::text::Span;
 
 use crate::helper::{char_width, span_width, split_str_at};
@@ -23,6 +25,31 @@ impl LineWrapper {
         }
 
         split_widths
+    }
+
+    pub(crate) fn wrap_line(line: &[char], max_width: usize, tab_width: usize) -> Vec<Vec<char>> {
+        let mut lines = Vec::new();
+        let mut line_width = 0;
+        let mut current_line = Vec::new();
+
+        for &ch in line {
+            let char_width = char_width(ch, tab_width);
+
+            if line_width + char_width > max_width {
+                lines.push(current_line.clone());
+                current_line.clear();
+                line_width = 0;
+            }
+
+            current_line.push(ch);
+            line_width += char_width;
+        }
+
+        if !current_line.is_empty() {
+            lines.push(current_line);
+        }
+
+        lines
     }
 
     pub(crate) fn wrap_spans(
@@ -70,22 +97,22 @@ impl LineWrapper {
         wrapped_lines
     }
 
-    fn split_span_at(span: Span, split_at: usize, tab_width: usize) -> (Span, Span) {
+    fn split_str_at(s: Cow<'_, str>, split_at: usize, tab_width: usize) -> (String, String) {
         let mut current_width = 0;
-        let span_content = span.content;
-        let style = span.style;
-        for (i, ch) in span_content.chars().enumerate() {
+        for (i, ch) in s.chars().enumerate() {
             current_width += char_width(ch, tab_width);
             if current_width > split_at {
-                let (a, b) = split_str_at(span_content, i);
-                return (
-                    Span::styled(a.to_string(), style),
-                    Span::styled(b.to_string(), style),
-                );
+                let (a, b) = split_str_at(s, i);
+                return (a.to_string(), b.to_string());
             }
         }
 
-        (Span::styled(span_content, style), Span::styled("", style))
+        (s.to_string(), String::new())
+    }
+
+    fn split_span_at(span: Span, split_at: usize, tab_width: usize) -> (Span, Span) {
+        let (a, b) = Self::split_str_at(span.content, split_at, tab_width);
+        (Span::styled(a, span.style), Span::styled(b, span.style))
     }
 }
 
