@@ -15,7 +15,10 @@ use crate::{
     state::{selection::Selection, EditorState},
     EditorMode, Index2,
 };
-use internal::{into_spans_with_selections, line_into_highlighted_spans_with_selections};
+
+use internal::into_spans_with_selections;
+#[cfg(feature = "syntax-highlighting")]
+use internal::line_into_highlighted_spans_with_selections;
 use jagged::index::RowIndex;
 use line_wrapper::LineWrapper;
 use ratatui::{prelude::*, widgets::Widget};
@@ -203,8 +206,6 @@ impl Widget for EditorView<'_, '_> {
                 &self.theme.selection_style,
                 #[cfg(feature = "syntax-highlighting")]
                 self.syntax_highlighter.as_ref(),
-                #[cfg(not(feature = "syntax-highlighting"))]
-                None,
             );
 
             let render_line = if self.wrap {
@@ -262,25 +263,25 @@ fn generate_spans<'a>(
     col_skips: usize,
     base_style: &Style,
     highlight_style: &Style,
-    syntax_highlighter: Option<&SyntaxHighlighter>,
+    #[cfg(feature = "syntax-highlighting")] syntax_highlighter: Option<&SyntaxHighlighter>,
 ) -> Vec<Span<'a>> {
+    #[cfg(feature = "syntax-highlighting")]
     if let Some(syntax) = syntax_highlighter {
-        line_into_highlighted_spans_with_selections(
+        return line_into_highlighted_spans_with_selections(
             line,
             selections,
             syntax,
             row_index,
             col_skips,
             highlight_style,
-        )
-    } else {
-        into_spans_with_selections(
-            line,
-            selections,
-            row_index,
-            col_skips,
-            base_style,
-            highlight_style,
-        )
+        );
     }
+    into_spans_with_selections(
+        line,
+        selections,
+        row_index,
+        col_skips,
+        base_style,
+        highlight_style,
+    )
 }
