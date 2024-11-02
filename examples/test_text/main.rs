@@ -53,7 +53,7 @@ Polski: Szybki brązowy lis skacze nad leniwym psem.
 
 🌈 Emoji: The 🦊quick brown f🐕x jumps over 🛌lazy animals 🎉 in different languages! 🌟
 
-Esperanto: La rapida bruna vulpo saltas super la laca hundo.
+Esperanto: Eĥoj ŝanĝas ĉiun ĵaŭdon.
 
 Italiano: La veloce volpe marrone salta sopra il cane pigro.
 
