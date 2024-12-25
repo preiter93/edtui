@@ -1,21 +1,37 @@
 use std::cmp::Ordering;
 
+use jagged::index::RowIndex;
+
 use crate::{Index2, Lines};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
     pub start: Index2,
     pub end: Index2,
+    pub line_mode: bool,
 }
 
 impl Selection {
     #[must_use]
     pub fn new(start: Index2, end: Index2) -> Self {
-        Self { start, end }
+        Self {
+            start,
+            end,
+            line_mode: false,
+        }
+    }
+
+    pub fn line_mode(mut self) -> Self {
+        self.line_mode = true;
+        self
     }
 
     #[must_use]
     pub fn contains(&self, pos: &Index2) -> bool {
+        if self.line_mode {
+            return self.contains_row(pos.row);
+        }
+
         let (start, end) = if self.start < self.end {
             (&self.start, &self.end)
         } else {
@@ -77,13 +93,35 @@ impl Selection {
     /// Copies a selection from `Lines`.
     #[must_use]
     pub fn copy_from(&self, lines: &Lines) -> Lines {
-        lines.copy_range(self.start()..=self.end())
+        if self.line_mode {
+            let mut st = self.start();
+            let mut en = self.end();
+            st.col = 0;
+            en.col = lines.last_col_index(en.row);
+
+            let mut lines = lines.copy_range(st..=en);
+            lines.insert(RowIndex::new(0), vec![]);
+
+            return lines;
+        } else {
+            lines.copy_range(self.start()..=self.end())
+        }
     }
 
     /// Extracts a selection from `Lines`.
     #[must_use]
     pub fn extract_from(&self, lines: &mut Lines) -> Lines {
-        lines.extract(self.start()..=self.end())
+        if self.line_mode {
+            let st = Index2::new(self.start().row, 0);
+            let en = Index2::new(self.end().row, lines.last_col_index(self.end().row));
+
+            let mut lines = lines.extract(st..=en);
+            lines.insert(RowIndex::new(0), vec![]);
+
+            return lines;
+        } else {
+            lines.extract(self.start()..=self.end())
+        }
     }
 
     /// Returns the start and end column of the selection in the given row.
