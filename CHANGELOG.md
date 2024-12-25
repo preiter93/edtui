@@ -1,6 +1,12 @@
 Released
 --------
 
+0.9.3 - 25 Dec 2024
+===================
+- Fix: Visual Line Selection
+    - Highlighting
+    - Copy/Extract with new line
+
 0.9.2 - 27 Okt 2024
 ===================
 - Impl 'yy': Yank current line
