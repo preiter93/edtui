@@ -103,9 +103,9 @@ impl Selection {
             lines.insert(RowIndex::new(0), vec![]);
 
             return lines;
-        } else {
-            lines.copy_range(self.start()..=self.end())
         }
+
+        lines.copy_range(self.start()..=self.end())
     }
 
     /// Extracts a selection from `Lines`.
@@ -119,9 +119,9 @@ impl Selection {
             lines.insert(RowIndex::new(0), vec![]);
 
             return lines;
-        } else {
-            lines.extract(self.start()..=self.end())
         }
+
+        lines.extract(self.start()..=self.end())
     }
 
     /// Returns the start and end column of the selection in the given row.
