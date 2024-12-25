@@ -259,6 +259,7 @@ pub struct MoveToFirst();
 impl Execute for MoveToFirst {
     fn execute(&mut self, state: &mut EditorState) {
         state.cursor.col = 0;
+        skip_whitespace(&state.lines, &mut state.cursor);
 
         if state.mode == EditorMode::Visual {
             set_selection(&mut state.selection, state.cursor);
@@ -551,5 +552,14 @@ mod tests {
 
         MoveToEndOfLine().execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 11));
+    }
+
+    #[test]
+    fn test_move_to_first() {
+        let mut state = EditorState::new(Lines::from(" Hello"));
+        state.cursor = Index2::new(0, 3);
+
+        MoveToFirst().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 1));
     }
 }
