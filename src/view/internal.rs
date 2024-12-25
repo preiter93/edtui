@@ -151,13 +151,13 @@ impl InternalSpan {
     }
 }
 
-impl<'a> From<Span<'a>> for InternalSpan {
+impl From<Span<'_>> for InternalSpan {
     fn from(value: Span) -> Self {
         Self::new(value.content, &value.style)
     }
 }
 
-impl<'a> From<InternalSpan> for Span<'a> {
+impl From<InternalSpan> for Span<'_> {
     fn from(value: InternalSpan) -> Self {
         Self::styled(value.content, value.style)
     }
