@@ -103,7 +103,7 @@ impl Execute for SelectLine {
         if let Some(len_col) = state.lines.len_col(row) {
             let start = Index2::new(row, 0);
             let end = Index2::new(row, len_col.saturating_sub(1));
-            state.selection = Some(Selection::new(start, end));
+            state.selection = Some(Selection::new(start, end).line_mode());
             state.mode = EditorMode::Visual;
         }
     }
@@ -128,10 +128,7 @@ mod tests {
         SelectLine.execute(&mut state);
         assert_eq!(
             state.selection,
-            Some(Selection {
-                start: Index2::new(0, 0),
-                end: Index2::new(0, 11),
-            })
+            Some(Selection::new(Index2::new(0, 0), Index2::new(0, 11),).line_mode())
         );
         assert_eq!(state.mode, EditorMode::Visual);
         assert_eq!(state.cursor, Index2::new(0, 4));
