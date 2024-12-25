@@ -1,6 +1,6 @@
 [package]
 name = "edtui"
-version = "0.9.2"
+version = "0.9.3"
 edition = "2021"
 repository = "https://github.com/preiter93/edtui"
 keywords = ["ratatui", "tui", "editor", "text", "vim"]
