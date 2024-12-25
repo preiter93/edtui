@@ -1,15 +1,15 @@
 use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::DeleteToEndOfLine;
-use crate::actions::motion::{MoveToFirstRow, MoveToLastRow};
+use crate::actions::motion::{MoveHalfPageDown, MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
     Action, Append, AppendCharToSearch, AppendNewline, ChangeInnerBetween, Composed, CopyLine,
     CopySelection, DeleteChar, DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious,
     InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown,
-    MoveForward, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
-    MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar,
-    RemoveCharFromSearch, SelectInnerBetween, SelectLine, StopSearch, SwitchMode, TriggerSearch,
-    Undo,
+    MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket,
+    MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord,
+    Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectInnerBetween, SelectLine, StopSearch,
+    SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 use ratatui::crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
@@ -240,6 +240,22 @@ impl Default for KeyEventHandler {
             (
                 KeyEventRegister::v(vec![KeyEvent::Char('$')]),
                 MoveToEndOfLine().into(),
+            ),
+            (
+                KeyEventRegister::n(vec![KeyEvent::Ctrl('d')]),
+                MoveHalfPageDown().into(),
+            ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Ctrl('d')]),
+                MoveHalfPageDown().into(),
+            ),
+            (
+                KeyEventRegister::n(vec![KeyEvent::Ctrl('u')]),
+                MoveHalfPageUp().into(),
+            ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Ctrl('u')]),
+                MoveHalfPageUp().into(),
             ),
             // Move cursor to start/first/last position and enter insert mode
             (
