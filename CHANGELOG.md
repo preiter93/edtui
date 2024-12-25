@@ -1,6 +1,11 @@
 Released
 --------
 
+0.9.4 - 25 Dec 2024
+===================
+- <C-d> Jump half page down
+- <C-u> Jump half page up
+
 0.9.3 - 25 Dec 2024
 ===================
 - Fix: Visual Line Selection
