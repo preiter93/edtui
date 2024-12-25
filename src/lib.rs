@@ -55,8 +55,10 @@
 //! | `w`                       | Move forward to the start of a word          |
 //! | `e`                       | Move forward to the end of a word            |
 //! | `b`                       | Move backward to the start of a word         |
+//! | `ctrl+d`                  | Jump a half page down                        |
+//! | `ctrl+u`                  | Jump a half page up                          |
 //! | `x`                       | Delete the character under the cursor        |
-//! | `u`, `<ctrl>+r`           | Undo/Redo last action                        |
+//! | `u`, `ctrl+r`             | Undo/Redo last action                        |
 //! | `Esc`                     | Escape Visual mode                           |
 //! | `0`                       | Move cursor to start of line                 |
 //! | `^`                       | Move cursor to first non-blank character     |
