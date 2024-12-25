@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use crate::{
     helper::{find_matching_bracket, skip_empty_lines},
     state::selection::set_selection,
@@ -320,6 +322,34 @@ impl Execute for MoveToMatchinBracket {
                 set_selection(&mut state.selection, state.cursor);
             }
         };
+    }
+}
+
+#[derive(Clone, Debug, Copy)]
+pub struct MoveHalfPageDown();
+
+impl Execute for MoveHalfPageDown {
+    fn execute(&mut self, state: &mut EditorState) {
+        let jump_rows = state.view.num_rows / 2;
+        state.cursor.row = min(state.cursor.row + jump_rows, state.lines.last_row_index());
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
+    }
+}
+
+#[derive(Clone, Debug, Copy)]
+pub struct MoveHalfPageUp();
+
+impl Execute for MoveHalfPageUp {
+    fn execute(&mut self, state: &mut EditorState) {
+        let jump_rows = state.view.num_rows / 2;
+        state.cursor.row = state.cursor.row.saturating_sub(jump_rows);
+
+        if state.mode == EditorMode::Visual {
+            set_selection(&mut state.selection, state.cursor);
+        }
     }
 }
 
