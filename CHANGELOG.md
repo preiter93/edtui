@@ -1,9 +1,10 @@
-0.9.5 - 
-===================
-- Fix: Move to First
-
 Released
 --------
+
+0.9.5 - 06 Jan 2025
+===================
+- Fix: Move to First
+- fix: Copy into empty buffer panic with leading newline
 
 0.9.4 - 25 Dec 2024
 ===================
