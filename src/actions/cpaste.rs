@@ -1,8 +1,10 @@
+use std::cmp::min;
+
 use jagged::{index::RowIndex, Index2};
 
 use crate::{
     clipboard::ClipboardTrait,
-    helper::{append_str, insert_str},
+    helper::{append_str, insert_str, max_row},
     EditorMode, EditorState,
 };
 
@@ -19,9 +21,10 @@ impl Execute for Paste {
         }
 
         state.capture();
+        state.clamp_column();
 
         let s = if let Some(stripped) = s.strip_prefix('\n') {
-            state.cursor = Index2::new(state.cursor.row + 1, 0);
+            state.cursor = Index2::new(min(max_row(state), state.cursor.row + 1), 0);
             state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
             stripped
         } else {
@@ -101,6 +104,18 @@ mod tests {
 
         assert_eq!(state.cursor, Index2::new(0, 3));
         assert_eq!(state.lines, Lines::from("HHelello World!\n\n123."));
+    }
+
+    #[test]
+    fn test_paste_with_newline_into_empty_buffer() {
+        let mut state = EditorState::default();
+        state.set_clipboard(InternalClipboard::default());
+        state.clip.set_text("\ntext".to_string());
+
+        Paste.execute(&mut state);
+
+        assert_eq!(state.cursor, Index2::new(0, 3));
+        assert_eq!(state.lines, Lines::from("text"));
     }
 
     #[test]
