@@ -27,7 +27,8 @@ pub use self::search::{
     AppendCharToSearch, FindNext, FindPrevious, RemoveCharFromSearch, StopSearch, TriggerSearch,
 };
 pub use self::select::{
-    ChangeInnerBetween, ChangeInnerWord, SelectInnerBetween, SelectInnerWord, SelectLine,
+    ChangeInnerBetween, ChangeInnerWord, ChangeSelection, SelectInnerBetween, SelectInnerWord,
+    SelectLine,
 };
 
 #[enum_dispatch(Execute)]
@@ -65,6 +66,7 @@ pub enum Action {
     SelectInnerWord(SelectInnerWord),
     ChangeInnerBetween(ChangeInnerBetween),
     ChangeInnerWord(ChangeInnerWord),
+    ChangeSelection(ChangeSelection),
     SelectLine(SelectLine),
     Undo(Undo),
     Redo(Redo),
