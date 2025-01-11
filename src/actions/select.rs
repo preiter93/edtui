@@ -197,6 +197,19 @@ impl Execute for SelectLine {
     }
 }
 
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeSelection;
+impl Execute for ChangeSelection {
+    fn execute(&mut self, state: &mut EditorState) {
+        if let Some(selection) = state.selection.take() {
+            state.capture();
+            let deleted = delete_selection(state, &selection);
+            state.clip.set_text(deleted.into());
+            state.mode = EditorMode::Insert;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::state::selection::Selection;

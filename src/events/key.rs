@@ -4,12 +4,12 @@ use crate::actions::motion::{MoveHalfPageDown, MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
     Action, Append, AppendCharToSearch, AppendNewline, ChangeInnerBetween, ChangeInnerWord,
-    Composed, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection, Execute, FindNext,
-    FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward,
-    MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket,
-    MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord,
-    Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
-    StopSearch, SwitchMode, TriggerSearch, Undo,
+    ChangeSelection, Composed, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection,
+    Execute, FindNext, FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak,
+    MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst,
+    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
+    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectInnerBetween,
+    SelectInnerWord, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 use ratatui::crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
@@ -451,6 +451,11 @@ impl Default for KeyEventHandler {
                     KeyEvent::Char(']'),
                 ]),
                 ChangeInnerBetween::new('[', ']').into(),
+            ),
+            // Change selection
+            (
+                KeyEventRegister::v(vec![KeyEvent::Char('c')]),
+                ChangeSelection.into(),
             ),
             // Select  the line
             (
