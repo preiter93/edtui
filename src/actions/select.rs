@@ -84,18 +84,13 @@ fn select_between(
     opening_predicate_incl: impl Fn((&char, usize)) -> bool,
     closing_predicate_incl: impl Fn((&char, usize)) -> bool,
 ) -> Option<Selection> {
-    let Some(len_col) = lines.len_col(cursor.row) else {
-        return None;
-    };
-
+    let len_col = lines.len_col(cursor.row)?;
     if cursor.col >= len_col {
         return None;
     }
 
     let row_index = cursor.row;
-    let Some(line) = lines.get(RowIndex::new(row_index)) else {
-        return None;
-    };
+    let line = lines.get(RowIndex::new(row_index))?;
 
     let start_col = cursor.col;
 
