@@ -1,9 +1,8 @@
-//!
 //!<div align="center">
 //!
 //! ## `EdTUI`
 //!     
-//! [![Crate Badge]](https://crates.io/crates/edtui) [![Continuous Integration](https://github.com/preiter93/edtui/actions/workflows/ci.yml/badge.svg)](https://github.com/preiter93/edtui/actions/workflows/ci.yml) [![Deps.rs Badge]](https://deps.rs/repo/github/preiter93/edtui?path=edtui) [![License Badge]](./LICENSE)
+//! [![Crate Badge]](https://crates.io/crates/edtui) [![Continuous Integration](https://github.com/preiter93/edtui/actions/workflows/ci.yml/badge.svg)](https://github.com/preiter93/edtui/actions/workflows/ci.yml) [![Deps Status](https://deps.rs/repo/github/preiter93/edtui/status.svg)](https://deps.rs/repo/github/preiter93/edtui) [![License Badge]](./LICENSE)
 //!
 //! </div>
 //!
@@ -136,7 +135,6 @@
 //!
 //! [Crate Badge]: https://img.shields.io/crates/v/edtui?logo=rust&style=flat-square&logoColor=E05D44&color=E05D44
 //! [License Badge]: https://img.shields.io/crates/l/edtui?style=flat-square&color=1370D3
-//! [Deps.rs Badge]: https://deps.rs/repo/github/edtui/edtui/status.svg?path=edtui&style=flat-square
 #![allow(
     dead_code,
     clippy::module_name_repetitions,
