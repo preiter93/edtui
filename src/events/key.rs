@@ -3,13 +3,13 @@ use crate::actions::delete::DeleteToEndOfLine;
 use crate::actions::motion::{MoveHalfPageDown, MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
-    Action, Append, AppendCharToSearch, AppendNewline, ChangeInnerBetween, Composed, CopyLine,
-    CopySelection, DeleteChar, DeleteLine, DeleteSelection, Execute, FindNext, FindPrevious,
-    InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown,
-    MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket,
+    Action, Append, AppendCharToSearch, AppendNewline, ChangeInnerBetween, ChangeInnerWord,
+    Composed, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection, Execute, FindNext,
+    FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward,
+    MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket,
     MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord,
-    Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectInnerBetween, SelectLine, StopSearch,
-    SwitchMode, TriggerSearch, Undo,
+    Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
+    StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
 use ratatui::crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
@@ -345,7 +345,7 @@ impl Default for KeyEventHandler {
             // Select inner word between delimiters
             (
                 KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('w')]),
-                SelectInnerBetween::new('"', '"').into(),
+                SelectInnerWord.into(),
             ),
             (
                 KeyEventRegister::v(vec![KeyEvent::Char('i'), KeyEvent::Char('"')]),
@@ -386,7 +386,7 @@ impl Default for KeyEventHandler {
                     KeyEvent::Char('i'),
                     KeyEvent::Char('w'),
                 ]),
-                ChangeInnerBetween::new('"', '"').into(),
+                ChangeInnerWord.into(),
             ),
             (
                 KeyEventRegister::n(vec![
