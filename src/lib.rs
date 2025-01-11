@@ -74,7 +74,8 @@
 //! | `d`                       | Delete the selection (Visual mode)           |
 //! | `dd`                      | Delete the current line                      |
 //! | `D`                       | Delete to the end of the line                |
-//! | `viw`                     | Select between delimiters. Supported: [`"`]  |
+//! | `viw`                     | Select between word.                         |
+//! | `ciw`                     | Change between word.                         |
 //! | `vi` + `", ', (, [ or {`  | Select between delimiter `", ', (, [ or {`   |
 //! | `ci` + `", ', (, [ or {`  | Change between delimiter `", ', (, [ or {`   |
 //! | `u`                       | Undo the last change                         |

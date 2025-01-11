@@ -1,6 +1,11 @@
 Released
 --------
 
+0.9.6 - 11 Jan 2025
+===================
+- feat: Add proper "SelectInnerWord" command
+- feat: Add "ChangeSelection" command
+
 0.9.5 - 06 Jan 2025
 ===================
 - Fix: Move to First
