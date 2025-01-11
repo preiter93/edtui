@@ -457,6 +457,10 @@ impl Default for KeyEventHandler {
                 KeyEventRegister::v(vec![KeyEvent::Char('c')]),
                 ChangeSelection.into(),
             ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Char('x')]),
+                ChangeSelection.into(),
+            ),
             // Select  the line
             (
                 KeyEventRegister::n(vec![KeyEvent::Char('V')]),
