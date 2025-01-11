@@ -120,11 +120,11 @@ fn move_word_forward(state: &mut EditorState) {
         }
         _ => Index2::new(state.cursor.row, state.cursor.col.saturating_add(1)),
     };
-    let start_character_class = CharacterClass::from(state.lines.get(start_index));
+    let start_char_class = CharacterClass::from(state.lines.get(start_index));
 
     for (next_char, index) in state.lines.iter().from(start_index) {
         state.cursor = index;
-        if CharacterClass::from(next_char) != start_character_class {
+        if CharacterClass::from(next_char) != start_char_class {
             break;
         }
     }
@@ -164,11 +164,11 @@ fn move_word_forward_to_end_of_word(state: &mut EditorState) {
     };
     skip_empty_lines(&state.lines, &mut start_index.row);
     skip_whitespace(&state.lines, &mut start_index);
-    let start_character_class = CharacterClass::from(state.lines.get(start_index));
+    let start_char_class = CharacterClass::from(state.lines.get(start_index));
 
     for (next_char, index) in state.lines.iter().from(start_index) {
         // Break loop if characters don't belong to the same class
-        if CharacterClass::from(next_char) != start_character_class {
+        if CharacterClass::from(next_char) != start_char_class {
             break;
         }
         state.cursor = index;
@@ -221,7 +221,7 @@ fn move_word_backward(state: &mut EditorState) {
 
     start_index.col = start_index.col.saturating_sub(1);
     skip_whitespace_rev(&state.lines, &mut start_index);
-    let start_character_class = CharacterClass::from(state.lines.get(start_index));
+    let start_char_class = CharacterClass::from(state.lines.get(start_index));
 
     for (next_char, i) in state.lines.iter().from(start_index).rev() {
         // Break loop if it reaches the start of the line
@@ -230,7 +230,7 @@ fn move_word_backward(state: &mut EditorState) {
             break;
         }
         // Break loop if characters don't belong to the same class
-        if CharacterClass::from(next_char) != start_character_class {
+        if CharacterClass::from(next_char) != start_char_class {
             break;
         }
         start_index = i;
@@ -355,7 +355,7 @@ impl Execute for MoveHalfPageUp {
 }
 
 #[derive(Debug, Clone, Eq)]
-enum CharacterClass {
+pub(crate) enum CharacterClass {
     Unknown,
     Alphanumeric,
     Punctuation,
