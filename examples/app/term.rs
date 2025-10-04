@@ -1,5 +1,6 @@
 use ratatui::crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture},
+    event::{DisableBracketedPaste, DisableMouseCapture, EnableBracketedPaste, EnableMouseCapture},
+    execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::prelude::*;
@@ -23,6 +24,9 @@ impl Term {
         ratatui::crossterm::execute!(stdout(), EnterAlternateScreen, EnableMouseCapture)?;
         enable_raw_mode()?;
 
+        let mut stdout = stdout();
+        execute!(stdout, EnableBracketedPaste)?;
+
         // Shutdown gracefully
         let original_hook = std::panic::take_hook();
         std::panic::set_hook(Box::new(move |panic| {
@@ -35,6 +39,7 @@ impl Term {
     }
 
     pub fn stop() -> Result<()> {
+        execute!(std::io::stdout(), DisableBracketedPaste)?;
         disable_raw_mode()?;
         ratatui::crossterm::execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture)?;
         Ok(())
