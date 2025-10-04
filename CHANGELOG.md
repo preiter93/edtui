@@ -1,6 +1,10 @@
 Released
 --------
 
+0.9.8 - 04 Oct 2025
+===================
+- Make on_paste_event public
+
 0.9.7 - 04 Oct 2025
 ===================
 - feat: Support bracketed paste (ctrl+y or cmd+y)
