@@ -1,5 +1,5 @@
 use ratatui::crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture},
+    event::{DisableBracketedPaste, DisableMouseCapture, EnableBracketedPaste, EnableMouseCapture},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::prelude::*;
@@ -20,7 +20,12 @@ impl Term {
         let backend = CrosstermBackend::new(stdout());
         let terminal = Terminal::new(backend)?;
 
-        ratatui::crossterm::execute!(stdout(), EnterAlternateScreen, EnableMouseCapture)?;
+        ratatui::crossterm::execute!(
+            stdout(),
+            EnterAlternateScreen,
+            EnableMouseCapture,
+            EnableBracketedPaste
+        )?;
         enable_raw_mode()?;
 
         // Shutdown gracefully
@@ -36,7 +41,12 @@ impl Term {
 
     pub fn stop() -> Result<()> {
         disable_raw_mode()?;
-        ratatui::crossterm::execute!(stdout(), LeaveAlternateScreen, DisableMouseCapture)?;
+        ratatui::crossterm::execute!(
+            stdout(),
+            LeaveAlternateScreen,
+            DisableMouseCapture,
+            DisableBracketedPaste
+        )?;
         Ok(())
     }
 }

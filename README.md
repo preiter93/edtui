@@ -38,6 +38,23 @@ event_handler.on_key_event(key_event, &mut state);
 - Syntax highlighting (experimental).
 - Mouse support (experimental).
 
+### Paste Support
+
+If you want to enable paste (via ctrl+y or cmd+y) you must explicitly enable it at the start of your app:
+
+```rust
+let mut stdout = std::io::stdout();
+execute!(stdout, EnableBracketedPaste)?;
+```
+
+and disable it during cleanup:
+
+```rust
+execute!(std::io::stdout(), DisableBracketedPaste)?;
+```
+
+See `examples/app/term.rs` for a an example.
+
 ### Demo
 
 ![](resources/app.gif)
