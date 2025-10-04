@@ -57,7 +57,7 @@ impl EditorEventHandler {
     }
 
     /// Handles paste events.
-    pub(crate) fn on_paste_event(&self, text: String, state: &mut EditorState) {
+    pub fn on_paste_event(&self, text: String, state: &mut EditorState) {
         PasteEventHandler::on_event(text, state);
     }
 }
