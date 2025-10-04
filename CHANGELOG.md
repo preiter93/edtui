@@ -1,6 +1,10 @@
 Released
 --------
 
+0.9.7 - 04 Oct 2025
+===================
+- feat: Support bracketed paste (ctrl+y or cmd+y)
+
 0.9.6 - 11 Jan 2025
 ===================
 - feat: Add proper "SelectInnerWord" command
