@@ -33,7 +33,6 @@ impl Execute for Paste {
         };
 
         append_str(&mut state.lines, &mut state.cursor, s);
-        SwitchMode(EditorMode::Normal).execute(state);
     }
 }
 
