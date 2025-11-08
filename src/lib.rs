@@ -38,23 +38,6 @@
 //! - Syntax highlighting (experimental).
 //! - Mouse support (experimental).
 //!
-//! ## Paste Support
-//!
-//! If you want to enable paste (via ctrl+y or cmd+y) you must explicitly enable it at the start of your app:
-//!
-//! ```ignore
-//! let mut stdout = std::io::stdout();
-//! ratatui::crossterm::xecute!(stdout, ratatui::crossterm::event::EnableBracketedPaste);
-//! ```
-//!
-//! and disable it during cleanup:
-//!
-//! ```rust
-//! ratatui::crossterm::execute!(std::io::stdout(), ratatui::crossterm::event::DisableBracketedPaste);
-//! ```
-//!
-//! See `examples/app/term.rs` for a an example.
-//!
 //! ## Demo
 //!
 //!![](resources/app.gif)
@@ -149,6 +132,25 @@
 //!```
 //!
 //!![](resources/syntax_highlighting.gif)
+//!
+//! ## Paste Support
+//!
+//! If you want to enable paste (via ctrl+y or cmd+y) you must explicitly enable it at the start of your app:
+//!
+//! ```ignore
+//! use ratatui::crossterm::event::EnableBracketedPaste;
+//! let mut stdout = std::io::stdout();
+//! ratatui::crossterm::xecute!(stdout, EnableBracketedPaste);
+//! ```
+//!
+//! and disable it during cleanup:
+//!
+//! ```rust
+//! use ratatui::crossterm::event::DisableBracketedPaste;
+//! ratatui::crossterm::execute!(std::io::stdout(), DisableBracketedPaste);
+//! ```
+//!
+//! See `examples/app/term.rs` for a an example.
 //!
 //! ### Roadmap
 //! - [ ] Support termwiz and termion
