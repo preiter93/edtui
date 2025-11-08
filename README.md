@@ -44,13 +44,13 @@ If you want to enable paste (via ctrl+y or cmd+y) you must explicitly enable it 
 
 ```rust
 let mut stdout = std::io::stdout();
-execute!(stdout, EnableBracketedPaste)?;
+ratatui::crossterm::xecute!(stdout, ratatui::crossterm::event::EnableBracketedPaste);
 ```
 
 and disable it during cleanup:
 
 ```rust
-execute!(std::io::stdout(), DisableBracketedPaste)?;
+ratatui::crossterm::execute!(std::io::stdout(), ratatui::crossterm::event::DisableBracketedPaste);
 ```
 
 See `examples/app/term.rs` for a an example.
