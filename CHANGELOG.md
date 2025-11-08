@@ -1,3 +1,9 @@
+0.10.0 - ?
+===================
+- Bump ratatui to v0.30
+- Bump arboard, syntect and enum_dispatch
+- Mouse support and syntax highlightning is no longer experimental
+
 Released
 --------
 
