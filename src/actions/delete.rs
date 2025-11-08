@@ -116,6 +116,37 @@ impl Execute for DeleteLine {
     }
 }
 
+/// Deletes from the current cursor position to the first non-whitespace character of the line
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteToFirstCharOfLine;
+
+impl Execute for DeleteToFirstCharOfLine {
+    fn execute(&mut self, state: &mut EditorState) {
+        state.capture();
+
+        let row_index = RowIndex::new(state.cursor.row);
+        let Some(row) = state.lines.get_mut(row_index) else {
+            return;
+        };
+
+        let col = state.cursor.col;
+
+        let first_non_ws = row
+            .iter()
+            .position(|c| !c.is_whitespace())
+            .unwrap_or(row.len());
+
+        let anchor = if col <= first_non_ws { 0 } else { first_non_ws };
+
+        if anchor < col && col <= row.len() {
+            let deleted = row.drain(anchor..col).collect();
+            state.clip.set_text(deleted);
+        }
+
+        state.cursor.col = anchor;
+    }
+}
+
 /// Deletes from the current cursor position to the end of the line
 #[derive(Clone, Debug, Copy)]
 pub struct DeleteToEndOfLine;
@@ -269,7 +300,22 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_to_end_line() {
+    fn test_delete_to_first_char_of_line() {
+        let mut state = EditorState::new(Lines::from("  Hello World!"));
+        state.cursor = Index2::new(0, 4);
+
+        DeleteToFirstCharOfLine.execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 2));
+        assert_eq!(state.lines, Lines::from("  llo World!"));
+
+        state.cursor = Index2::new(0, 2);
+        DeleteToFirstCharOfLine.execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.lines, Lines::from("llo World!"));
+    }
+
+    #[test]
+    fn test_delete_to_end_of_line() {
         let mut state = test_state();
         state.cursor = Index2::new(0, 3);
 
