@@ -38,6 +38,23 @@
 //! - Syntax highlighting (experimental).
 //! - Mouse support (experimental).
 //!
+//! ## Paste Support
+//!
+//! If you want to enable paste (via ctrl+y or cmd+y) you must explicitly enable it at the start of your app:
+//!
+//! ```rust
+//! let mut stdout = std::io::stdout();
+//! execute!(stdout, EnableBracketedPaste)?;
+//! ```
+//!
+//! and disable it during cleanup:
+//!
+//! ```rust
+//! execute!(std::io::stdout(), DisableBracketedPaste)?;
+//! ```
+//!
+//! See `examples/app/term.rs` for a an example.
+//!
 //! ## Demo
 //!
 //!![](resources/app.gif)
@@ -61,7 +78,7 @@
 //! | `u`, `ctrl+r`             | Undo/Redo last action                        |
 //! | `Esc`                     | Escape Visual mode                           |
 //! | `0`                       | Move cursor to start of line                 |
-//! | `^`                       | Move cursor to first non-blank character     |
+//! | `_`                       | Move cursor to first non-blank character     |
 //! | `$`                       | Move cursor to end of line                   |
 //! | `gg`                      | Move cursor to the first row                 |
 //! | `G `                      | Move cursor to the last row                  |
@@ -83,6 +100,8 @@
 //! | `y`                       | Copy the selected text in visual mode        |
 //! | `yy`                      | Copy the current line in normal mode         |
 //! | `p`                       | Paste the copied text                        |
+//! | `Home`                    | Move cursor to start of line                 |
+//! | `End`                     | Move cursor to end of line                   |
 //!
 //! #### Insert Mode:
 //!
@@ -92,6 +111,9 @@
 //! | `Backspace` | Delete the previous character           |
 //! | `Enter`     | Insert line break                       |
 //! | `Arrows`    | Navigation                              |
+//! | `Home`      | Move cursor to start of line            |
+//! | `End`       | Move cursor to end of line              |
+//! | `ctrl+u`    | Delete until first character            |
 //!
 //! For more keybindings and customization options, refer to the code.
 //!
