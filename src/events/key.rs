@@ -1,5 +1,5 @@
 use crate::actions::cpaste::PasteOverSelection;
-use crate::actions::delete::DeleteToEndOfLine;
+use crate::actions::delete::{DeleteToEndOfLine, DeleteToFirstCharOfLine};
 use crate::actions::motion::{MoveHalfPageDown, MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
@@ -28,6 +28,8 @@ pub enum KeyEvent {
     Backspace,
     Tab,
     Ctrl(char),
+    Home,
+    End,
     None,
 }
 
@@ -50,6 +52,8 @@ impl From<CTKeyEvent> for KeyEvent {
             KeyCode::Esc => KeyEvent::Esc,
             KeyCode::Backspace => KeyEvent::Backspace,
             KeyCode::Tab => KeyEvent::Tab,
+            KeyCode::Home => KeyEvent::Home,
+            KeyCode::End => KeyEvent::End,
             _ => KeyEvent::None,
         }
     }
@@ -256,6 +260,36 @@ impl Default for KeyEventHandler {
             (
                 KeyEventRegister::v(vec![KeyEvent::Ctrl('u')]),
                 MoveHalfPageUp().into(),
+            ),
+            // `Home` and `End` go to first/last position in a line
+            (
+                KeyEventRegister::i(vec![KeyEvent::Home]),
+                MoveToStartOfLine().into(),
+            ),
+            (
+                KeyEventRegister::n(vec![KeyEvent::Home]),
+                MoveToStartOfLine().into(),
+            ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::Home]),
+                MoveToStartOfLine().into(),
+            ),
+            (
+                KeyEventRegister::i(vec![KeyEvent::End]),
+                MoveToEndOfLine().into(),
+            ),
+            (
+                KeyEventRegister::n(vec![KeyEvent::End]),
+                MoveToEndOfLine().into(),
+            ),
+            (
+                KeyEventRegister::v(vec![KeyEvent::End]),
+                MoveToEndOfLine().into(),
+            ),
+            // `Ctrl+u` deltes from cursor to first non-whitespace character in insert mode
+            (
+                KeyEventRegister::i(vec![KeyEvent::Ctrl('u')]),
+                DeleteToFirstCharOfLine.into(),
             ),
             // Move cursor to start/first/last position and enter insert mode
             (

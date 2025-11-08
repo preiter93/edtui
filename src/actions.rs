@@ -14,7 +14,8 @@ use motion::{MoveToFirstRow, MoveToLastRow};
 
 pub use self::cpaste::{CopyLine, CopySelection, Paste};
 pub use self::delete::{
-    DeleteChar, DeleteLine, DeleteSelection, JoinLineWithLineBelow, RemoveChar, ReplaceChar,
+    DeleteChar, DeleteLine, DeleteSelection, DeleteToFirstCharOfLine, JoinLineWithLineBelow,
+    RemoveChar, ReplaceChar,
 };
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
@@ -59,6 +60,7 @@ pub enum Action {
     RemoveChar(RemoveChar),
     DeleteChar(DeleteChar),
     DeleteLine(DeleteLine),
+    DeleteToFirstCharOfLine(DeleteToFirstCharOfLine),
     DeleteToEndOfLine(DeleteToEndOfLine),
     DeleteSelection(DeleteSelection),
     JoinLineWithLineBelow(JoinLineWithLineBelow),

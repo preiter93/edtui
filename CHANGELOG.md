@@ -1,6 +1,13 @@
 Released
 --------
 
+0.9.9 - ?
+===================
+- Add new keymappings
+    - Ctrl+u (insert mode): Deletes to first non-whitespace character
+    - Home: Goes to the start of the line
+    - End: Goes to the end of the line
+
 0.9.8 - 04 Oct 2025
 ===================
 - Make on_paste_event public
