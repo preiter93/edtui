@@ -35,8 +35,8 @@
 //! - Vim-like keybindings and editing modes for efficient text manipulation.
 //! - Copy paste using the systems clipboard.
 //! - Line wrapping.
-//! - Syntax highlighting (experimental).
-//! - Mouse support (experimental).
+//! - Syntax highlighting.
+//! - Mouse support.
 //!
 //! ## Demo
 //!
@@ -100,9 +100,9 @@
 //!
 //! For more keybindings and customization options, refer to the code.
 //!
-//! ## Experimental Mouse Support
+//! ##  Mouse Support
 //!
-//! `Edtui` includes experimental mouse support:
+//! `Edtui` includes mouse support for selecting text:
 //! ```ignore
 //! let event_handler = EditorEvent::default();
 //! event_handler.on_mouse_event(mouse_event, &mut state);
@@ -112,7 +112,7 @@
 //!
 //! ## Syntax highlighting
 //!
-//! Syntax highlighting was added in version `0.8.4`. It is experimental, so expect breaking changes.
+//! Syntax highlighting was added in version `0.8.4`.
 //!
 //! `Edtui` offers a number of custom themes, see [`SyntaxHighlighter::theme`] for a complete list.
 //! If you want to use a custom theme, see [`SyntaxHighlighter::custom_theme`]. Check [syntect](https://github.com/trishume/syntect)
