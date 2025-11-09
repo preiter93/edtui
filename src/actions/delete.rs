@@ -131,12 +131,12 @@ impl Execute for DeleteToFirstCharOfLine {
 
         let col = state.cursor.col;
 
-        let first_non_ws = row
+        let first_char = row
             .iter()
             .position(|c| !c.is_whitespace())
             .unwrap_or(row.len());
 
-        let anchor = if col <= first_non_ws { 0 } else { first_non_ws };
+        let anchor = if col <= first_char { 0 } else { first_char };
 
         if anchor < col && col <= row.len() {
             let deleted = row.drain(anchor..col).collect();
