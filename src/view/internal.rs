@@ -333,8 +333,6 @@ fn spans_width(spans: &[Span], tab_width: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use ratatui::style::Stylize;
-
     use super::*;
 
     #[test]
