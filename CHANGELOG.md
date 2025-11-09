@@ -1,7 +1,7 @@
 Released
 --------
 
-0.9.9 - ?
+0.9.9 - 09 Nov 2025
 ===================
 - Add new keymappings
     - Ctrl+u (insert mode): Deletes to first non-whitespace character
