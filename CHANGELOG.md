@@ -3,7 +3,7 @@ Released
 
 0.10.0 - 27 Dec 2025
 ===================
-- Bump ratatui to v0.30.0-beta.0
+- Bump ratatui to v0.30.0
 - Bump arboard, syntect and enum_dispatch
 - Unmark mouse support and syntax highlightning - no longer experimental
 
