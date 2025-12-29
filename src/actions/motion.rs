@@ -109,6 +109,8 @@ impl Execute for MoveWordForward {
 }
 
 fn move_word_forward(state: &mut EditorState) {
+    let start_char_class = CharacterClass::from(state.lines.get(state.cursor));
+
     let start_index = match (
         state.lines.is_last_col(state.cursor),
         state.lines.is_last_row(state.cursor),
@@ -120,16 +122,18 @@ fn move_word_forward(state: &mut EditorState) {
         }
         _ => Index2::new(state.cursor.row, state.cursor.col.saturating_add(1)),
     };
-    let start_char_class = CharacterClass::from(state.lines.get(start_index));
 
     for (next_char, index) in state.lines.iter().from(start_index) {
-        state.cursor = index;
         if CharacterClass::from(next_char) != start_char_class {
-            break;
+            state.cursor = index;
+            skip_whitespace(&state.lines, &mut state.cursor);
+            return;
         }
     }
-
-    skip_whitespace(&state.lines, &mut state.cursor);
+    state.cursor = Index2::new(
+        state.cursor.row,
+        state.lines.last_col_index(state.cursor.row),
+    );
 }
 
 /// Move one word forward to the end of the word.
@@ -478,6 +482,71 @@ mod tests {
 
         MoveWordForward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(2, 3));
+    }
+
+    #[test]
+    fn test_move_word_forward_with_punctuation() {
+        let mut state = EditorState::new(Lines::from("forward (w)"));
+
+        // Start at 'f', move forward through "forward" and skip space to land on '('
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 8));
+
+        // At '(', move through '(' and skip space (none) to land on 'w'
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 9));
+
+        // At 'w', move through 'w' to land on ')'
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 10));
+    }
+
+    #[test]
+    fn test_move_word_forward_punctuation_detailed() {
+        // Test the exact case from the bug report
+        let mut state = EditorState::new(Lines::from("forward (w)"));
+
+        // Start at 'f' (position 0)
+        assert_eq!(state.cursor, Index2::new(0, 0));
+
+        // First move: from 'f' through "forward" to '('
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(
+            state.cursor,
+            Index2::new(0, 8),
+            "Should move from 'f' to '(' after skipping whitespace"
+        );
+
+        // Second move: from '(' to 'w' (this was the bug - it went to ')' instead)
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(
+            state.cursor,
+            Index2::new(0, 9),
+            "Should move from '(' to 'w', not to ')'"
+        );
+
+        // Third move: from 'w' to ')'
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(
+            state.cursor,
+            Index2::new(0, 10),
+            "Should move from 'w' to ')'"
+        );
+
+        // Test with multiple punctuation characters
+        let mut state = EditorState::new(Lines::from("hello()world"));
+
+        // From 'h' to '('
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 5));
+
+        // From '(' through ')' to 'w' (consecutive punctuation treated as one word)
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 7));
+
+        // From 'w' through "world" to end
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 11));
     }
 
     #[test]

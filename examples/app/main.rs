@@ -37,8 +37,7 @@ Supports syntax highlighting:
 ```
 fn main() {
     let state = EditorState::default();
-    let theme = \"dracula\";
-    let highlighter = SyntaxHighlighter::new(theme, \"rs\");
+    let highlighter = SyntaxHighlighter::new(\"dracula\", \"rs\");
     EditorView::new(&mut state)
         .wrap(true)
         .theme(Theme::new().editor)
