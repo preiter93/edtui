@@ -6,7 +6,7 @@
 
 </div>
 
-#### Overview
+### Overview
 `EdTUI` is a text editor widget for the [Ratatui](https://github.com/ratatui-org/ratatui) ecosystem.
 It is designed to provide a user experience inspired by Vim. Edtui is developed to be used as an
 editor in ratatui apps. It is not supposed to be a stand-alone code editor.
