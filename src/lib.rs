@@ -43,7 +43,7 @@
 //!![](resources/app.gif)
 //!
 //! ## Keybindings
-//! `EdTUI` offers a set of keybindings similar to Vim. Here are some of the most common keybindings:
+//! `EdTUI` offers keybindings similar to vim:
 //!
 //! #### Normal Mode:
 //!
