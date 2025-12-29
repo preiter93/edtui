@@ -379,11 +379,15 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Append/insert new line and switch into insert mode
         (
             KeyEventRegister::n(vec![KeyEvent::Char('o')]),
-            Composed::new(AppendNewline(1)).into(),
+            Composed::new(AppendNewline(1))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![KeyEvent::Char('O')]),
-            Composed::new(InsertNewline(1)).into(),
+            Composed::new(InsertNewline(1))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         // Insert a line break
         (
@@ -413,15 +417,13 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Delete the current selection
         (
             KeyEventRegister::v(vec![KeyEvent::Char('d')]),
-            DeleteSelection.into(),
+            Composed::new(DeleteSelection)
+                .chain(SwitchMode(EditorMode::Normal))
+                .into(),
         ),
         // Join the current line with the line below
         (
             KeyEventRegister::n(vec![KeyEvent::Char('J')]),
-            JoinLineWithLineBelow.into(),
-        ),
-        (
-            KeyEventRegister::v(vec![KeyEvent::Char('J')]),
             JoinLineWithLineBelow.into(),
         ),
         // Select inner word between delimiters
@@ -468,7 +470,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char('w'),
             ]),
-            ChangeInnerWord.into(),
+            Composed::new(ChangeInnerWord)
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -476,7 +480,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char('"'),
             ]),
-            ChangeInnerBetween::new('"', '"').into(),
+            Composed::new(ChangeInnerBetween::new('"', '"'))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -484,7 +490,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char('\''),
             ]),
-            ChangeInnerBetween::new('\'', '\'').into(),
+            Composed::new(ChangeInnerBetween::new('\'', '\''))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -492,7 +500,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char('('),
             ]),
-            ChangeInnerBetween::new('(', ')').into(),
+            Composed::new(ChangeInnerBetween::new('(', ')'))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -500,7 +510,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char(')'),
             ]),
-            ChangeInnerBetween::new('(', ')').into(),
+            Composed::new(ChangeInnerBetween::new('(', ')'))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -508,7 +520,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char('{'),
             ]),
-            ChangeInnerBetween::new('{', '}').into(),
+            Composed::new(ChangeInnerBetween::new('{', '}'))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -516,7 +530,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char('}'),
             ]),
-            ChangeInnerBetween::new('{', '}').into(),
+            Composed::new(ChangeInnerBetween::new('{', '}'))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -524,7 +540,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char('['),
             ]),
-            ChangeInnerBetween::new('[', ']').into(),
+            Composed::new(ChangeInnerBetween::new('[', ']'))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -532,16 +550,22 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyEvent::Char('i'),
                 KeyEvent::Char(']'),
             ]),
-            ChangeInnerBetween::new('[', ']').into(),
+            Composed::new(ChangeInnerBetween::new('[', ']'))
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         // Change selection
         (
             KeyEventRegister::v(vec![KeyEvent::Char('c')]),
-            ChangeSelection.into(),
+            Composed::new(ChangeSelection)
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::v(vec![KeyEvent::Char('x')]),
-            ChangeSelection.into(),
+            Composed::new(ChangeSelection)
+                .chain(SwitchMode(EditorMode::Normal))
+                .into(),
         ),
         // Select  the line
         (
@@ -555,7 +579,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Copy
         (
             KeyEventRegister::v(vec![KeyEvent::Char('y')]),
-            CopySelection.into(),
+            Composed::new(CopySelection)
+                .chain(SwitchMode(EditorMode::Normal))
+                .into(),
         ),
         (
             KeyEventRegister::n(vec![KeyEvent::Char('y'), KeyEvent::Char('y')]),
@@ -565,7 +591,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (KeyEventRegister::n(vec![KeyEvent::Char('p')]), Paste.into()),
         (
             KeyEventRegister::v(vec![KeyEvent::Char('p')]),
-            PasteOverSelection.into(),
+            Composed::new(PasteOverSelection)
+                .chain(SwitchMode(EditorMode::Normal))
+                .into(),
         ),
     ])
 }
