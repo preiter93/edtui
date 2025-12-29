@@ -3,6 +3,7 @@
 - Switch from ratatui to ratatui-core
 - Add support for custom keybindings
 - Add support for Emacs keybindings
+- fix: MoveWordForward respects character class correctly
 
 Released
 --------
