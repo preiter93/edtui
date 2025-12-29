@@ -9,6 +9,7 @@ pub struct Selection {
     pub start: Index2,
     pub end: Index2,
     pub line_mode: bool,
+    pub anchor: Option<Index2>,
 }
 
 impl Selection {
@@ -18,11 +19,13 @@ impl Selection {
             start,
             end,
             line_mode: false,
+            anchor: None,
         }
     }
 
     pub fn line_mode(mut self) -> Self {
         self.line_mode = true;
+        self.anchor = Some(self.start);
         self
     }
 
@@ -154,6 +157,32 @@ impl Selection {
 pub(crate) fn set_selection(selection: &mut Option<Selection>, index: Index2) {
     if let Some(selection) = selection {
         selection.end = index;
+    }
+}
+
+/// Set the selection end position with line mode aware handling
+pub(crate) fn set_selection_with_lines(
+    selection: &mut Option<Selection>,
+    index: Index2,
+    lines: &crate::Lines,
+) {
+    if let Some(sel) = selection {
+        if sel.line_mode {
+            let anchor_row = sel.anchor.map(|a| a.row).unwrap_or(sel.start.row);
+            let cursor_row = index.row;
+
+            let (top_row, bottom_row) = if anchor_row <= cursor_row {
+                (anchor_row, cursor_row)
+            } else {
+                (cursor_row, anchor_row)
+            };
+
+            sel.start = Index2::new(top_row, 0);
+            let end_col = lines.len_col(bottom_row).unwrap_or(0).saturating_sub(1);
+            sel.end = Index2::new(bottom_row, end_col);
+        } else {
+            sel.end = index;
+        }
     }
 }
 

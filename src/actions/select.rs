@@ -220,10 +220,227 @@ mod tests {
         state.cursor = Index2::new(0, 4);
         SelectLine.execute(&mut state);
 
-        let want = Some(Selection::new(Index2::new(0, 0), Index2::new(0, 11)).line_mode());
-        assert_eq!(state.selection, want);
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.line_mode);
+        assert!(selection.contains_row(0));
         assert_eq!(state.mode, EditorMode::Visual);
         assert_eq!(state.cursor, Index2::new(0, 4));
+    }
+
+    #[test]
+    fn test_select_line_with_motion() {
+        use crate::actions::motion::MoveUp;
+        use crate::EditorMode;
+
+        let mut state = EditorState::new(Lines::from("First line\nSecond line\nThird line"));
+
+        // Start on line 1, select line
+        state.cursor = Index2::new(1, 5);
+        SelectLine.execute(&mut state);
+
+        // Should have line 1 selected
+        let want = Some(Selection::new(Index2::new(1, 0), Index2::new(1, 10)).line_mode());
+        assert_eq!(state.selection, want);
+
+        // Move up to line 0 - should extend selection to cover both lines
+        state.mode = EditorMode::Visual;
+        MoveUp(1).execute(&mut state);
+
+        // Should now select from line 0 to line 1 (complete lines)
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(0));
+        assert!(selection.contains_row(1));
+        assert_eq!(state.cursor.row, 0);
+    }
+
+    #[test]
+    fn test_select_line_with_downward_motion() {
+        use crate::actions::motion::MoveDown;
+        use crate::EditorMode;
+
+        let mut state = EditorState::new(Lines::from("First line\nSecond line\nThird line"));
+
+        // Start on line 1, select line
+        state.cursor = Index2::new(1, 5);
+        SelectLine.execute(&mut state);
+
+        // Should have line 1 selected
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.line_mode);
+        assert!(selection.contains_row(1));
+
+        // Move down to line 2 - should extend selection to cover both lines
+        state.mode = EditorMode::Visual;
+        MoveDown(1).execute(&mut state);
+
+        // Should now select from line 1 to line 2 (complete lines)
+        // Should select from line 1 to line 2
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(1));
+        assert!(selection.contains_row(2));
+        assert_eq!(state.cursor.row, 2);
+    }
+
+    #[test]
+    fn test_select_line_with_horizontal_motion() {
+        use crate::actions::motion::MoveForward;
+        use crate::EditorMode;
+
+        let mut state = EditorState::new(Lines::from("First line\nSecond line\nThird line"));
+
+        // Start on line 1, select line
+        state.cursor = Index2::new(1, 5);
+        SelectLine.execute(&mut state);
+
+        // Should have line 1 selected
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.line_mode);
+        assert!(selection.contains_row(1));
+
+        // Move forward horizontally - should still select the same complete line
+        state.mode = EditorMode::Visual;
+        MoveForward(3).execute(&mut state);
+
+        // Should still select the same complete line (line mode ignores horizontal movement within same line)
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(1));
+        assert!(!selection.contains_row(0));
+        assert!(!selection.contains_row(2));
+        assert_eq!(state.cursor.row, 1);
+        assert_eq!(state.cursor.col, 8); // cursor moved but selection stays on complete line
+    }
+
+    #[test]
+    fn test_select_line_multiple_upward_movements() {
+        use crate::actions::motion::MoveUp;
+        use crate::EditorMode;
+
+        let mut state = EditorState::new(Lines::from("Line 0\nLine 1\nLine 2\nLine 3"));
+
+        // Start on line 2, select line
+        state.cursor = Index2::new(2, 3);
+        SelectLine.execute(&mut state);
+
+        // Should have line 2 selected
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.line_mode);
+        assert!(selection.contains_row(2));
+
+        // Move up to line 1 - should extend selection
+        state.mode = EditorMode::Visual;
+        MoveUp(1).execute(&mut state);
+
+        // Should select from line 1 to line 2
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(1));
+        assert!(selection.contains_row(2));
+        assert_eq!(state.cursor.row, 1);
+
+        // Move up again to line 0 - should extend selection further
+        MoveUp(1).execute(&mut state);
+
+        // Should now select from line 0 to line 2 (original anchor preserved)
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(0));
+        assert!(selection.contains_row(1));
+        assert!(selection.contains_row(2));
+        assert_eq!(state.cursor.row, 0);
+    }
+
+    #[test]
+    fn test_select_line_multiple_downward_movements() {
+        use crate::actions::motion::MoveDown;
+        use crate::EditorMode;
+
+        let mut state = EditorState::new(Lines::from("Line 0\nLine 1\nLine 2\nLine 3"));
+
+        // Start on line 1, select line
+        state.cursor = Index2::new(1, 3);
+        SelectLine.execute(&mut state);
+
+        // Should have line 1 selected
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.line_mode);
+        assert!(selection.contains_row(1));
+
+        // Move down to line 2 - should extend selection
+        state.mode = EditorMode::Visual;
+        MoveDown(1).execute(&mut state);
+
+        // Should select from line 1 to line 2
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(1));
+        assert!(selection.contains_row(2));
+        assert_eq!(state.cursor.row, 2);
+
+        // Move down again to line 3 - should extend selection further
+        MoveDown(1).execute(&mut state);
+
+        // Should now select from line 1 to line 3 (original anchor preserved)
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(1));
+        assert!(selection.contains_row(2));
+        assert!(selection.contains_row(3));
+        assert_eq!(state.cursor.row, 3);
+    }
+
+    #[test]
+    fn test_select_line_mixed_movements() {
+        use crate::actions::motion::{MoveDown, MoveUp};
+        use crate::EditorMode;
+
+        let mut state = EditorState::new(Lines::from("Line 0\nLine 1\nLine 2\nLine 3\nLine 4"));
+
+        // Start on line 2, select line
+        state.cursor = Index2::new(2, 3);
+        SelectLine.execute(&mut state);
+
+        // Move up to line 1
+        // Move up to line 1 - should extend selection to cover both lines
+        state.mode = EditorMode::Visual;
+        MoveUp(1).execute(&mut state);
+
+        // Should select from line 1 to line 2 (complete lines)
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(1));
+        assert!(selection.contains_row(2));
+        assert!(!selection.contains_row(0));
+        assert!(!selection.contains_row(3));
+
+        // Now move back down to line 2 - should shrink back to original
+        MoveDown(1).execute(&mut state);
+
+        // Should shrink back to just line 2 (original anchor)
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(2));
+        assert!(!selection.contains_row(1));
+        assert!(!selection.contains_row(3));
+        assert_eq!(state.cursor.row, 2);
+
+        // Now move down to line 3 - should extend downward from anchor
+        MoveDown(1).execute(&mut state);
+
+        // Should select from line 2 to line 3
+        assert!(state.selection.is_some());
+        let selection = state.selection.as_ref().unwrap();
+        assert!(selection.contains_row(2));
+        assert!(selection.contains_row(3));
+        assert!(!selection.contains_row(1));
+        assert_eq!(state.cursor.row, 3);
     }
 
     #[test]
