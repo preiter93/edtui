@@ -1,10 +1,9 @@
-use edtui::{EditorView, Index2};
-use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
-use std::error::Error;
-
 use edtui::{EditorEventHandler, EditorState, Lines, SyntaxHighlighter};
+use edtui::{EditorView, Index2};
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyModifiers};
 use ratatui::prelude::*;
+use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
+use std::error::Error;
 use syntect::highlighting::ThemeSet;
 
 use crate::term::Term;

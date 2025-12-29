@@ -1,5 +1,5 @@
+use crossterm::event::{MouseEvent as CTMouseEvent, MouseEventKind};
 use jagged::Index2;
-use ratatui::crossterm::event::{MouseEvent as CTMouseEvent, MouseEventKind};
 
 use crate::{
     actions::{Execute, SwitchMode},

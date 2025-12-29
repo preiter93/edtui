@@ -1,8 +1,6 @@
-use std::borrow::Cow;
-
-use ratatui::text::Span;
-
 use crate::helper::{char_width, span_width, split_str_at};
+use ratatui_core::text::Span;
+use std::borrow::Cow;
 
 #[derive(Default)]
 pub(crate) struct LineWrapper;
