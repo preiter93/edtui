@@ -5,10 +5,13 @@ use jagged::{index::RowIndex, Index2};
 use crate::{
     clipboard::ClipboardTrait,
     helper::{append_str, insert_str, max_row},
-    EditorMode, EditorState,
+    EditorState,
 };
 
-use super::{delete::delete_selection, Execute, SwitchMode};
+#[cfg(test)]
+use crate::EditorMode;
+
+use super::{delete::delete_selection, Execute};
 
 #[derive(Clone, Debug)]
 pub struct Paste;
@@ -47,8 +50,6 @@ impl Execute for PasteOverSelection {
             let _ = delete_selection(state, &selection);
             insert_str(&mut state.lines, &mut state.cursor, &state.clip.get_text());
         }
-
-        SwitchMode(EditorMode::Normal).execute(state);
     }
 }
 
@@ -59,7 +60,6 @@ impl Execute for CopySelection {
     fn execute(&mut self, state: &mut EditorState) {
         if let Some(s) = &state.selection {
             state.clip.set_text(s.copy_from(&state.lines).into());
-            state.mode = EditorMode::Normal;
             state.selection = None;
         }
     }
@@ -128,11 +128,11 @@ mod tests {
 
         assert_eq!(state.lines, Lines::from("Hello Earth!\n\n123."));
         assert_eq!(state.cursor, Index2::new(0, 10));
-        assert_eq!(state.mode, EditorMode::Normal);
+        assert_eq!(state.mode, EditorMode::Visual);
 
         Undo.execute(&mut state);
 
         assert_eq!(state.lines, Lines::from("Hello World!\n\n123."));
-        assert_eq!(state.mode, EditorMode::Normal);
+        assert_eq!(state.mode, EditorMode::Visual);
     }
 }

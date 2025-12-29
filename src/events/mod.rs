@@ -13,16 +13,38 @@ use crate::{events::paste::PasteEventHandler, EditorState};
 use crossterm::event::Event as CTEvent;
 
 /// Handles key and mouse events.
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct EditorEventHandler {
     pub key_handler: KeyEventHandler,
 }
 
+impl Default for EditorEventHandler {
+    fn default() -> Self {
+        Self::vim_mode()
+    }
+}
+
 impl EditorEventHandler {
-    /// Creates a new `EditorEvent` handler.
+    /// Creates a new `EditorEvent` handler with the given key handler.
     #[must_use]
     pub fn new(key_handler: KeyEventHandler) -> Self {
         Self { key_handler }
+    }
+
+    /// Creates a new `EditorEvent` handler with vim-style keybindings.
+    #[must_use]
+    pub fn vim_mode() -> Self {
+        Self {
+            key_handler: KeyEventHandler::vim_mode(),
+        }
+    }
+
+    /// Creates a new `EditorEvent` handler with emacs-style keybindings.
+    #[must_use]
+    pub fn emacs_mode() -> Self {
+        Self {
+            key_handler: KeyEventHandler::emacs_mode(),
+        }
     }
 
     /// Handles key and mouse events.

@@ -1,4 +1,4 @@
-use crate::{EditorMode, EditorState};
+use crate::EditorState;
 
 use super::Execute;
 
@@ -40,7 +40,6 @@ impl Execute for TriggerSearch {
     /// the last cursor position and setting the cursor to the found match.
     /// Switches to normal mode.
     fn execute(&mut self, state: &mut EditorState) {
-        state.mode = EditorMode::Normal;
         if let Some(index) = state.search.find_first() {
             state.cursor = *index;
         }
@@ -55,7 +54,6 @@ impl Execute for FindNext {
     /// Executes the command, finding the next search match and updating the cursor position.
     /// Switches to normal mode.
     fn execute(&mut self, state: &mut EditorState) {
-        state.mode = EditorMode::Normal;
         if let Some(index) = state.search.find_next() {
             state.cursor = *index;
         }
@@ -70,7 +68,6 @@ impl Execute for FindPrevious {
     /// Executes the command, finding the previous search match and updating the cursor position.
     /// Switches to normal mode.
     fn execute(&mut self, state: &mut EditorState) {
-        state.mode = EditorMode::Normal;
         if let Some(index) = state.search.find_previous() {
             state.cursor = *index;
         }
@@ -82,20 +79,18 @@ impl Execute for FindPrevious {
 pub struct StartSearch;
 
 impl Execute for StartSearch {
-    /// Executes the command, starting the search state and switching to search mode.
+    /// Executes the command, starting the search state.
     fn execute(&mut self, state: &mut EditorState) {
-        state.mode = EditorMode::Search;
         state.search.start(state.cursor);
     }
 }
-/// Command to clear the search state and switch to normal mode.
+/// Command to clear the search state.
 #[derive(Clone, Debug)]
 pub struct StopSearch;
 
 impl Execute for StopSearch {
-    /// Executes the command, clearing the search state and switching to normal mode.
+    /// Executes the command, clearing the search state.
     fn execute(&mut self, state: &mut EditorState) {
-        state.mode = EditorMode::Normal;
         state.search.clear();
         state.cursor = state.search.start_cursor;
     }

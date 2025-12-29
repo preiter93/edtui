@@ -1,9 +1,9 @@
 use jagged::index::RowIndex;
 
-use super::{Execute, SwitchMode};
+use super::Execute;
 use crate::{
     helper::{insert_char, line_break},
-    EditorMode, EditorState,
+    EditorState,
 };
 
 /// Inserts a single character at the current cursor position
@@ -31,14 +31,12 @@ impl Execute for LineBreak {
     }
 }
 
-/// Appends a newline below the current cursor position
-/// and switches into insert mode.
+/// Appends a newline below the current cursor position.
 #[derive(Clone, Debug, Copy)]
 pub struct AppendNewline(pub usize);
 
 impl Execute for AppendNewline {
     fn execute(&mut self, state: &mut EditorState) {
-        SwitchMode(EditorMode::Insert).execute(state);
         state.cursor.col = 0;
         for _ in 0..self.0 {
             if !state.lines.is_empty() {
@@ -53,14 +51,12 @@ impl Execute for AppendNewline {
     }
 }
 
-/// Appends a newline at the current cursor position
-/// and switches into insert mode.
+/// Appends a newline at the current cursor position.
 #[derive(Clone, Debug, Copy)]
 pub struct InsertNewline(pub usize);
 
 impl Execute for InsertNewline {
     fn execute(&mut self, state: &mut EditorState) {
-        SwitchMode(EditorMode::Insert).execute(state);
         state.cursor.col = 0;
         for _ in 0..self.0 {
             state.lines.insert(RowIndex::new(state.cursor.row), vec![]);

@@ -36,7 +36,6 @@ pub use self::select::{
 #[derive(Clone, Debug)]
 pub enum Action {
     SwitchMode(SwitchMode),
-    Append(Append),
     MoveForward(MoveForward),
     MoveBackward(MoveBackward),
     MoveUp(MoveUp),
@@ -115,17 +114,6 @@ impl Execute for SwitchMode {
     }
 }
 
-/// Switch to insert mode and move one character forward
-#[derive(Clone, Debug)]
-pub struct Append;
-
-impl Execute for Append {
-    fn execute(&mut self, state: &mut EditorState) {
-        SwitchMode(EditorMode::Insert).execute(state);
-        MoveForward(1).execute(state);
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct Undo;
 
@@ -172,7 +160,6 @@ impl Execute for Composed {
 #[cfg(test)]
 mod tests {
     use crate::clipboard::InternalClipboard;
-    use crate::Index2;
     use crate::Lines;
 
     use super::*;
@@ -192,20 +179,5 @@ mod tests {
 
         SwitchMode(EditorMode::Visual).execute(&mut state);
         assert_eq!(state.mode, EditorMode::Visual);
-    }
-
-    #[test]
-    fn test_append() {
-        let mut state = test_state();
-
-        Append.execute(&mut state);
-        assert_eq!(state.mode, EditorMode::Insert);
-        assert_eq!(state.cursor, Index2::new(0, 1));
-
-        state.mode = EditorMode::Normal;
-        state.cursor = Index2::new(0, 11);
-        Append.execute(&mut state);
-        assert_eq!(state.mode, EditorMode::Insert);
-        assert_eq!(state.cursor, Index2::new(0, 12));
     }
 }

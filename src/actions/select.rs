@@ -147,7 +147,6 @@ impl Execute for ChangeInnerWord {
             state.capture();
             let deleted = delete_selection(state, &selection);
             state.clip.set_text(deleted.into());
-            state.mode = EditorMode::Insert;
         }
     }
 }
@@ -172,7 +171,6 @@ impl Execute for ChangeInnerBetween {
             state.capture();
             let deleted = delete_selection(state, &selection);
             state.clip.set_text(deleted.into());
-            state.mode = EditorMode::Insert;
         }
     }
 }
@@ -200,7 +198,6 @@ impl Execute for ChangeSelection {
             state.capture();
             let deleted = delete_selection(state, &selection);
             state.clip.set_text(deleted.into());
-            state.mode = EditorMode::Insert;
         }
     }
 }
