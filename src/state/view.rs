@@ -212,55 +212,49 @@ mod tests {
 
     macro_rules! update_view_vertical_test {
         ($name:ident: {
-        view: $given_view:expr,
-        height: $given_height:expr,
-        cursor: $given_cursor:expr,
-        expected: $expected_offset:expr
+        view: $view:expr,
+        height: $height:expr,
+        cursor: $cursor:expr,
+        expected: $expected:expr
     }) => {
             #[test]
             fn $name() {
                 // given
-                let mut view = $given_view;
-                let height = $given_height;
-                let cursor = $given_cursor;
+                let mut view = $view;
 
                 // when
-                let offset = view.update_viewport_vertical(height, cursor);
+                let offset = view.update_viewport_vertical($height, $cursor);
 
                 // then
-                assert_eq!(offset, $expected_offset);
+                assert_eq!(offset, $expected);
             }
         };
     }
 
     macro_rules! update_view_horizontal_test {
         ($name:ident: {
-        view: $given_view:expr,
-        width: $given_width:expr,
-        cursor: $given_cursor:expr,
-        expected: $expected_offset:expr
+        view: $view:expr,
+        width: $width:expr,
+        cursor: $cursor:expr,
+        expected: $expected:expr
     }) => {
             #[test]
             fn $name() {
                 // given
-                let mut view = $given_view;
-                let width = $given_width;
-                let cursor = $given_cursor;
+                let mut view = $view;
                 let line = vec![];
 
                 // when
-                let offset = view.update_viewport_horizontal(width, cursor, Some(&line));
+                let offset = view.update_viewport_horizontal($width, $cursor, Some(&line));
 
                 // then
-                assert_eq!(offset, $expected_offset);
+                assert_eq!(offset, $expected);
             }
         };
     }
 
+    // cursor above viewport → scroll up
     update_view_vertical_test!(
-        // 0      | --<-
-        // 1 --<- | ----
-        // 2 ---- |
         scroll_up: {
             view: ViewState{
                 viewport: Offset::new(0, 1),
@@ -272,10 +266,8 @@ mod tests {
         }
     );
 
+    // cursor below viewport → scroll down
     update_view_vertical_test!(
-        // 0 ---- |
-        // 1 ---- | ----
-        // 2 <-   | --<-
         scroll_down: {
             view: ViewState{
                 viewport: Offset::new(0, 0),
@@ -287,6 +279,7 @@ mod tests {
         }
     );
 
+    // cursor left of viewport → scroll left
     update_view_horizontal_test!(
         scroll_left: {
             view: ViewState{
@@ -299,6 +292,7 @@ mod tests {
         }
     );
 
+    // cursor right of viewport → scroll right
     update_view_horizontal_test!(
         scroll_right: {
             view: ViewState{

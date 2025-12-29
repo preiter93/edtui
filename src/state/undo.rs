@@ -1,8 +1,8 @@
-//! This module contains a rather brute-force implementation of undo and redo functionality
-//! for a simple text editor. It stores the entire editor state at each action.
+//! This module contains a "brute-force" implementation of undo and redo.
+//! It stores the entire editor state at each action.
 //!
-//! While this approach works for basic undo/redo needs, it may not be efficient for more
-//! complex usage. In the long run, this should be replaced with an action-based mechanism.
+//! This approach works for basic undo/redo needs, but its not the most efficient.
+//! In the long run, this should be replaced with an action-based mechanism.
 use crate::{EditorState, Index2, Lines};
 
 #[derive(Debug, Clone)]

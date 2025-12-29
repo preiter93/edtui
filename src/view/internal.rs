@@ -11,8 +11,7 @@ use jagged::Index2;
 use ratatui::{style::Style, text::Span};
 
 /// An internal data type that represent a styled span.
-/// Unlike [`ratatui::text::Span`], it holds and owned string, which simplifies the
-/// code because we don't have to keep track of the lifetimes.
+/// Unlike [`ratatui::text::Span`] it holds an owned string simplifying lifetime management.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub(crate) struct InternalSpan {
     pub(crate) content: String,
@@ -31,9 +30,8 @@ impl InternalSpan {
         spans.iter().fold(0, |sum, span| sum + span.content.len())
     }
 
-    /// Applies a [`Selection`] to an array of spans returning a modified
-    /// array of spans.
-    fn apply_selection(
+    /// Splits an [`InternalSpan`] at a [`Selection`]. Returns an array of spans.
+    fn split_at_selection(
         spans: &[Self],
         row_index: usize,
         selection: &Selection,
@@ -48,8 +46,8 @@ impl InternalSpan {
 
     /// Splits spans by `crop_at` from the left.
     ///
-    /// When the editor is scrolled horizontally, we have to crop
-    /// text from the left.
+    /// This is necessary because when the editor is scrolled horizontally,
+    /// we have to cut off the text from the left.
     fn crop_spans(spans: &mut Vec<Self>, crop_at: usize) {
         if crop_at == 0 {
             return;
@@ -66,21 +64,21 @@ impl InternalSpan {
 
             // span is fully on screen
             // ---|span|
-            //  |
+            //  c
             if span_start >= crop_at {
                 break;
             }
 
             // span must be cut to fit on screen
             // -|span|
-            //   |
+            //   c
             if span_end > crop_at {
                 split_span_at = crop_at - span_start;
                 break;
             }
 
-            // span is not shown on screen
-            first_visible_span = i + 1; // remove the full span
+            // span is not shown on screen - remove the full span
+            first_visible_span = i + 1;
             span_offset += span_width;
         }
 
@@ -163,9 +161,8 @@ impl From<InternalSpan> for Span<'_> {
     }
 }
 
-/// Converts an `InternalLine` into a vector of `Span`s, applying styles based on the
-/// given selections.
-pub(crate) fn into_spans_with_selections<'a>(
+/// Converts a line into a vector of `Span`s, applying styles based on the given selections.
+pub(crate) fn line_into_spans_with_selections<'a>(
     line: &[char],
     selections: &[&Option<Selection>],
     row_index: usize,
@@ -213,6 +210,8 @@ pub(crate) fn into_spans_with_selections<'a>(
     spans
 }
 
+/// Converts a line into a vector of `Span`s, applying styles based on the given selections
+/// and syntax highlighting.
 #[cfg(feature = "syntax-highlighting")]
 pub(crate) fn line_into_highlighted_spans_with_selections<'a>(
     line: &[char],
@@ -231,7 +230,7 @@ pub(crate) fn line_into_highlighted_spans_with_selections<'a>(
 
     for selection in selections {
         if let Some(new_span) =
-            InternalSpan::apply_selection(&internal_spans, row_index, selection, highlight_style)
+            InternalSpan::split_at_selection(&internal_spans, row_index, selection, highlight_style)
         {
             internal_spans = new_span;
         }
@@ -337,7 +336,7 @@ mod tests {
 
     #[test]
     fn test_internal_line_into_spans() {
-        // given
+        // given a highlighted line
         let base = Style::default();
         let hightlighted = Style::default().red();
         let line = "Hello".chars().into_iter().collect::<Vec<char>>();
@@ -345,17 +344,17 @@ mod tests {
         let selection = Some(Selection::new(Index2::new(0, 0), Index2::new(0, 2)));
         let selections = vec![&selection];
 
-        // when
-        let spans = into_spans_with_selections(&line, &selections, 0, 0, &base, &hightlighted);
+        // when `line_into_spans_with_selections` is called
+        let spans = line_into_spans_with_selections(&line, &selections, 0, 0, &base, &hightlighted);
 
-        // then
+        // then span is split into highlighted spans
         assert_eq!(spans[0], Span::styled("Hel", hightlighted));
         assert_eq!(spans[1], Span::styled("lo", base));
     }
 
     #[test]
     fn test_internal_span_split_spans() {
-        // given
+        // given a highlighted line
         let base = &Style::default();
         let hightlighted = &Style::default().red();
         let spans = vec![
@@ -363,10 +362,10 @@ mod tests {
             InternalSpan::new("lo!", base),
         ];
 
-        // when
+        // when `split_spans` is called
         let new_spans = InternalSpan::split_spans(&spans, 1, 1, &hightlighted);
 
-        // then
+        // then the span is split correctly
         assert_eq!(new_spans[0], InternalSpan::new("H", base));
         assert_eq!(new_spans[1], InternalSpan::new("e", hightlighted));
         assert_eq!(new_spans[2], InternalSpan::new("l", base));
@@ -400,15 +399,15 @@ mod tests {
 
     #[test]
     fn test_split_spans_with_emoji() {
-        // given
+        // given a line with en emoji
         let base = &Style::default();
         let hightlighted = &Style::default().red();
         let spans = vec![InternalSpan::new("Hell🙂!", base)];
 
-        // when
+        // when `split_spans` is called
         let new_spans = InternalSpan::split_spans(&spans, 2, 4, &hightlighted);
 
-        // then
+        // then the span is split correctly
         assert_eq!(new_spans[0], InternalSpan::new("He", base));
         assert_eq!(new_spans[1], InternalSpan::new("ll🙂", hightlighted));
         assert_eq!(new_spans[2], InternalSpan::new("!", base));
@@ -416,7 +415,7 @@ mod tests {
 
     #[test]
     fn test_internal_span_crop_spans() {
-        // given
+        // given a list of spans
         let base = &Style::default();
         let original_spans = vec![
             InternalSpan::new("Hel", base),
@@ -425,10 +424,10 @@ mod tests {
         ];
         let mut spans = original_spans.clone();
 
-        // when
+        // when `crop_spans` is called
         InternalSpan::crop_spans(&mut spans, 1);
 
-        // then
+        // then the spans are correctly cropped
         assert_eq!(spans[0], InternalSpan::new("el", base));
         assert_eq!(spans[1], InternalSpan::new("lo", base));
         assert_eq!(spans[2], InternalSpan::new("World!", base));
@@ -453,7 +452,7 @@ mod tests {
 
     #[test]
     fn test_internal_span_apply_selection() {
-        // given
+        // given a list of spans
         let base = &Style::default();
         let hightlighted = &Style::default().red();
         let spans = vec![
@@ -461,12 +460,12 @@ mod tests {
             InternalSpan::new("lo!", base),
         ];
 
-        // when
+        // when `split_at_selection` is called
         let selection = Selection::new(Index2::new(0, 1), Index2::new(0, 3));
         let new_spans =
-            InternalSpan::apply_selection(&spans, 0, &selection, &hightlighted).unwrap();
+            InternalSpan::split_at_selection(&spans, 0, &selection, &hightlighted).unwrap();
 
-        // then
+        // then spans are correctly split
         assert_eq!(new_spans[0], InternalSpan::new("H", base));
         assert_eq!(new_spans[1], InternalSpan::new("el", hightlighted));
         assert_eq!(new_spans[2], InternalSpan::new("l", hightlighted));
@@ -475,7 +474,7 @@ mod tests {
 
     #[test]
     fn test_internal_span_apply_selection_with_emoji() {
-        // given
+        // given a list of spans with an emoji
         let base = &Style::default();
         let hightlighted = &Style::default().red();
         let spans = vec![
@@ -483,12 +482,12 @@ mod tests {
             InternalSpan::new("!", base),
         ];
 
-        // when
+        // when `split_at_selection` is called
         let selection = Selection::new(Index2::new(0, 3), Index2::new(0, 5));
         let new_spans =
-            InternalSpan::apply_selection(&spans, 0, &selection, &hightlighted).unwrap();
+            InternalSpan::split_at_selection(&spans, 0, &selection, &hightlighted).unwrap();
 
-        // then
+        // then spans are correctly split
         assert_eq!(new_spans[0], InternalSpan::new("Hel", base));
         assert_eq!(new_spans[1], InternalSpan::new("l🙂", hightlighted));
         assert_eq!(new_spans[2], InternalSpan::new("!", hightlighted));

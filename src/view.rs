@@ -16,9 +16,9 @@ use crate::{
     EditorMode, Index2,
 };
 
-use internal::into_spans_with_selections;
 #[cfg(feature = "syntax-highlighting")]
 use internal::line_into_highlighted_spans_with_selections;
+use internal::line_into_spans_with_selections;
 use jagged::index::RowIndex;
 use line_wrapper::LineWrapper;
 use ratatui::{prelude::*, widgets::Widget};
@@ -79,16 +79,14 @@ impl<'a, 'b> EditorView<'a, 'b> {
     /// See [`SyntaxHighlighter`] for the more information.
     ///
     /// ```rust
-    /// #[cfg(feature = "syntax-highlighting")]
-    /// {
-    ///     use edtui::EditorState;
-    ///     use edtui::EditorView;
-    ///     use edtui::SyntaxHighlighter;
+    /// use edtui::EditorState;
+    /// use edtui::EditorView;
+    /// use edtui::SyntaxHighlighter;
     ///
-    ///     let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
-    ///     EditorView::new(&mut EditorState::default())
-    ///         .syntax_highlighter(Some(syntax_highlighter));
-    /// }
+    /// let mut state = EditorState::default();
+    /// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
+    ///
+    /// EditorView::new(&mut state).syntax_highlighter(Some(syntax_highlighter));
     /// ```
     #[must_use]
     pub fn syntax_highlighter(mut self, syntax_highlighter: Option<SyntaxHighlighter>) -> Self {
@@ -286,7 +284,7 @@ fn generate_spans<'a>(
             highlight_style,
         );
     }
-    into_spans_with_selections(
+    line_into_spans_with_selections(
         line,
         selections,
         row_index,
