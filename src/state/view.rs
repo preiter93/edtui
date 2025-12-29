@@ -3,7 +3,7 @@ use crate::{
     view::line_wrapper::LineWrapper,
     Lines,
 };
-use ratatui::layout::Rect;
+use ratatui_core::layout::Rect;
 
 /// Represents the (x, y) offset of the editor's viewport.
 /// It represents the top-left local editor coordinate.

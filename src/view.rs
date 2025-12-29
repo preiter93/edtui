@@ -21,7 +21,13 @@ use internal::line_into_highlighted_spans_with_selections;
 use internal::line_into_spans_with_selections;
 use jagged::index::RowIndex;
 use line_wrapper::LineWrapper;
-use ratatui::{prelude::*, widgets::Widget};
+use ratatui_core::{
+    buffer::Buffer,
+    layout::{Constraint, Layout, Position, Rect},
+    style::Style,
+    text::Span,
+    widgets::Widget,
+};
 pub use status_line::EditorStatusLine;
 use theme::EditorTheme;
 

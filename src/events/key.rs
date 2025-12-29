@@ -12,7 +12,7 @@ use crate::actions::{
     SelectInnerWord, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
 };
 use crate::{EditorMode, EditorState};
-use ratatui::crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]

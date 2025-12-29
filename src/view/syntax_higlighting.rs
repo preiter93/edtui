@@ -4,7 +4,7 @@ use crate::syntect::{
     parsing::{SyntaxReference, SyntaxSet},
 };
 use once_cell::sync::Lazy;
-use ratatui::style::{Color, Style};
+use ratatui_core::style::{Color, Style};
 use syntect::dumps::from_binary;
 
 use super::internal::InternalSpan;

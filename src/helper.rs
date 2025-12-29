@@ -1,5 +1,5 @@
 use jagged::index::RowIndex;
-use ratatui::{layout::Rect, text::Span};
+use ratatui_core::{layout::Rect, text::Span};
 
 use crate::{EditorMode, EditorState, Index2, Lines};
 

@@ -8,10 +8,10 @@ use crate::{
     state::selection::Selection,
 };
 use jagged::Index2;
-use ratatui::{style::Style, text::Span};
+use ratatui_core::{style::Style, text::Span};
 
 /// An internal data type that represent a styled span.
-/// Unlike [`ratatui::text::Span`] it holds an owned string simplifying lifetime management.
+/// Unlike [`ratatui_core::text::Span`] it holds an owned string simplifying lifetime management.
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub(crate) struct InternalSpan {
     pub(crate) content: String,
