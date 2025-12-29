@@ -2,7 +2,7 @@ use std::cmp::min;
 
 use crate::{
     helper::{find_matching_bracket, skip_empty_lines},
-    state::selection::set_selection,
+    state::selection::set_selection_with_lines,
 };
 use jagged::Index2;
 
@@ -24,7 +24,7 @@ impl Execute for MoveForward {
             state.cursor.col += 1;
         }
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -45,7 +45,7 @@ impl Execute for MoveBackward {
             state.cursor.col = state.cursor.col.saturating_sub(1);
         }
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -62,7 +62,7 @@ impl Execute for MoveUp {
             state.cursor.row = state.cursor.row.saturating_sub(1);
         }
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -79,7 +79,7 @@ impl Execute for MoveDown {
             state.cursor.row += 1;
         }
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -103,7 +103,7 @@ impl Execute for MoveWordForward {
         }
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -152,7 +152,7 @@ impl Execute for MoveWordForwardToEndOfWord {
         }
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -206,7 +206,7 @@ impl Execute for MoveWordBackward {
         }
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -252,7 +252,7 @@ impl Execute for MoveToStartOfLine {
         state.cursor.col = 0;
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -266,7 +266,7 @@ impl Execute for MoveToFirst {
         skip_whitespace(&state.lines, &mut state.cursor);
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -280,7 +280,7 @@ impl Execute for MoveToEndOfLine {
         state.cursor.col = max_col(&state.lines, &state.cursor, state.mode);
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -294,7 +294,7 @@ impl Execute for MoveToFirstRow {
         state.cursor.row = 0;
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -308,7 +308,7 @@ impl Execute for MoveToLastRow {
         state.cursor.row = state.lines.len().saturating_sub(1);
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -324,7 +324,7 @@ impl Execute for MoveToMatchinBracket {
         if let Some(index) = find_matching_bracket(&state.lines, index) {
             state.cursor = index;
             if state.mode == EditorMode::Visual {
-                set_selection(&mut state.selection, state.cursor);
+                set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
             }
         };
     }
@@ -339,7 +339,7 @@ impl Execute for MoveHalfPageDown {
         state.cursor.row = min(state.cursor.row + jump_rows, state.lines.last_row_index());
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
@@ -353,7 +353,7 @@ impl Execute for MoveHalfPageUp {
         state.cursor.row = state.cursor.row.saturating_sub(jump_rows);
 
         if state.mode == EditorMode::Visual {
-            set_selection(&mut state.selection, state.cursor);
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
         }
     }
 }
