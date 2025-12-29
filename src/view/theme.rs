@@ -1,8 +1,6 @@
 use super::EditorStatusLine;
-use ratatui::{
-    style::{Color, Style},
-    widgets::Block,
-};
+use ratatui_core::style::{Color, Style};
+use ratatui_widgets::block::Block;
 
 /// The theme data of the Editor.
 pub struct EditorTheme<'a> {

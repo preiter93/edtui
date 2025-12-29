@@ -10,7 +10,7 @@ pub use key::{KeyEvent, KeyEventHandler, KeyEventRegister};
 pub use mouse::{MouseEvent, MouseEventHandler};
 
 use crate::{events::paste::PasteEventHandler, EditorState};
-use ratatui::crossterm::event::Event as CTEvent;
+use crossterm::event::Event as CTEvent;
 
 /// Handles key and mouse events.
 #[derive(Default, Clone)]

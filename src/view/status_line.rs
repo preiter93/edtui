@@ -1,8 +1,11 @@
-use ratatui::{
-    prelude::*,
+use ratatui_core::{
+    buffer::Buffer,
+    layout::{Alignment, Constraint, Layout, Rect},
     style::Style,
-    widgets::{Paragraph, Widget},
+    text::{Line, Span},
+    widgets::Widget,
 };
+use ratatui_widgets::paragraph::Paragraph;
 
 use super::theme::{DARK_GRAY, WHITE};
 
