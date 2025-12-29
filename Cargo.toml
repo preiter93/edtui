@@ -35,6 +35,12 @@ required-features = ["syntax-highlighting"]
 [[example]]
 name = "test_text"
 
+[[example]]
+name = "emacs"
+
+[[example]]
+name = "custom_keybindings"
+
 [features]
 default = ["arboard", "mouse-support", "syntax-highlighting"]
 arboard = ["dep:arboard"]

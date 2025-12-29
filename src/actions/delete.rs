@@ -5,7 +5,7 @@ use crate::{
     clipboard::ClipboardTrait,
     helper::{is_out_of_bounds, max_col_insert},
     state::selection::Selection,
-    EditorMode, EditorState, Index2, Lines,
+    EditorState, Index2, Lines,
 };
 
 /// Deletes a character at the current cursor position. Does not
@@ -178,7 +178,6 @@ impl Execute for DeleteSelection {
             state.clip.set_text(drained.into());
         }
         state.selection = None;
-        state.mode = EditorMode::Normal;
     }
 }
 

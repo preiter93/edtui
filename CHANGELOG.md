@@ -1,6 +1,8 @@
 0.10.1 - ?
 ===================
 - Switch from ratatui to ratatui-core
+- Add support for custom keybindings
+- Add support for Emacs keybindings
 
 Released
 --------

@@ -23,7 +23,7 @@ EditorView::new(&mut state)
         .render(area, buf);
 ```
 
-Handle events:
+Handle events (Vim mode by default):
 ```rust
 use edtui::EditorEventHandler;
 
@@ -31,8 +31,29 @@ let mut event_handler = EditorEventHandler::default();
 event_handler.on_key_event(key_event, &mut state);
 ```
 
+Or use Emacs mode (modeless editing):
+```rust
+use edtui::{EditorState, EditorEventHandler, Lines};
+
+let mut state = EditorState::new(Lines::from("Hello World"));
+let mut event_handler = EditorEventHandler::emacs_mode();
+event_handler.on_key_event(key_event, &mut state);
+```
+
+Or customize keybindings:
+```rust
+use edtui::{KeyEventHandler, KeyEventRegister, EditorEventHandler};
+
+let mut key_handler = KeyEventHandler::vim_mode();
+key_handler.insert(
+    KeyEventRegister::n(vec![KeyEvent::Ctrl('x')]),
+    SwitchMode(EditorMode::Insert),
+);
+let event_handler = EditorEventHandler::new(key_handler);
+```
+
 ### Features
-- Vim-like keybindings and editing modes for efficient text manipulation.
+- Vim and Emacs keybindings.
 - Copy paste using the systems clipboard.
 - Line wrapping.
 - Syntax highlighting.
@@ -43,7 +64,9 @@ event_handler.on_key_event(key_event, &mut state);
 ![](resources/app.gif)
 
 ### Keybindings
-`EdTUI` offers keybindings similar to vim:
+`EdTUI` offers Vim keybindings by default and Emacs keybindings as an alternative.
+
+#### Vim Mode (default)
 
 ##### Normal Mode:
 
@@ -98,7 +121,58 @@ event_handler.on_key_event(key_event, &mut state);
 | `End`       | Move cursor to end of line              |
 | `ctrl+u`    | Delete until first character            |
 
-For more keybindings and customization options, refer to the code.
+#### Emacs Mode
+
+Emacs mode is modeless - you can always type without mode switching.
+Note however that emacs mode is less feature complete and less tested than vim mode.
+
+| Keybinding      | Description                             |
+|-----------------|-----------------------------------------|
+| `Ctrl+f`        | Move forward                            |
+| `Ctrl+b`        | Move backward                           |
+| `Ctrl+n`        | Move to next line                       |
+| `Ctrl+p`        | Move to previous line                   |
+| `Ctrl+a`        | Move to start of line                   |
+| `Ctrl+e`        | Move to end of line                     |
+| `Ctrl+v`        | Page down                               |
+| `Alt+v`         | Page up                                 |
+| `Alt+f`         | Forward word                            |
+| `Alt+b`         | Backward word                           |
+| `Alt+<`         | Beginning of buffer                     |
+| `Alt+>`         | End of buffer                           |
+| `Ctrl+d`        | Delete character forward                |
+| `Ctrl+h`        | Delete character backward               |
+| `Alt+d`         | Delete word forward                     |
+| `Alt+Backspace` | Delete word backward                    |
+| `Ctrl+k`        | Delete to end of line                   |
+| `Alt+u`         | Delete to start of line                 |
+| `Ctrl+o`        | Open line (insert newline, stay)        |
+| `Ctrl+j`        | Newline                                 |
+| `Ctrl+y`        | Paste                                   |
+| `Ctrl+u`        | Undo                                    |
+| `Ctrl+r`        | Redo                                    |
+| `Ctrl+s`        | Start search                            |
+| `Ctrl+g`        | Cancel search                           |
+| `Enter`         | Insert line break                       |
+| `Backspace`     | Delete previous character               |
+| `Arrows`        | Navigation                              |
+| `Home`          | Move to start of line                   |
+| `End`           | Move to end of line                     |
+
+#### Custom Keybindings
+
+You can customize keybindings by creating a `KeyEventHandler` and using `insert()` or `extend()`:
+
+```rust
+let mut key_handler = KeyEventHandler::vim_mode();
+key_handler.insert(
+    KeyEventRegister::n(vec![KeyEvent::Ctrl('x')]),
+    SwitchMode(EditorMode::Insert),
+);
+let event_handler = EditorEventHandler::new(key_handler);
+```
+
+See `examples/custom_keybindings.rs` for a complete example.
 
 ###  Mouse Support
 
@@ -155,7 +229,6 @@ See `examples/app/term.rs` for a an example.
 #### Roadmap
 - [ ] Support termwiz and termion
 - [ ] Display line numbers
-- [ ] Remap keybindings
 
 [Crate Badge]: https://img.shields.io/crates/v/edtui?logo=rust&style=flat-square&logoColor=E05D44&color=E05D44
 [License Badge]: https://img.shields.io/crates/l/edtui?style=flat-square&color=1370D3
