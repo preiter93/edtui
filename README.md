@@ -11,7 +11,9 @@
 It is designed to provide a user experience inspired by Vim. Edtui is developed to be used as an
 editor in ratatui apps. It is not supposed to be a stand-alone code editor.
 
-Instantiate the state and render the view:
+Create a new `EditorState` and render it using `EditorView`.
+You can customize the theme, enable line wrapping, syntax highlight the text or set the tab
+width:
 ```rust
 use edtui::{EditorState, EditorTheme, EditorView};
 use ratatui::widgets::Widget;
@@ -19,7 +21,9 @@ use ratatui::widgets::Widget;
 let mut state = EditorState::default();
 EditorView::new(&mut state)
         .theme(EditorTheme::default())
-        .wrap(true) // line wrapping
+        .wrap(true)
+        .syntax_highlighter(None)
+        .tab_width(2)
         .render(area, buf);
 ```
 
@@ -123,7 +127,8 @@ let event_handler = EditorEventHandler::new(key_handler);
 
 #### Emacs Mode
 
-Emacs mode is modeless. Note that it is less feature complete and less tested than vim mode. Test it out with `cargo run --example emacs`.
+Emacs mode is modeless. It was added in `v0.10.1`.
+Note that it is less feature complete and less tested than vim mode.
 
 | Keybinding      | Description                             |
 |-----------------|-----------------------------------------|
