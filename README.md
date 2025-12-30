@@ -123,8 +123,7 @@ let event_handler = EditorEventHandler::new(key_handler);
 
 #### Emacs Mode
 
-Emacs mode is modeless - you can always type without mode switching.
-Note however that emacs mode is less feature complete and less tested than vim mode.
+Emacs mode is modeless. Note that it is less feature complete and less tested than vim mode. Test it out with `cargo run --example emacs`.
 
 | Keybinding      | Description                             |
 |-----------------|-----------------------------------------|
@@ -151,17 +150,20 @@ Note however that emacs mode is less feature complete and less tested than vim m
 | `Ctrl+y`        | Paste                                   |
 | `Ctrl+u`        | Undo                                    |
 | `Ctrl+r`        | Redo                                    |
-| `Ctrl+s`        | Start search                            |
 | `Ctrl+g`        | Cancel search                           |
 | `Enter`         | Insert line break                       |
 | `Backspace`     | Delete previous character               |
 | `Arrows`        | Navigation                              |
 | `Home`          | Move to start of line                   |
 | `End`           | Move to end of line                     |
+| `Ctrl+s`        | Start search                            |
+| `Ctrl+s`        | Search mode: Go to next match           |
+| `Ctrl+r`        | Search mode: Go to previous match       |
+| `Enter`         | Search mode: Select current match       |
 
 #### Custom Keybindings
 
-You can customize keybindings by creating a `KeyEventHandler` and using `insert()` or `extend()`:
+You can customize keybindings through the `KeyEventHandler`:
 
 ```rust
 let mut key_handler = KeyEventHandler::vim_mode();

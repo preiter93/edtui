@@ -39,14 +39,14 @@ Editing:
 - Ctrl+o: open line (insert newline, stay)
 - Ctrl+j/Enter: newline
 
-Search: Ctrl+s (exit with Ctrl+g)
+Search:
+- Ctrl+s: start search / go to next match
+- Ctrl+r: go to previous match
+- Enter: Select match
+- Ctrl+g: cancel search
 Undo: Ctrl+u
 Redo: Ctrl+r
 Paste: Ctrl+y
-
-You can type freely - no mode switching needed!
-
-This editor supports both Vim and Emacs keybindings!
 ",
         ));
         state.mode = edtui::EditorMode::Insert;

@@ -13,7 +13,7 @@ pub struct EditorInput {
 impl EditorInput {
     pub fn on_key<T>(&mut self, key: T, state: &mut EditorState)
     where
-        T: Into<KeyEvent> + Copy,
+        T: Into<KeyEvent> + Copy + std::fmt::Debug,
     {
         self.event_handler.on_event(key, state);
     }

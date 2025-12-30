@@ -12,7 +12,7 @@ impl Execute for AppendCharToSearch {
     fn execute(&mut self, state: &mut EditorState) {
         state.search.push_char(self.0);
         state.search.trigger_search(&state.lines);
-        if let Some(index) = state.search.find_first() {
+        if let Some(index) = state.search.first() {
             state.cursor = *index;
         }
     }
@@ -33,14 +33,14 @@ impl Execute for RemoveCharFromSearch {
 
 /// Command to find the first match of the search pattern behind the last cursor position.
 #[derive(Clone, Debug)]
-pub struct TriggerSearch;
+pub struct FindFirst;
 
-impl Execute for TriggerSearch {
+impl Execute for FindFirst {
     /// Executes the command, finding the first match of the search pattern behind
     /// the last cursor position and setting the cursor to the found match.
     /// Switches to normal mode.
     fn execute(&mut self, state: &mut EditorState) {
-        if let Some(index) = state.search.find_first() {
+        if let Some(index) = state.search.first() {
             state.cursor = *index;
         }
     }
@@ -54,7 +54,7 @@ impl Execute for FindNext {
     /// Executes the command, finding the next search match and updating the cursor position.
     /// Switches to normal mode.
     fn execute(&mut self, state: &mut EditorState) {
-        if let Some(index) = state.search.find_next() {
+        if let Some(index) = state.search.next() {
             state.cursor = *index;
         }
     }
@@ -68,7 +68,21 @@ impl Execute for FindPrevious {
     /// Executes the command, finding the previous search match and updating the cursor position.
     /// Switches to normal mode.
     fn execute(&mut self, state: &mut EditorState) {
-        if let Some(index) = state.search.find_previous() {
+        if let Some(index) = state.search.previous() {
+            state.cursor = *index;
+        }
+    }
+}
+
+/// Command to select the currently active search match without advancing.
+#[derive(Clone, Debug)]
+pub struct SelectCurrentSearch;
+
+impl Execute for SelectCurrentSearch {
+    /// Executes the command by moving the cursor to the currently selected
+    /// search match, if one exists.
+    fn execute(&mut self, state: &mut EditorState) {
+        if let Some(index) = state.search.current() {
             state.cursor = *index;
         }
     }
