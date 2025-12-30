@@ -1,13 +1,13 @@
-0.10.1 - ?
+Released
+--------
+
+0.10.1 - 30 Dec 2025
 ===================
 - Switch from ratatui to ratatui-core
 - Add support for custom keybindings
 - Add support for Emacs keybindings
 - fix: MoveWordForward respects character class correctly
 - fix: Line mode selection anchors correctly
-
-Released
---------
 
 0.10.0 - 27 Dec 2025
 ===================
