@@ -25,7 +25,8 @@ pub use self::motion::{
 };
 use self::search::StartSearch;
 pub use self::search::{
-    AppendCharToSearch, FindNext, FindPrevious, RemoveCharFromSearch, StopSearch, TriggerSearch,
+    AppendCharToSearch, FindFirst, FindNext, FindPrevious, RemoveCharFromSearch,
+    SelectCurrentSearch, StopSearch,
 };
 pub use self::select::{
     ChangeInnerBetween, ChangeInnerWord, ChangeSelection, SelectInnerBetween, SelectInnerWord,
@@ -78,9 +79,10 @@ pub enum Action {
     Composed(Composed),
     StartSearch(StartSearch),
     StopSearch(StopSearch),
-    TriggerSearch(TriggerSearch),
+    FindFirst(FindFirst),
     FindNext(FindNext),
     FindPrevious(FindPrevious),
+    SelectCurrentSearch(SelectCurrentSearch),
     AppendCharToSearch(AppendCharToSearch),
     RemoveCharFromSearch(RemoveCharFromSearch),
 }

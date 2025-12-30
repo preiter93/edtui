@@ -5,11 +5,11 @@ use crate::actions::search::StartSearch;
 use crate::actions::{
     Action, AppendCharToSearch, AppendNewline, ChangeInnerBetween, ChangeInnerWord,
     ChangeSelection, Composed, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection,
-    Execute, FindNext, FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak,
-    MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst,
+    Execute, FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow,
+    LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst,
     MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
-    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectInnerBetween,
-    SelectInnerWord, SelectLine, StopSearch, SwitchMode, TriggerSearch, Undo,
+    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
+    SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, Undo,
 };
 use crate::{EditorMode, EditorState};
 use crossterm::event::{KeyCode, KeyEvent as CTKeyEvent, KeyModifiers};
@@ -72,6 +72,7 @@ impl From<CTKeyEvent> for KeyEvent {
 pub struct KeyEventHandler {
     lookup: Vec<KeyEvent>,
     register: HashMap<KeyEventRegister, Action>,
+    capture_on_insert: bool,
 }
 
 impl Default for KeyEventHandler {
@@ -87,6 +88,7 @@ impl KeyEventHandler {
         Self {
             lookup: Vec::new(),
             register,
+            capture_on_insert: false,
         }
     }
 
@@ -96,6 +98,7 @@ impl KeyEventHandler {
         Self {
             lookup: Vec::new(),
             register,
+            capture_on_insert: true,
         }
     }
 }
@@ -132,7 +135,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Trigger initial search
         (
             KeyEventRegister::s(vec![KeyEvent::Enter]),
-            Composed::new(TriggerSearch)
+            Composed::new(FindFirst)
                 .chain(SwitchMode(EditorMode::Normal))
                 .into(),
         ),
@@ -608,8 +611,18 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
                 .into(),
         ),
         (
+            KeyEventRegister::s(vec![KeyEvent::Ctrl('s')]),
+            FindNext.into(),
+        ),
+        (
+            KeyEventRegister::s(vec![KeyEvent::Ctrl('r')]),
+            FindPrevious.into(),
+        ),
+        (
             KeyEventRegister::s(vec![KeyEvent::Enter]),
-            TriggerSearch.into(),
+            Composed::new(SelectCurrentSearch)
+                .chain(SwitchMode(EditorMode::Insert))
+                .into(),
         ),
         (
             KeyEventRegister::s(vec![KeyEvent::Ctrl('g')]),
@@ -750,10 +763,11 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
 impl KeyEventHandler {
     /// Creates a new `EditorInput`.
     #[must_use]
-    pub fn new(register: HashMap<KeyEventRegister, Action>) -> Self {
+    pub fn new(register: HashMap<KeyEventRegister, Action>, capture_on_insert: bool) -> Self {
         Self {
             lookup: Vec::new(),
             register,
+            capture_on_insert,
         }
     }
 
@@ -864,14 +878,24 @@ impl KeyEventRegister {
 impl KeyEventHandler {
     pub(crate) fn on_event<T>(&mut self, key: T, state: &mut EditorState)
     where
-        T: Into<KeyEvent> + Copy,
+        T: Into<KeyEvent> + Copy + std::fmt::Debug,
     {
         let mode = state.mode;
 
         match key.into() {
             // Always insert characters in insert mode
-            KeyEvent::Char(c) if mode == EditorMode::Insert => InsertChar(c).execute(state),
-            KeyEvent::Tab if mode == EditorMode::Insert => InsertChar('\t').execute(state),
+            KeyEvent::Char(c) if mode == EditorMode::Insert => {
+                if self.capture_on_insert {
+                    state.capture();
+                }
+                InsertChar(c).execute(state)
+            }
+            KeyEvent::Tab if mode == EditorMode::Insert => {
+                if self.capture_on_insert {
+                    state.capture();
+                }
+                InsertChar('\t').execute(state)
+            }
             // Always add characters to search in search mode
             KeyEvent::Char(c) if mode == EditorMode::Search => AppendCharToSearch(c).execute(state),
             // Else lookup an action from the register
