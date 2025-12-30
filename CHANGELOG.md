@@ -4,6 +4,7 @@
 - Add support for custom keybindings
 - Add support for Emacs keybindings
 - fix: MoveWordForward respects character class correctly
+- fix: Line mode selection anchors correctly
 
 Released
 --------
