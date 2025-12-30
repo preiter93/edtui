@@ -127,8 +127,9 @@
 //!
 //! ### Emacs Mode
 //!
-//! Emacs mode is modeless. It was added in `v0.10.1`.
-//! Note that it is less feature complete and less tested than vim mode.
+//! Emacs Mode was added in version 0.10.1.
+//!
+//! Note that Emacs Mode is less feature complete and less tested than vim mode.
 //!
 //! | Keybinding      | Description                             |
 //! |-----------------|-----------------------------------------|
@@ -166,6 +167,23 @@
 //! | `Ctrl+r`        | Search mode: Go to previous match       |
 //! | `Enter`         | Search mode: Select current match       |
 //!
+//! ## Theming
+//!
+//! Customize the editor `EditorTheme`:
+//!
+//! ```ignore
+//! use edtui::{EditorTheme, EditorStatusLine};
+//! use ratatui::style::{Style, Color};
+//! use ratatui::widgets::Block;
+//!
+//! let theme = EditorTheme::default()
+//!     .block(Block::default())
+//!     .base(Style::default().bg(Color::Black).fg(Color::White))
+//!     .cursor_style(Style::default().bg(Color::White).fg(Color::Black))
+//!     .selection_style(Style::default().bg(Color::Yellow).fg(Color::Black))
+//!     .hide_status_line(); // or use `.status_line(..)` for styling the status line
+//! ```
+//!
 //! ## Mouse Events
 //!
 //! `Edtui` supports mouse input for moving the cursor and selecting text.  
@@ -189,9 +207,7 @@
 //! for more details about themes and extensions.
 //!
 //! ```ignore
-//! use edtui::EditorState;
-//! use edtui::EditorView;
-//! use edtui::SyntaxHighlighter;
+//! use edtui::{EditorView, EditorState, SyntaxHighlighter};
 //!
 //! let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
 //! EditorView::new(&mut EditorState::default())
