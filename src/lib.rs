@@ -161,29 +161,18 @@
 //! | `Ctrl+r`        | Search mode: Go to previous match       |
 //! | `Enter`         | Search mode: Select current match       |
 //!
-//! ### Custom Keybindings
+//! ## Mouse Events
 //!
-//! You can customize keybindings through the `KeyEventHandler`:
-//!
+//! `Edtui` supports mouse input for moving the cursor and selecting text.  
+//! Mouse handling is **enabled by default** via a feature toggle.  
+//! Typically, mouse events are processed automatically when you call `on_event`:
 //! ```ignore
-//! let mut key_handler = KeyEventHandler::vim_mode();
-//! key_handler.insert(
-//!     KeyEventRegister::n(vec![KeyEvent::Ctrl('x')]),
-//!     SwitchMode(EditorMode::Insert),
-//! );
-//! let event_handler = EditorEventHandler::new(key_handler);
+//! let event_handler = EditorEventHandler::default();
+//! event_handler.on_event(event, &mut state); // handles mouse events too
 //! ```
-//!
-//! See `examples/custom_keybindings.rs` for a complete example.
-//!
-//! ##  Mouse Support
-//!
-//! `Edtui` includes mouse support for selecting text:
+//! If you want finer control you can handle mouse events explicitly using `on_mouse_event`:
 //! ```ignore
-//! let event_handler = EditorEvent::default();
 //! event_handler.on_mouse_event(mouse_event, &mut state);
-//! // or handle both key and mouse event
-//! event_handler.on_event(event, &mut state);
 //! ```
 //!
 //! ## Syntax highlighting
@@ -199,9 +188,7 @@
 //! use edtui::EditorView;
 //! use edtui::SyntaxHighlighter;
 //!
-//! let theme_name = "dracula";
-//! let extension = "rs";
-//! let syntax_highlighter = SyntaxHighlighter::new(theme_name, extension);
+//! let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
 //! EditorView::new(&mut EditorState::default())
 //!         .syntax_highlighter(Some(syntax_highlighter))
 //!         .render(area, buf);
