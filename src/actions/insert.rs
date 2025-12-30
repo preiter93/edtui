@@ -37,6 +37,7 @@ pub struct AppendNewline(pub usize);
 
 impl Execute for AppendNewline {
     fn execute(&mut self, state: &mut EditorState) {
+        state.capture();
         state.cursor.col = 0;
         for _ in 0..self.0 {
             if !state.lines.is_empty() {

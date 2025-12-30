@@ -106,7 +106,7 @@ impl Execute for SwitchMode {
                 state.selection = Some(Selection::new(state.cursor, state.cursor));
             }
             EditorMode::Insert => {
-                if state.mode != EditorMode::Insert {
+                if ![EditorMode::Insert, EditorMode::Search].contains(&state.mode) {
                     state.capture();
                 }
             }
