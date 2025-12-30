@@ -56,16 +56,86 @@
 //! let event_handler = EditorEventHandler::new(key_handler);
 //! ```
 //!
+//! ## Demo
+//!
+//! ![](resources/app.gif)
+//!
 //! ## Features
+//! - Custom theming.
+//! - Mouse events.
 //! - Vim and Emacs keybindings.
 //! - Copy paste using the systems clipboard.
 //! - Line wrapping.
 //! - Syntax highlighting.
-//! - Mouse support.
 //!
-//! ## Demo
+//! ## Theming
 //!
-//! ![](resources/app.gif)
+//! Customize the editor `EditorTheme`:
+//!
+//! ```ignore
+//! use edtui::{EditorTheme, EditorStatusLine};
+//! use ratatui::style::{Style, Color};
+//! use ratatui::widgets::Block;
+//!
+//! let theme = EditorTheme::default()
+//!     .block(Block::default())
+//!     .base(Style::default().bg(Color::Black).fg(Color::White))
+//!     .cursor_style(Style::default().bg(Color::White).fg(Color::Black))
+//!     .selection_style(Style::default().bg(Color::Yellow).fg(Color::Black))
+//!     .hide_status_line(); // or use `.status_line(..)` for styling the status line
+//! ```
+//!
+//! ## Mouse Events
+//!
+//! `Edtui` supports mouse input for moving the cursor and selecting text.  
+//! Mouse handling is **enabled by default** via a feature toggle.  
+//! Typically, mouse events are processed automatically when you call `on_event`:
+//! ```ignore
+//! let event_handler = EditorEventHandler::default();
+//! event_handler.on_event(event, &mut state); // handles mouse events too
+//! ```
+//! If you want finer control you can handle mouse events explicitly using `on_mouse_event`:
+//! ```ignore
+//! event_handler.on_mouse_event(mouse_event, &mut state);
+//! ```
+//!
+//! ## Syntax highlighting
+//!
+//! Syntax highlighting was added in version `0.8.4`.
+//!
+//! `Edtui` offers a number of custom themes, see [`SyntaxHighlighter::theme`] for a complete list.
+//! If you want to use a custom theme, see [`SyntaxHighlighter::custom_theme`]. Check [syntect](https://github.com/trishume/syntect)
+//! for more details about themes and extensions.
+//!
+//! ```ignore
+//! use edtui::{EditorView, EditorState, SyntaxHighlighter};
+//!
+//! let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
+//! EditorView::new(&mut EditorState::default())
+//!         .syntax_highlighter(Some(syntax_highlighter))
+//!         .render(area, buf);
+//! ```
+//!
+//! ![](resources/syntax_highlighting.gif)
+//!
+//! ## Paste Support
+//!
+//! If you want to enable paste (via ctrl+y or cmd+y) you must explicitly enable it at the start of your app:
+//!
+//! ```ignore
+//! use ratatui::crossterm::event::EnableBracketedPaste;
+//! let mut stdout = std::io::stdout();
+//! ratatui::crossterm::xecute!(stdout, EnableBracketedPaste);
+//! ```
+//!
+//! and disable it during cleanup:
+//!
+//! ```ignore
+//! use ratatui::crossterm::event::DisableBracketedPaste;
+//! ratatui::crossterm::execute!(std::io::stdout(), DisableBracketedPaste);
+//! ```
+//!
+//! See `examples/app/term.rs` for a an example.
 //!
 //! ## Keybindings
 //! `EdTUI` offers Vim keybindings by default and Emacs keybindings as an alternative.
@@ -166,75 +236,6 @@
 //! | `Ctrl+s`        | Search mode: Go to next match           |
 //! | `Ctrl+r`        | Search mode: Go to previous match       |
 //! | `Enter`         | Search mode: Select current match       |
-//!
-//! ## Theming
-//!
-//! Customize the editor `EditorTheme`:
-//!
-//! ```ignore
-//! use edtui::{EditorTheme, EditorStatusLine};
-//! use ratatui::style::{Style, Color};
-//! use ratatui::widgets::Block;
-//!
-//! let theme = EditorTheme::default()
-//!     .block(Block::default())
-//!     .base(Style::default().bg(Color::Black).fg(Color::White))
-//!     .cursor_style(Style::default().bg(Color::White).fg(Color::Black))
-//!     .selection_style(Style::default().bg(Color::Yellow).fg(Color::Black))
-//!     .hide_status_line(); // or use `.status_line(..)` for styling the status line
-//! ```
-//!
-//! ## Mouse Events
-//!
-//! `Edtui` supports mouse input for moving the cursor and selecting text.  
-//! Mouse handling is **enabled by default** via a feature toggle.  
-//! Typically, mouse events are processed automatically when you call `on_event`:
-//! ```ignore
-//! let event_handler = EditorEventHandler::default();
-//! event_handler.on_event(event, &mut state); // handles mouse events too
-//! ```
-//! If you want finer control you can handle mouse events explicitly using `on_mouse_event`:
-//! ```ignore
-//! event_handler.on_mouse_event(mouse_event, &mut state);
-//! ```
-//!
-//! ## Syntax highlighting
-//!
-//! Syntax highlighting was added in version `0.8.4`.
-//!
-//! `Edtui` offers a number of custom themes, see [`SyntaxHighlighter::theme`] for a complete list.
-//! If you want to use a custom theme, see [`SyntaxHighlighter::custom_theme`]. Check [syntect](https://github.com/trishume/syntect)
-//! for more details about themes and extensions.
-//!
-//! ```ignore
-//! use edtui::{EditorView, EditorState, SyntaxHighlighter};
-//!
-//! let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
-//! EditorView::new(&mut EditorState::default())
-//!         .syntax_highlighter(Some(syntax_highlighter))
-//!         .render(area, buf);
-//! ```
-//!
-//! ![](resources/syntax_highlighting.gif)
-//!
-//! ## Paste Support
-//!
-//! If you want to enable paste (via ctrl+y or cmd+y) you must explicitly enable it at the start of your app:
-//!
-//! ```ignore
-//! use ratatui::crossterm::event::EnableBracketedPaste;
-//! let mut stdout = std::io::stdout();
-//! ratatui::crossterm::xecute!(stdout, EnableBracketedPaste);
-//! ```
-//!
-//! and disable it during cleanup:
-//!
-//! ```ignore
-//! use ratatui::crossterm::event::DisableBracketedPaste;
-//! ratatui::crossterm::execute!(std::io::stdout(), DisableBracketedPaste);
-//! ```
-//!
-//! See `examples/app/term.rs` for a an example.
 //!
 //! ### Roadmap
 //! - [ ] Support termwiz and termion
