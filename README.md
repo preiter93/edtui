@@ -60,6 +60,8 @@ let event_handler = EditorEventHandler::new(key_handler);
 
 ![](resources/app.gif)
 
+![](resources/line_numbers.png)
+
 ### Features
 - Custom theming.
 - Mouse events.

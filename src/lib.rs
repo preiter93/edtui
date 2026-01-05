@@ -60,6 +60,8 @@
 //!
 //! ![](resources/app.gif)
 //!
+//! ![](resources/line_numbers.png)
+//!
 //! ## Features
 //! - Custom theming.
 //! - Mouse events.
