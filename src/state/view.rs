@@ -1,6 +1,7 @@
 use crate::{
     helper::{char_width, chars_width},
     view::line_wrapper::LineWrapper,
+    view::LineNumbers,
     Lines,
 };
 use ratatui_core::layout::Rect;
@@ -22,6 +23,8 @@ pub(crate) struct ViewState {
     pub(crate) wrap: bool,
     /// The number of spaces used to display a tab.
     pub(crate) tab_width: usize,
+    /// Line numbers configuration.
+    pub(crate) line_numbers: LineNumbers,
 }
 
 impl Default for ViewState {
@@ -32,6 +35,7 @@ impl Default for ViewState {
             screen_area: Rect::default(),
             wrap: true,
             tab_width: 2,
+            line_numbers: LineNumbers::None,
         }
     }
 }

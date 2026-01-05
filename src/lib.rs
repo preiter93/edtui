@@ -60,6 +60,8 @@
 //!
 //! ![](resources/app.gif)
 //!
+//! ![](resources/line_numbers.png)
+//!
 //! ## Features
 //! - Custom theming.
 //! - Mouse events.
@@ -67,6 +69,7 @@
 //! - Copy paste using the systems clipboard.
 //! - Line wrapping.
 //! - Syntax highlighting.
+//! - Line numbers (absolute and relative).
 //!
 //! ## Theming
 //!
@@ -85,10 +88,24 @@
 //!     .hide_status_line(); // or use `.status_line(..)` for styling the status line
 //! ```
 //!
+//! ## Line Numbers
+//!
+//! Display absolute or relative line numbers:
+//!
+//! ```ignore
+//! use edtui::{EditorView, EditorState, EditorTheme, LineNumbers};
+//! use ratatui::style::{Style, Color};
+//!
+//! EditorView::new(&mut EditorState::default())
+//!         .theme(EditorTheme::default().line_numbers_style(Style::default().fg(Color::DarkGray)))
+//!         .line_numbers(LineNumbers::Absolute)  // or LineNumbers::Relative
+//!         .render(area, buf);
+//! ```
+//!
 //! ## Mouse Events
 //!
-//! `Edtui` supports mouse input for moving the cursor and selecting text.  
-//! Mouse handling is **enabled by default** via a feature toggle.  
+//! `Edtui` supports mouse input for moving the cursor and selecting text.
+//! Mouse handling is **enabled by default** via a feature toggle.
 //! Typically, mouse events are processed automatically when you call `on_event`:
 //! ```ignore
 //! let event_handler = EditorEventHandler::default();
@@ -239,7 +256,6 @@
 //!
 //! ### Roadmap
 //! - [ ] Support termwiz and termion
-//! - [ ] Display line numbers
 //!
 //! [Crate Badge]: https://img.shields.io/crates/v/edtui?logo=rust&style=flat-square&logoColor=E05D44&color=E05D44
 //! [License Badge]: https://img.shields.io/crates/l/edtui?style=flat-square&color=1370D3
@@ -260,7 +276,7 @@ mod view;
 pub use events::deprecated_input::EditorInput;
 pub use events::EditorEventHandler;
 pub use state::{mode::EditorMode, EditorState};
-pub use view::{theme::EditorTheme, EditorStatusLine, EditorView};
+pub use view::{theme::EditorTheme, EditorStatusLine, EditorView, LineNumbers};
 
 #[cfg(feature = "syntax-highlighting")]
 pub use view::syntax_higlighting::SyntaxHighlighter;

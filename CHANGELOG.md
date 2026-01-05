@@ -1,3 +1,7 @@
+0.10.2 - ?
+===================
+- Add line numbers support (absolute and relative)
+
 Released
 --------
 
