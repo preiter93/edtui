@@ -67,6 +67,7 @@ let event_handler = EditorEventHandler::new(key_handler);
 - Copy paste using the systems clipboard.
 - Line wrapping.
 - Syntax highlighting.
+- Line numbers (absolute and relative).
 
 ### Theming
 
@@ -83,6 +84,20 @@ let theme = EditorTheme::default()
     .cursor_style(Style::default().bg(Color::White).fg(Color::Black))
     .selection_style(Style::default().bg(Color::Yellow).fg(Color::Black))
     .hide_status_line(); // or use `.status_line(..)` for styling the status line
+```
+
+### Line Numbers
+
+Display absolute or relative line numbers:
+
+```rust
+use edtui::{EditorView, EditorState, EditorTheme, LineNumbers};
+use ratatui::style::{Style, Color};
+
+EditorView::new(&mut EditorState::default())
+        .theme(EditorTheme::default().line_numbers_style(Style::default().fg(Color::DarkGray)))
+        .line_numbers(LineNumbers::Absolute)  // or LineNumbers::Relative
+        .render(area, buf);
 ```
 
 ### Mouse Events
@@ -239,7 +254,6 @@ Note that Emacs Mode is less feature complete and less tested than vim mode.
 
 #### Roadmap
 - [ ] Support termwiz and termion
-- [ ] Display line numbers
 
 [Crate Badge]: https://img.shields.io/crates/v/edtui?logo=rust&style=flat-square&logoColor=E05D44&color=E05D44
 [License Badge]: https://img.shields.io/crates/l/edtui?style=flat-square&color=1370D3
