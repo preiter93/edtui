@@ -211,10 +211,13 @@ impl Widget for EditorView<'_, '_> {
 
         // Calculate line number gutter width and split area
         let line_number_width = self.line_number_width();
+        let line_numbers_style = self.theme.line_numbers_style;
         let (gutter_area, content_main) = if line_number_width > 0 {
             let [gutter, content] =
                 Layout::horizontal([Constraint::Length(line_number_width), Constraint::Min(0)])
                     .areas(main);
+            // Fill the entire gutter with the line numbers style
+            buf.set_style(gutter, line_numbers_style);
             (Some(gutter), content)
         } else {
             (None, main)
@@ -267,7 +270,6 @@ impl Widget for EditorView<'_, '_> {
 
         let line_numbers_enabled = line_numbers != LineNumbers::None;
         let is_relative = line_numbers == LineNumbers::Relative;
-        let line_numbers_style = self.theme.line_numbers_style;
 
         let mut row_index = offset_y;
         for line in lines.iter_row().skip(row_index) {
