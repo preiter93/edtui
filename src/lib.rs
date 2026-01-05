@@ -60,8 +60,6 @@
 //!
 //! ![](resources/app.gif)
 //!
-//! ![](resources/line_numbers.png)
-//!
 //! ## Features
 //! - Custom theming.
 //! - Mouse events.
@@ -101,6 +99,8 @@
 //!         .line_numbers(LineNumbers::Absolute)  // or LineNumbers::Relative
 //!         .render(area, buf);
 //! ```
+//!
+//! ![](resources/line_numbers.png)
 //!
 //! ## Mouse Events
 //!

@@ -60,8 +60,6 @@ let event_handler = EditorEventHandler::new(key_handler);
 
 ![](resources/app.gif)
 
-![](resources/line_numbers.png)
-
 ### Features
 - Custom theming.
 - Mouse events.
@@ -101,6 +99,8 @@ EditorView::new(&mut EditorState::default())
         .line_numbers(LineNumbers::Absolute)  // or LineNumbers::Relative
         .render(area, buf);
 ```
+
+![](resources/line_numbers.png)
 
 ### Mouse Events
 
