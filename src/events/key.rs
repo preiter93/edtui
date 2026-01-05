@@ -82,6 +82,17 @@ impl Default for KeyEventHandler {
 }
 
 impl KeyEventHandler {
+    /// Creates a new `KeyEventHandler`.
+    #[must_use]
+    pub fn new(register: HashMap<KeyEventRegister, Action>, capture_on_insert: bool) -> Self {
+        Self {
+            lookup: Vec::new(),
+            register,
+            capture_on_insert,
+        }
+    }
+
+    /// Creates a new `KeyEventHandler` with vim keybindings.
     #[must_use]
     pub fn vim_mode() -> Self {
         let register: HashMap<KeyEventRegister, Action> = vim_keybindings();
@@ -92,6 +103,7 @@ impl KeyEventHandler {
         }
     }
 
+    // Creates a new `KeyEventHandler` with emacs keybindings.
     #[must_use]
     pub fn emacs_mode() -> Self {
         let register: HashMap<KeyEventRegister, Action> = emacs_keybindings();
@@ -99,6 +111,58 @@ impl KeyEventHandler {
             lookup: Vec::new(),
             register,
             capture_on_insert: true,
+        }
+    }
+
+    /// Insert a new callback to the registry
+    pub fn insert<T>(&mut self, key: KeyEventRegister, action: T)
+    where
+        T: Into<Action>,
+    {
+        self.register.insert(key, action.into());
+    }
+
+    /// Extents the register with the contents of an iterator
+    pub fn extend<T, U>(&mut self, iter: T)
+    where
+        U: Into<Action>,
+        T: IntoIterator<Item = (KeyEventRegister, U)>,
+    {
+        self.register
+            .extend(iter.into_iter().map(|(k, v)| (k, v.into())));
+    }
+
+    /// Remove a callback from the registry
+    pub fn remove(&mut self, key: &KeyEventRegister) {
+        self.register.remove(key);
+    }
+
+    /// Returns an action for a specific register key, if present.
+    /// Returns an action only if there is an exact match. If there
+    /// are multiple matches or an inexact match, the specified key
+    /// is appended to the lookup vector.
+    /// If there is an exact match or if none of the keys in the registry
+    /// starts with the current sequence, the lookup sequence is reset.
+    #[must_use]
+    fn get(&mut self, c: KeyEvent, mode: EditorMode) -> Option<Action> {
+        self.lookup.push(c);
+        let key = KeyEventRegister::new(self.lookup.clone(), mode);
+
+        match self
+            .register
+            .keys()
+            .filter(|k| k.mode == key.mode && k.keys.starts_with(&key.keys))
+            .count()
+        {
+            0 => {
+                self.lookup.clear();
+                None
+            }
+            1 => self.register.get(&key).map(|action| {
+                self.lookup.clear();
+                action.clone()
+            }),
+            _ => None,
         }
     }
 }
@@ -758,70 +822,6 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         (KeyEventRegister::i(vec![KeyEvent::Ctrl('r')]), Redo.into()),
         (KeyEventRegister::i(vec![KeyEvent::Ctrl('y')]), Paste.into()),
     ])
-}
-
-impl KeyEventHandler {
-    /// Creates a new `EditorInput`.
-    #[must_use]
-    pub fn new(register: HashMap<KeyEventRegister, Action>, capture_on_insert: bool) -> Self {
-        Self {
-            lookup: Vec::new(),
-            register,
-            capture_on_insert,
-        }
-    }
-
-    /// Insert a new callback to the registry
-    pub fn insert<T>(&mut self, key: KeyEventRegister, action: T)
-    where
-        T: Into<Action>,
-    {
-        self.register.insert(key, action.into());
-    }
-
-    /// Extents the register with the contents of an iterator
-    pub fn extend<T, U>(&mut self, iter: T)
-    where
-        U: Into<Action>,
-        T: IntoIterator<Item = (KeyEventRegister, U)>,
-    {
-        self.register
-            .extend(iter.into_iter().map(|(k, v)| (k, v.into())));
-    }
-
-    /// Remove a callback from the registry
-    pub fn remove(&mut self, key: &KeyEventRegister) {
-        self.register.remove(key);
-    }
-
-    /// Returns an action for a specific register key, if present.
-    /// Returns an action only if there is an exact match. If there
-    /// are multiple matches or an inexact match, the specified key
-    /// is appended to the lookup vector.
-    /// If there is an exact match or if none of the keys in the registry
-    /// starts with the current sequence, the lookup sequence is reset.
-    #[must_use]
-    fn get(&mut self, c: KeyEvent, mode: EditorMode) -> Option<Action> {
-        self.lookup.push(c);
-        let key = KeyEventRegister::new(self.lookup.clone(), mode);
-
-        match self
-            .register
-            .keys()
-            .filter(|k| k.mode == key.mode && k.keys.starts_with(&key.keys))
-            .count()
-        {
-            0 => {
-                self.lookup.clear();
-                None
-            }
-            1 => self.register.get(&key).map(|action| {
-                self.lookup.clear();
-                action.clone()
-            }),
-            _ => None,
-        }
-    }
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
