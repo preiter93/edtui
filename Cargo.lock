@@ -401,6 +401,7 @@ dependencies = [
  "ratatui-core",
  "ratatui-widgets",
  "syntect",
+ "thiserror 2.0.17",
  "unicode-width",
 ]
 
