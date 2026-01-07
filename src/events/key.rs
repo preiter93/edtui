@@ -1,5 +1,5 @@
 use crate::actions::cpaste::PasteOverSelection;
-use crate::actions::delete::{DeleteToEndOfLine, DeleteToFirstCharOfLine};
+use crate::actions::delete::{DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine};
 use crate::actions::motion::{MoveHalfPageDown, MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
 use crate::actions::{
@@ -26,6 +26,7 @@ pub enum KeyEvent {
     Enter,
     Esc,
     Backspace,
+    Delete,
     Tab,
     Ctrl(char),
     Alt(char),
@@ -60,6 +61,7 @@ impl From<CTKeyEvent> for KeyEvent {
             KeyCode::Left => KeyEvent::Left,
             KeyCode::Esc => KeyEvent::Esc,
             KeyCode::Backspace => KeyEvent::Backspace,
+            KeyCode::Delete => KeyEvent::Delete,
             KeyCode::Tab => KeyEvent::Tab,
             KeyCode::Home => KeyEvent::Home,
             KeyCode::End => KeyEvent::End,
@@ -470,6 +472,10 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::i(vec![KeyEvent::Backspace]),
             DeleteChar(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyEvent::Delete]),
+            DeleteCharForward(1).into(),
         ),
         // Delete the current line
         (

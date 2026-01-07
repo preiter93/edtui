@@ -8,10 +8,10 @@ mod view;
 use self::search::SearchState;
 use self::view::ViewState;
 use self::{mode::EditorMode, selection::Selection, undo::Stack};
+use crate::actions::Execute;
 use crate::clipboard::{Clipboard, ClipboardTrait};
 use crate::helper::max_col;
 use crate::{Index2, Lines};
-use crate::actions::Execute;
 
 /// Represents the state of an editor.
 #[derive(Clone)]
