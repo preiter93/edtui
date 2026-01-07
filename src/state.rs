@@ -11,6 +11,7 @@ use self::{mode::EditorMode, selection::Selection, undo::Stack};
 use crate::clipboard::{Clipboard, ClipboardTrait};
 use crate::helper::max_col;
 use crate::{Index2, Lines};
+use crate::actions::Execute;
 
 /// Represents the state of an editor.
 #[derive(Clone)]
@@ -73,6 +74,20 @@ impl EditorState {
             redo: Stack::new(),
             clip: Clipboard::default(),
         }
+    }
+
+    /// Execute an action on the editor state
+    /// # Example
+    ///
+    /// ```
+    /// use edtui::{EditorState, Lines};
+    /// use edtui::actions::DeleteLine;
+    ///
+    /// let mut state = EditorState::new(Lines::from("Hello wold!"));
+    /// state.execute(DeleteLine(1))
+    /// ```
+    pub fn execute(&mut self, mut action: impl Execute) {
+        action.execute(self);
     }
 
     /// Set a custom clipboard.
