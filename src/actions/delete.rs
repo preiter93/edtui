@@ -36,41 +36,6 @@ impl Execute for RemoveChar {
     }
 }
 
-/// Deletes the character at the current cursor position.
-/// If at the end of a line, deletes the newline character.
-#[derive(Clone, Debug, Copy)]
-pub struct DeleteCharForward(pub usize);
-
-impl Execute for DeleteCharForward {
-    fn execute(&mut self, state: &mut EditorState) {
-        state.capture();
-        state.clamp_column();
-        for _ in 0..self.0 {
-            delete_char_forward(&mut state.lines, &mut state.cursor);
-        }
-    }
-}
-
-fn delete_char_forward(lines: &mut Lines, index: &mut Index2) {
-    let Some(row) = lines.get(RowIndex::new(index.row)) else {
-        return;
-    };
-
-    let row_len = row.len();
-
-    // If cursor is at or past the end of the line, delete the newline
-    if index.col >= row_len {
-        if index.row + 1 >= lines.len() {
-            return;
-        }
-
-        lines.join_lines(index.row);
-        return;
-    }
-
-    let _ = lines.remove(*index);
-}
-
 /// Replaces the character under the cursor with a given character.
 #[derive(Clone, Debug, Copy)]
 pub struct ReplaceChar(pub char);
@@ -131,6 +96,41 @@ fn delete_char(lines: &mut Lines, index: &mut Index2) {
         move_left(lines, index);
         let _ = lines.remove(*index);
     }
+}
+
+/// Deletes the character at the current cursor position.
+/// If at the end of a line, deletes the newline character.
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteCharForward(pub usize);
+
+impl Execute for DeleteCharForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        state.capture();
+        state.clamp_column();
+        for _ in 0..self.0 {
+            delete_char_forward(&mut state.lines, &mut state.cursor);
+        }
+    }
+}
+
+fn delete_char_forward(lines: &mut Lines, index: &mut Index2) {
+    let Some(row) = lines.get(RowIndex::new(index.row)) else {
+        return;
+    };
+
+    let row_len = row.len();
+
+    // If cursor is at or past the end of the line, delete the newline
+    if index.col >= row_len {
+        if index.row + 1 >= lines.len() {
+            return;
+        }
+
+        lines.join_lines(index.row);
+        return;
+    }
+
+    let _ = lines.remove(*index);
 }
 
 /// Deletes the current line.
@@ -241,6 +241,7 @@ impl Execute for JoinLineWithLineBelow {
 #[cfg(test)]
 mod tests {
     use crate::state::selection::Selection;
+    use crate::EditorMode;
     use crate::Index2;
     use crate::Lines;
 
@@ -387,6 +388,7 @@ mod tests {
     #[test]
     fn test_delete_char_forward() {
         let mut state = EditorState::new(Lines::from("Hello World!\nNext line"));
+        state.mode = EditorMode::Insert;
 
         // Delete character 'H'
         state.cursor = Index2::new(0, 0);
@@ -410,6 +412,7 @@ mod tests {
     #[test]
     fn test_delete_char_forward_at_end() {
         let mut state = EditorState::new(Lines::from("Hello\nWorld"));
+        state.mode = EditorMode::Insert;
 
         // Cursor at end of first line should delete newline
         state.cursor = Index2::new(0, 5);
