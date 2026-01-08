@@ -1,10 +1,11 @@
-0.10.2 - ?
+Released
+--------
+
+0.10.2 - 08 Jan 2026
 ===================
 - Add line numbers support (absolute and relative)
 - Add Delete key support in insert mode (DeleteCharForward)
-
-Released
---------
+- New `new_custom` and `custom_syntax_ref` methods for `SyntaxHighlighter` (@Julien-cpsn)
 
 0.10.1 - 30 Dec 2025
 ===================
