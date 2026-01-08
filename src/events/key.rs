@@ -468,11 +468,16 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::n(vec![KeyEvent::Char('x')]),
             RemoveChar(1).into(),
         ),
+        (
+            KeyEventRegister::n(vec![KeyEvent::Delete]),
+            RemoveChar(1).into(),
+        ),
         // Delete the previous character
         (
             KeyEventRegister::i(vec![KeyEvent::Backspace]),
             DeleteChar(1).into(),
         ),
+        // Delete the next character
         (
             KeyEventRegister::i(vec![KeyEvent::Delete]),
             DeleteCharForward(1).into(),
@@ -797,16 +802,20 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             LineBreak(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('d')]),
-            RemoveChar(1).into(),
-        ),
-        (
             KeyEventRegister::i(vec![KeyEvent::Backspace]),
             DeleteChar(1).into(),
         ),
         (
             KeyEventRegister::i(vec![KeyEvent::Ctrl('h')]),
             DeleteChar(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyEvent::Backspace]),
+            DeleteCharForward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyEvent::Ctrl('d')]),
+            DeleteCharForward(1).into(),
         ),
         (
             KeyEventRegister::i(vec![KeyEvent::Alt('d')]),
