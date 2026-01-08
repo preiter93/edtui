@@ -1,14 +1,15 @@
+use std::error::Error;
+use std::fmt::{Display, Formatter};
+use super::internal::InternalSpan;
 use crate::syntect::{
     easy::HighlightLines,
     highlighting::{Theme, ThemeSet},
     parsing::{SyntaxReference, SyntaxSet},
 };
+use crate::view::syntax_higlighting::SyntaxHighlighterError::{ExtensionNotFound, ThemeNotFound};
 use once_cell::sync::Lazy;
 use ratatui_core::style::{Color, Style};
 use syntect::dumps::from_binary;
-use thiserror::Error;
-use crate::view::syntax_higlighting::SyntaxHighlighterError::{ExtensionNotFound, ThemeNotFound};
-use super::internal::InternalSpan;
 
 pub static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
 pub static THEME_SET: Lazy<ThemeSet> = Lazy::new(load_defaults);
@@ -23,12 +24,9 @@ pub struct SyntaxHighlighter {
     syntax_ref: SyntaxReference,
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug)]
 pub enum SyntaxHighlighterError<'a> {
-    #[error("Could not find theme {0}")]
     ThemeNotFound(&'a str),
-
-    #[error("Could not find extension {0}")]
     ExtensionNotFound(&'a str),
 }
 
@@ -176,9 +174,7 @@ impl SyntaxHighlighter {
 
         Ok(self)
     }
-}
 
-impl SyntaxHighlighter {
     pub(super) fn highlight_line(&self, line: &str) -> Vec<InternalSpan> {
         // Highlight lines
         let mut highlight_lines = HighlightLines::new(&self.syntax_ref, &self.theme);
@@ -200,3 +196,14 @@ impl SyntaxHighlighter {
         spans
     }
 }
+
+impl Display for SyntaxHighlighterError<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ThemeNotFound(theme) => write!(f, "Could not find theme {}", theme),
+            ExtensionNotFound(extension) => write!(f, "Could not find extension {}", extension)
+        }
+    }
+}
+
+impl Error for SyntaxHighlighterError<'_> {}
