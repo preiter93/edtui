@@ -102,7 +102,7 @@ impl<'a, 'b> EditorView<'a, 'b> {
     /// use edtui::SyntaxHighlighter;
     ///
     /// let mut state = EditorState::default();
-    /// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
+    /// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs").unwrap();
     ///
     /// EditorView::new(&mut state).syntax_highlighter(Some(syntax_highlighter));
     /// ```

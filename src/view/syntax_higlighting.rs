@@ -1,13 +1,15 @@
+use super::internal::InternalSpan;
 use crate::syntect::{
     easy::HighlightLines,
     highlighting::{Theme, ThemeSet},
     parsing::{SyntaxReference, SyntaxSet},
 };
+use crate::view::syntax_higlighting::SyntaxHighlighterError::{ExtensionNotFound, ThemeNotFound};
 use once_cell::sync::Lazy;
 use ratatui_core::style::{Color, Style};
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use syntect::dumps::from_binary;
-
-use super::internal::InternalSpan;
 
 pub static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
 pub static THEME_SET: Lazy<ThemeSet> = Lazy::new(load_defaults);
@@ -22,6 +24,12 @@ pub struct SyntaxHighlighter {
     syntax_ref: SyntaxReference,
 }
 
+#[derive(Debug)]
+pub enum SyntaxHighlighterError<'a> {
+    ThemeNotFound(&'a str),
+    ExtensionNotFound(&'a str),
+}
+
 impl SyntaxHighlighter {
     /// Creates a new [`SyntaxHighlighter`] with a given theme (e.g. "base16-ocean.dark")
     /// and an extension (e.g. "json").
@@ -31,10 +39,6 @@ impl SyntaxHighlighter {
     ///
     /// See [`Self::theme`] for a list of available themes.
     ///
-    /// # Panics
-    /// - Could not find `theme` in syntect.
-    /// - Could not find `extension` in syntect.
-    ///
     /// ## Example
     ///
     /// ```
@@ -42,18 +46,41 @@ impl SyntaxHighlighter {
     ///
     /// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
     /// ```
-    #[must_use]
-    pub fn new(theme: &str, extension: &str) -> Self {
-        let theme = THEME_SET
-            .themes
-            .get(theme)
-            .unwrap_or_else(|| panic!("Could not find theme {theme}"))
-            .clone();
-        let syntax_ref = SYNTAX_SET
-            .find_syntax_by_extension(extension)
-            .unwrap_or_else(|| panic!("Could not find extension {extension}"))
-            .clone();
+    pub fn new<'a>(theme: &'a str, extension: &'a str) -> Result<Self, SyntaxHighlighterError<'a>> {
+        let theme = match THEME_SET.themes.get(theme) {
+            Some(v) => v.clone(),
+            None => return Err(ThemeNotFound(theme)),
+        };
 
+        let syntax_ref = match SYNTAX_SET.find_syntax_by_extension(extension) {
+            Some(v) => v.clone(),
+            None => return Err(ExtensionNotFound(extension)),
+        };
+
+        Ok(Self { theme, syntax_ref })
+    }
+
+    /// Creates a new [`SyntaxHighlighter`] with a given custom given Theme and SyntaxReference
+    ///
+    /// Syntax highlighting is currently highly experimental, and there might be breaking
+    /// changes in the future.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use syntect::highlighting::Theme;
+    /// use syntect::parsing::{SyntaxDefinition, SyntaxSetBuilder};
+    /// use edtui::SyntaxHighlighter;
+    ///
+    /// let theme = Theme::default(); // My custom theme
+    /// let mut syntax_set_builder = SyntaxSetBuilder::new(); // My custom syntax set builder
+    /// syntax_set_builder.add_plain_text_syntax(); // Add your syntax
+    /// let syntax_set = syntax_set_builder.build(); // My custom syntax set
+    /// let syntax_ref = syntax_set.syntaxes().first().unwrap().clone(); // My custom syntax reference
+    /// let syntax_highlighter = SyntaxHighlighter::new_custom(theme, syntax_ref);
+    /// ```
+    #[must_use]
+    pub fn new_custom(theme: Theme, syntax_ref: SyntaxReference) -> Self {
         Self { theme, syntax_ref }
     }
 
@@ -65,10 +92,15 @@ impl SyntaxHighlighter {
         self
     }
 
+    /// Set a custom theme. If you would like to use a predefined
+    /// theme use [`theme_by_name`].
+    #[must_use]
+    pub fn custom_syntax_ref(mut self, syntax_ref: SyntaxReference) -> Self {
+        self.syntax_ref = syntax_ref;
+        self
+    }
+
     /// Set a theme by name, e.g. , e.g. "base16-ocean.dark".
-    ///
-    /// # Panics
-    /// - Could not find `theme` in syntect.
     ///
     /// # Available themes
     /// "`1337`"
@@ -114,33 +146,32 @@ impl SyntaxHighlighter {
     /// "`two-dark`"
     /// "`visual-studio-dark`"
     /// "`zenburn`"
-    #[must_use]
-    pub fn theme(mut self, theme: &str) -> Self {
-        let theme_set = ThemeSet::load_defaults();
-        let theme = theme_set
-            .themes
-            .get(theme)
-            .unwrap_or_else(|| panic!("Could not find theme {theme}"));
-        self.theme = theme.clone();
-        self
+    pub fn theme(mut self, theme: &'_ str) -> Result<Self, SyntaxHighlighterError<'_>> {
+        let theme = match THEME_SET.themes.get(theme) {
+            Some(v) => v.clone(),
+            None => return Err(ThemeNotFound(theme)),
+        };
+
+        self.theme = theme;
+
+        Ok(self)
     }
 
     /// Set the active extension for syntax highlighting, e.g. "json".
-    ///
-    /// # Panics
-    /// - Could not find `theme` in syntect.
-    /// - Could not find `extension` in syntect.
-    #[must_use]
-    pub(crate) fn extension(mut self, extension: &str) -> Self {
-        let syntax_ref = SYNTAX_SET
-            .find_syntax_by_extension(extension)
-            .unwrap_or_else(|| panic!("Could not find extension {extension}"));
-        self.syntax_ref = syntax_ref.clone();
-        self
-    }
-}
+    pub(crate) fn extension(
+        mut self,
+        extension: &'_ str,
+    ) -> Result<Self, SyntaxHighlighterError<'_>> {
+        let syntax_ref = match SYNTAX_SET.find_syntax_by_extension(extension) {
+            Some(v) => v.clone(),
+            None => return Err(ExtensionNotFound(extension)),
+        };
 
-impl SyntaxHighlighter {
+        self.syntax_ref = syntax_ref;
+
+        Ok(self)
+    }
+
     pub(super) fn highlight_line(&self, line: &str) -> Vec<InternalSpan> {
         // Highlight lines
         let mut highlight_lines = HighlightLines::new(&self.syntax_ref, &self.theme);
@@ -162,3 +193,14 @@ impl SyntaxHighlighter {
         spans
     }
 }
+
+impl Display for SyntaxHighlighterError<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ThemeNotFound(theme) => write!(f, "Could not find theme {}", theme),
+            ExtensionNotFound(extension) => write!(f, "Could not find extension {}", extension),
+        }
+    }
+}
+
+impl Error for SyntaxHighlighterError<'_> {}

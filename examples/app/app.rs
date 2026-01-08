@@ -56,11 +56,12 @@ impl App {
 
 impl Widget for &mut App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
+        let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs").ok();
+
         EditorView::new(&mut self.context.state)
             .wrap(true)
             .theme(Theme::new().editor)
-            .syntax_highlighter(Some(syntax_highlighter))
+            .syntax_highlighter(syntax_highlighter)
             .render(area, buf)
     }
 }

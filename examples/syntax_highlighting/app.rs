@@ -107,10 +107,12 @@ impl Widget for &mut App {
             .unwrap_or("monokai".to_string());
 
         self.context.state.lines = get_lines(&selected_theme);
+
+        let syntax_highlighter = SyntaxHighlighter::new(&selected_theme, "rs").ok();
         EditorView::new(&mut self.context.state)
             .wrap(true)
             .theme(Theme::new().editor)
-            .syntax_highlighter(Some(SyntaxHighlighter::new(&selected_theme, "rs")))
+            .syntax_highlighter(syntax_highlighter)
             .render(right, buf)
     }
 }
