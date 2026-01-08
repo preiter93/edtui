@@ -1,5 +1,3 @@
-use std::error::Error;
-use std::fmt::{Display, Formatter};
 use super::internal::InternalSpan;
 use crate::syntect::{
     easy::HighlightLines,
@@ -9,6 +7,8 @@ use crate::syntect::{
 use crate::view::syntax_higlighting::SyntaxHighlighterError::{ExtensionNotFound, ThemeNotFound};
 use once_cell::sync::Lazy;
 use ratatui_core::style::{Color, Style};
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use syntect::dumps::from_binary;
 
 pub static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
@@ -46,22 +46,18 @@ impl SyntaxHighlighter {
     ///
     /// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
     /// ```
-    #[must_use]
     pub fn new<'a>(theme: &'a str, extension: &'a str) -> Result<Self, SyntaxHighlighterError<'a>> {
         let theme = match THEME_SET.themes.get(theme) {
             Some(v) => v.clone(),
-            None => return Err(ThemeNotFound(theme))
+            None => return Err(ThemeNotFound(theme)),
         };
 
         let syntax_ref = match SYNTAX_SET.find_syntax_by_extension(extension) {
             Some(v) => v.clone(),
-            None =>return Err(ExtensionNotFound(extension))
+            None => return Err(ExtensionNotFound(extension)),
         };
 
-        Ok(Self {
-            theme,
-            syntax_ref
-        })
+        Ok(Self { theme, syntax_ref })
     }
 
     /// Creates a new [`SyntaxHighlighter`] with a given custom given Theme and SyntaxReference
@@ -150,11 +146,10 @@ impl SyntaxHighlighter {
     /// "`two-dark`"
     /// "`visual-studio-dark`"
     /// "`zenburn`"
-    #[must_use]
-    pub fn theme(mut self, theme: &'_ str) -> Result<Self, SyntaxHighlighterError<'_>>  {
+    pub fn theme(mut self, theme: &'_ str) -> Result<Self, SyntaxHighlighterError<'_>> {
         let theme = match THEME_SET.themes.get(theme) {
             Some(v) => v.clone(),
-            None => return Err(ThemeNotFound(theme))
+            None => return Err(ThemeNotFound(theme)),
         };
 
         self.theme = theme;
@@ -163,11 +158,13 @@ impl SyntaxHighlighter {
     }
 
     /// Set the active extension for syntax highlighting, e.g. "json".
-    #[must_use]
-    pub(crate) fn extension(mut self, extension: &'_ str) -> Result<Self, SyntaxHighlighterError<'_>> {
+    pub(crate) fn extension(
+        mut self,
+        extension: &'_ str,
+    ) -> Result<Self, SyntaxHighlighterError<'_>> {
         let syntax_ref = match SYNTAX_SET.find_syntax_by_extension(extension) {
             Some(v) => v.clone(),
-            None =>return Err(ExtensionNotFound(extension))
+            None => return Err(ExtensionNotFound(extension)),
         };
 
         self.syntax_ref = syntax_ref;
@@ -201,7 +198,7 @@ impl Display for SyntaxHighlighterError<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             ThemeNotFound(theme) => write!(f, "Could not find theme {}", theme),
-            ExtensionNotFound(extension) => write!(f, "Could not find extension {}", extension)
+            ExtensionNotFound(extension) => write!(f, "Could not find extension {}", extension),
         }
     }
 }
