@@ -10,6 +10,7 @@ use crate::{
 
 /// Deletes a character at the current cursor position. Does not
 /// move the cursor position unless it is at the end of the line
+/// Intended to be called in normal mode.
 #[derive(Clone, Debug, Copy)]
 pub struct RemoveChar(pub usize);
 
@@ -37,6 +38,7 @@ impl Execute for RemoveChar {
 }
 
 /// Replaces the character under the cursor with a given character.
+/// Intended to be called in normal mode.
 #[derive(Clone, Debug, Copy)]
 pub struct ReplaceChar(pub char);
 
@@ -55,6 +57,7 @@ impl Execute for ReplaceChar {
 
 /// Deletes a character to the left of the current cursor. Deletes
 /// the line break if the the cursor is in column zero.
+/// Intended to be called in insert mode.
 #[derive(Clone, Debug, Copy)]
 pub struct DeleteChar(pub usize);
 
@@ -100,6 +103,7 @@ fn delete_char(lines: &mut Lines, index: &mut Index2) {
 
 /// Deletes the character at the current cursor position.
 /// If at the end of a line, deletes the newline character.
+/// Intended to be called in insert mode.
 #[derive(Clone, Debug, Copy)]
 pub struct DeleteCharForward(pub usize);
 
