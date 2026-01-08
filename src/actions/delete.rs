@@ -10,6 +10,7 @@ use crate::{
 
 /// Deletes a character at the current cursor position. Does not
 /// move the cursor position unless it is at the end of the line
+/// Intended to be called in normal mode.
 #[derive(Clone, Debug, Copy)]
 pub struct RemoveChar(pub usize);
 
@@ -20,9 +21,11 @@ impl Execute for RemoveChar {
         for _ in 0..self.0 {
             let lines = &mut state.lines;
             let index = &mut state.cursor;
-            if lines.len_col(index.row).unwrap_or_default() == 0 {
+
+            if is_out_of_bounds(lines, index) {
                 return;
             }
+
             let _ = lines.remove(*index);
             index.col = index.col.min(
                 lines
@@ -35,6 +38,7 @@ impl Execute for RemoveChar {
 }
 
 /// Replaces the character under the cursor with a given character.
+/// Intended to be called in normal mode.
 #[derive(Clone, Debug, Copy)]
 pub struct ReplaceChar(pub char);
 
@@ -53,6 +57,7 @@ impl Execute for ReplaceChar {
 
 /// Deletes a character to the left of the current cursor. Deletes
 /// the line break if the the cursor is in column zero.
+/// Intended to be called in insert mode.
 #[derive(Clone, Debug, Copy)]
 pub struct DeleteChar(pub usize);
 
@@ -94,6 +99,42 @@ fn delete_char(lines: &mut Lines, index: &mut Index2) {
         move_left(lines, index);
         let _ = lines.remove(*index);
     }
+}
+
+/// Deletes the character at the current cursor position.
+/// If at the end of a line, deletes the newline character.
+/// Intended to be called in insert mode.
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteCharForward(pub usize);
+
+impl Execute for DeleteCharForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        state.capture();
+        state.clamp_column();
+        for _ in 0..self.0 {
+            delete_char_forward(&mut state.lines, &mut state.cursor);
+        }
+    }
+}
+
+fn delete_char_forward(lines: &mut Lines, index: &mut Index2) {
+    let Some(row) = lines.get(RowIndex::new(index.row)) else {
+        return;
+    };
+
+    let row_len = row.len();
+
+    // If cursor is at or past the end of the line, delete the newline
+    if index.col >= row_len {
+        if index.row + 1 >= lines.len() {
+            return;
+        }
+
+        lines.join_lines(index.row);
+        return;
+    }
+
+    let _ = lines.remove(*index);
 }
 
 /// Deletes the current line.
@@ -204,6 +245,7 @@ impl Execute for JoinLineWithLineBelow {
 #[cfg(test)]
 mod tests {
     use crate::state::selection::Selection;
+    use crate::EditorMode;
     use crate::Index2;
     use crate::Lines;
 
@@ -345,5 +387,47 @@ mod tests {
         DeleteSelection.execute(&mut state);
         // assert_eq!(state.cursor, Index2::new(0, 1));
         assert_eq!(state.lines, Lines::from("123."));
+    }
+
+    #[test]
+    fn test_delete_char_forward() {
+        let mut state = EditorState::new(Lines::from("Hello World!\nNext line"));
+        state.mode = EditorMode::Insert;
+
+        // Delete character 'H'
+        state.cursor = Index2::new(0, 0);
+        DeleteCharForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.lines, Lines::from("ello World!\nNext line"));
+
+        // Delete character 'e'
+        state.cursor = Index2::new(0, 0);
+        DeleteCharForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.lines, Lines::from("llo World!\nNext line"));
+
+        // Delete character at end of line (newline)
+        state.cursor = Index2::new(0, 10);
+        DeleteCharForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 10));
+        assert_eq!(state.lines, Lines::from("llo World!Next line"));
+    }
+
+    #[test]
+    fn test_delete_char_forward_at_end() {
+        let mut state = EditorState::new(Lines::from("Hello\nWorld"));
+        state.mode = EditorMode::Insert;
+
+        // Cursor at end of first line should delete newline
+        state.cursor = Index2::new(0, 5);
+        DeleteCharForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 5));
+        assert_eq!(state.lines, Lines::from("HelloWorld"));
+
+        // Cursor at end of last line should do nothing
+        state.cursor = Index2::new(0, 10);
+        DeleteCharForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 10));
+        assert_eq!(state.lines, Lines::from("HelloWorld"));
     }
 }

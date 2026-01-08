@@ -206,6 +206,7 @@ See `examples/app/term.rs` for a an example.
 |-------------|-----------------------------------------|
 | `Esc`       | Return to Normal mode                   |
 | `Backspace` | Delete the previous character           |
+| `Delete`    | Delete the character after the cursor   |
 | `Enter`     | Insert line break                       |
 | `Arrows`    | Navigation                              |
 | `Home`      | Move cursor to start of line            |
