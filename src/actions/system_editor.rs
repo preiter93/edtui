@@ -29,6 +29,8 @@ pub fn open<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> 
         return Ok(());
     }
 
+    state.capture();
+
     let content = state.lines.to_string();
 
     disable_raw_mode()?;
