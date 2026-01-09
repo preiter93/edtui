@@ -27,9 +27,10 @@ impl<'a> Theme<'a> {
                 .selection_style(Style::default().bg(ORANGE).fg(DARK_NIGHT))
                 .status_line(
                     EditorStatusLine::default()
-                        .style_text(Style::default().fg(DARK_NIGHT).bg(GREEN))
+                        .style_mode(Style::default().fg(DARK_NIGHT).bg(GREEN))
+                        .style_search(Style::default().fg(DARK_NIGHT).bg(GREEN))
                         .style_line(Style::default().fg(WHITE).bg(DARK_GRAY))
-                        .alignement(HorizontalAlignment::Center),
+                        .alignment(HorizontalAlignment::Left),
                 ),
         }
     }

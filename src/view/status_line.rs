@@ -17,12 +17,14 @@ pub struct EditorStatusLine {
     mode: String,
     /// The current search buffer. Shown only in search mode.
     search: Option<String>,
-    /// The style for the content of the sidebar
-    style_text: Style,
+    /// The style for the mode of the status line
+    style_mode: Style,
+    /// The style for the search of the status line
+    style_search: Style,
     /// The style for the line itself
     style_line: Style,
-    // Whether to align content to the left (true) or the right (false)
-    alignement: HorizontalAlignment,
+    /// Horizontal alignment of the status bar
+    alignment: HorizontalAlignment,
 }
 
 impl Default for EditorStatusLine {
@@ -33,21 +35,32 @@ impl Default for EditorStatusLine {
         Self {
             mode: String::new(),
             search: None,
-            style_text: Style::default().fg(WHITE).bg(DARK_GRAY).bold(),
+            style_mode: Style::default().fg(WHITE).bg(DARK_GRAY).bold(),
+            style_search: Style::default().fg(WHITE).bg(DARK_GRAY),
             style_line: Style::default().fg(WHITE).bg(DARK_GRAY),
-            alignement: HorizontalAlignment::Center,
+            alignment: HorizontalAlignment::Center,
         }
     }
 }
 
 impl EditorStatusLine {
-    /// Overwrite the style for the status lines content.
+    /// Overwrite the style for the status lines mode.
     ///
     /// This method allows you to customize the appearance of the
-    /// status lines content.
+    /// status lines mode.
     #[must_use]
-    pub fn style_text(mut self, style: Style) -> Self {
-        self.style_text = style;
+    pub fn style_mode(mut self, style: Style) -> Self {
+        self.style_mode = style;
+        self
+    }
+
+    /// Overwrite the style for the status lines search.
+    ///
+    /// This method allows you to customize the appearance of the
+    /// status lines search.
+    #[must_use]
+    pub fn style_search(mut self, style: Style) -> Self {
+        self.style_search = style;
         self
     }
 
@@ -79,28 +92,37 @@ impl EditorStatusLine {
         self
     }
 
+    #[deprecated(
+        since = "0.10.3",
+        note = "Please use `alignment(HorizontalAlignment::Left)` or `alignment(HorizontalAlignment::Right)` instead"
+    )]
+    pub fn align_left(self, align_left: bool) -> Self {
+        let alignment = match align_left {
+            true => HorizontalAlignment::Left,
+            false => HorizontalAlignment::Right,
+        };
+        self.alignment(alignment)
+    }
+
     /// Set the alignment for the status line content.
-    ///
-    /// Set to true to align content to the left, false to align to the right.
     #[must_use]
-    pub fn alignement(mut self, alignement: HorizontalAlignment) -> Self {
-        self.alignement = alignement;
+    pub fn alignment(mut self, alignment: HorizontalAlignment) -> Self {
+        self.alignment = alignment;
         self
     }
 }
 
 impl Widget for EditorStatusLine {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        // Build the content and block widgets
-        let text = match self.search {
-            None => self.mode,
-            Some(search) => format!("{} /{}", self.mode, search),
+        let search_text = match self.search {
+            None => String::new(),
+            Some(search) => format!("/{search}"),
         };
 
-        let mode_line = Line::from(Span::from(text))
-            .alignment(self.alignement)
-            .style(self.style_text);
+        let search_span = Span::raw(search_text).style(self.style_search);
+        let mode_span = Span::raw(format!("{:^10}", self.mode)).style(self.style_mode);
 
+        let mode_line = Line::from(vec![mode_span, search_span]).alignment(self.alignment);
         let mode_paragraph = Paragraph::new(mode_line).style(self.style_line);
 
         mode_paragraph.render(area, buf);
