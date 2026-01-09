@@ -68,7 +68,7 @@ let event_handler = EditorEventHandler::new(key_handler);
 - Line wrapping.
 - Syntax highlighting.
 - Line numbers (absolute and relative).
-- External system editor support (optional, via `system-editor` feature).
+- System editor support (optional, via `system-editor` feature).
 
 ### Theming
 
@@ -155,17 +155,22 @@ ratatui::crossterm::execute!(std::io::stdout(), DisableBracketedPaste);
 
 See `examples/app/term.rs` for a an example.
 
-### External Editor
+### System Editor
 
-With the `system-editor` feature enabled you can open the editor content in an external
-text editor (e.g., nvim) using `Ctrl+e` in normal mode.
+With the `system-editor` feature enabled, you can open the editor content in an external
+text editor (e.g., nvim, vscode) using `Ctrl+e` in normal mode.
 
-With this feature enabled, `on_event` requires a terminal parameter:
 ```rust
-event_handler.on_event(event, &mut state, &mut terminal);
+use edtui::system_editor;
+
+// In your event loop:
+event_handler.on_event(event, &mut state);
+if system_editor::is_pending(&state) {
+    system_editor::open(&mut state, &mut terminal)?;
+}
 ```
 
-The editor used is determined by the `VISUAL` or `EDITOR` environment variables,
+The editor is determined by the `VISUAL` or `EDITOR` environment variables,
 falling back to a platform-specific default if neither is set.
 
 ### Keybindings
