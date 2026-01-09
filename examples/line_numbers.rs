@@ -34,7 +34,12 @@ fn run(terminal: &mut DefaultTerminal) -> Result<(), Box<dyn Error>> {
             Focus::Left => &mut app.state_absolute,
             Focus::Right => &mut app.state_relative,
         };
-        app.event_handler.on_event(event, state);
+        app.event_handler.on_event(
+            event,
+            state,
+            #[cfg(feature = "system-editor")]
+            terminal,
+        );
     }
     Ok(())
 }
