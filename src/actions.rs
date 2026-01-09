@@ -1,20 +1,20 @@
 //! Editor actions such as move, insert, delete
 pub mod cpaste;
 pub mod delete;
-#[cfg(feature = "system-editor")]
-pub mod system_editor;
 pub mod insert;
 pub mod motion;
 pub mod search;
 pub mod select;
+#[cfg(feature = "system-editor")]
+pub mod system_editor;
 use crate::state::selection::Selection;
 use crate::{EditorMode, EditorState};
 use cpaste::PasteOverSelection;
 use delete::DeleteToEndOfLine;
 use enum_dispatch::enum_dispatch;
+use motion::{MoveToFirstRow, MoveToLastRow};
 #[cfg(feature = "system-editor")]
 pub use system_editor::OpenSystemEditor;
-use motion::{MoveToFirstRow, MoveToLastRow};
 
 pub use self::cpaste::{CopyLine, CopySelection, Paste};
 pub use self::delete::{

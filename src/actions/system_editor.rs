@@ -24,7 +24,7 @@ impl Execute for OpenSystemEditor {
 ///
 /// Temporarily exits the TUI, opens the system's default text editor with the current
 /// content, waits for the editor to close, and updates the editor state.
-pub fn run<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> Result<()> {
+pub fn open<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> Result<()> {
     if !std::mem::take(&mut state.system_edit_requested) {
         return Ok(());
     }
@@ -42,7 +42,7 @@ pub fn run<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> R
 
     let edited = result.map_err(std::io::Error::other)?;
 
-    state.lines = Lines::from(edited.as_str());
+    state.lines = Lines::from(edited.trim_end_matches('\n'));
     state.cursor = Index2::new(0, 0);
     state.selection = None;
 
@@ -51,6 +51,6 @@ pub fn run<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> R
 
 /// Returns whether a system editor request is currently pending.
 #[must_use]
-pub fn system_edit_is_pending(state: &EditorState) -> bool {
+pub fn is_pending(state: &EditorState) -> bool {
     state.system_edit_requested
 }

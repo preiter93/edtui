@@ -97,7 +97,7 @@ impl EditorEventHandler {
         T: Into<KeyEvent>,
     {
         self.key_handler.on_event(event.into(), state);
-        let _ = system_editor::run(state, terminal);
+        let _ = system_editor::open(state, terminal);
     }
 
     /// Handles key events.

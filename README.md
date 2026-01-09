@@ -68,7 +68,7 @@ let event_handler = EditorEventHandler::new(key_handler);
 - Line wrapping.
 - Syntax highlighting.
 - Line numbers (absolute and relative).
-- External system editor support (optional, via `system-editor` feature).
+- System editor support (optional, via `system-editor` feature).
 
 ### Theming
 
@@ -155,7 +155,7 @@ ratatui::crossterm::execute!(std::io::stdout(), DisableBracketedPaste);
 
 See `examples/app/term.rs` for a an example.
 
-### External Editor
+### System Editor
 
 With the `system-editor` feature enabled you can open the editor content in an external
 text editor (e.g., nvim) using `Ctrl+e` in normal mode.
