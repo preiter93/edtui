@@ -1,6 +1,7 @@
+use ratatui_core::layout::HorizontalAlignment;
 use ratatui_core::{
     buffer::Buffer,
-    layout::{Alignment, Constraint, Layout, Rect},
+    layout::Rect,
     style::Style,
     text::{Line, Span},
     widgets::Widget,
@@ -21,7 +22,7 @@ pub struct EditorStatusLine {
     /// The style for the line itself
     style_line: Style,
     // Whether to align content to the left (true) or the right (false)
-    align_left: bool,
+    alignement: HorizontalAlignment,
 }
 
 impl Default for EditorStatusLine {
@@ -34,7 +35,7 @@ impl Default for EditorStatusLine {
             search: None,
             style_text: Style::default().fg(WHITE).bg(DARK_GRAY).bold(),
             style_line: Style::default().fg(WHITE).bg(DARK_GRAY),
-            align_left: true,
+            alignement: HorizontalAlignment::Center,
         }
     }
 }
@@ -82,38 +83,26 @@ impl EditorStatusLine {
     ///
     /// Set to true to align content to the left, false to align to the right.
     #[must_use]
-    pub fn align_left(mut self, align_left: bool) -> Self {
-        self.align_left = align_left;
+    pub fn alignement(mut self, alignement: HorizontalAlignment) -> Self {
+        self.alignement = alignement;
         self
     }
 }
 
 impl Widget for EditorStatusLine {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        // Split the layout horizontally.
-        let constraints = if self.align_left {
-            [Constraint::Length(10), Constraint::Min(0)]
-        } else {
-            [Constraint::Min(0), Constraint::Length(10)]
-        };
-        let [left, right] = Layout::horizontal(constraints).areas(area);
-
         // Build the content and block widgets
-        let mode_paragraph = Paragraph::new(Line::from(Span::from(self.mode)))
-            .alignment(Alignment::Center)
-            .style(self.style_text);
-        let search_text = self.search.map_or(String::new(), |s| format!("/{s}"));
-        let search_paragraph = Paragraph::new(Line::from(Span::from(search_text)))
-            .alignment(Alignment::Left)
-            .style(self.style_line);
-
-        // Determine the alignment position
-        if self.align_left {
-            mode_paragraph.render(left, buf);
-            search_paragraph.render(right, buf);
-        } else {
-            search_paragraph.render(left, buf);
-            mode_paragraph.render(right, buf);
+        let text = match self.search {
+            None => self.mode,
+            Some(search) => format!("{} /{}", self.mode, search),
         };
+
+        let mode_line = Line::from(Span::from(text))
+            .alignment(self.alignement)
+            .style(self.style_text);
+
+        let mode_paragraph = Paragraph::new(mode_line).style(self.style_line);
+
+        mode_paragraph.render(area, buf);
     }
 }
