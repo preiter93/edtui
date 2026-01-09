@@ -53,32 +53,21 @@ impl EditorEventHandler {
     }
 
     /// Handles key and mouse events.
-    #[cfg(feature = "system-editor")]
-    pub fn on_event<T, B: Backend>(
+    pub fn on_event<T>(
         &mut self,
         event: T,
         state: &mut EditorState,
-        terminal: &mut Terminal<B>,
+        #[cfg(feature = "system-editor")] terminal: &mut Terminal<impl Backend>,
     ) where
         T: Into<Event>,
     {
         match event.into() {
-            Event::Key(event) => self.on_key_event(event, state, terminal),
-            #[cfg(feature = "mouse-support")]
-            Event::Mouse(event) => self.on_mouse_event(event, state),
-            Event::Paste(text) => self.on_paste_event(text, state),
-            Event::None => (),
-        }
-    }
-
-    /// Handles key and mouse events.
-    #[cfg(not(feature = "system-editor"))]
-    pub fn on_event<T>(&mut self, event: T, state: &mut EditorState)
-    where
-        T: Into<Event>,
-    {
-        match event.into() {
-            Event::Key(event) => self.on_key_event(event, state),
+            Event::Key(event) => self.on_key_event(
+                event,
+                state,
+                #[cfg(feature = "system-editor")]
+                terminal,
+            ),
             #[cfg(feature = "mouse-support")]
             Event::Mouse(event) => self.on_mouse_event(event, state),
             Event::Paste(text) => self.on_paste_event(text, state),
@@ -87,26 +76,18 @@ impl EditorEventHandler {
     }
 
     /// Handles key events.
-    #[cfg(feature = "system-editor")]
-    pub fn on_key_event<T, B: Backend>(
+    pub fn on_key_event<T>(
         &mut self,
         event: T,
         state: &mut EditorState,
-        terminal: &mut Terminal<B>,
+        #[cfg(feature = "system-editor")] terminal: &mut Terminal<impl Backend>,
     ) where
         T: Into<KeyEvent>,
     {
         self.key_handler.on_event(event.into(), state);
+
+        #[cfg(feature = "system-editor")]
         let _ = system_editor::open(state, terminal);
-    }
-
-    /// Handles key events.
-    #[cfg(not(feature = "system-editor"))]
-    pub fn on_key_event<T>(&mut self, event: T, state: &mut EditorState)
-    where
-        T: Into<KeyEvent>,
-    {
-        self.key_handler.on_event(event.into(), state);
     }
 
     #[cfg(feature = "mouse-support")]
