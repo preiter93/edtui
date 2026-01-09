@@ -2,6 +2,7 @@
 ===================
 - Add `OpenSystemEditor` which opens a system editor.
     - Invoked with `ctrl+e` in vim mode.
+    - Invoked with `alt+e` in emacs mode.
 
 Released
 --------

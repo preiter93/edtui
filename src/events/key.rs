@@ -848,6 +848,11 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         (KeyEventRegister::i(vec![KeyEvent::Ctrl('u')]), Undo.into()),
         (KeyEventRegister::i(vec![KeyEvent::Ctrl('r')]), Redo.into()),
         (KeyEventRegister::i(vec![KeyEvent::Ctrl('y')]), Paste.into()),
+        #[cfg(feature = "system-editor")]
+        (
+            KeyEventRegister::i(vec![KeyEvent::Alt('e')]),
+            OpenSystemEditor.into(),
+        ),
     ])
 }
 
