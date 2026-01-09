@@ -7,7 +7,7 @@
 
 #![cfg(feature = "system-editor")]
 
-use edtui::{system_editor, EditorEventHandler, EditorState, EditorView, Lines};
+use edtui::{EditorEventHandler, EditorState, EditorView, Lines};
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyModifiers},
     widgets::Widget,
@@ -47,8 +47,7 @@ Press Ctrl+c to quit.
                 break;
             }
         }
-        event_handler.on_event(event, &mut state);
-        system_editor::open(&mut state, terminal)?;
+        event_handler.on_event(event, &mut state, terminal);
     }
     Ok(())
 }

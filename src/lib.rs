@@ -157,20 +157,15 @@
 //!
 //! ## System Editor
 //!
-//! With the `system-editor` feature enabled, you can open the editor content in an external
-//! text editor (e.g., nvim, vscode) using `Ctrl+e` in normal mode.
+//! With the `system-editor` feature enabled you can open the editor content in an external
+//! text editor (e.g., nvim) using `Ctrl+e` in normal mode.
 //!
+//! With this feature enabled, `on_event` requires a terminal parameter:
 //! ```ignore
-//! use edtui::system_editor;
-//!
-//! // In your event loop:
-//! event_handler.on_event(event, &mut state);
-//! if system_editor::is_pending(&state) {
-//!     system_editor::open(&mut state, &mut terminal)?;
-//! }
+//! event_handler.on_event(event, &mut state, &mut terminal);
 //! ```
 //!
-//! The editor is determined by the `VISUAL` or `EDITOR` environment variables,
+//! The editor used is determined by the `VISUAL` or `EDITOR` environment variables,
 //! falling back to a platform-specific default if neither is set.
 //!
 //! ## Keybindings
