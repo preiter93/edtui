@@ -19,20 +19,22 @@ fn run(terminal: &mut DefaultTerminal) -> Result<(), Box<dyn Error>> {
     let mut app = App::new();
     loop {
         terminal.draw(|frame| frame.render_widget(&mut app, frame.area()))?;
-        if let Event::Key(key) = event::read()? {
+
+        let event = event::read()?;
+        if let Event::Key(key) = &event {
             if key.code == KeyCode::Char('c') && key.modifiers == KeyModifiers::CONTROL {
                 break;
             }
             if key.code == KeyCode::Tab {
                 app.toggle_focus();
-            } else {
-                let state = match app.focus {
-                    Focus::Left => &mut app.state_absolute,
-                    Focus::Right => &mut app.state_relative,
-                };
-                app.event_handler.on_key_event(key, state);
+                continue;
             }
         }
+        let state = match app.focus {
+            Focus::Left => &mut app.state_absolute,
+            Focus::Right => &mut app.state_relative,
+        };
+        app.event_handler.on_event(event, state);
     }
     Ok(())
 }
