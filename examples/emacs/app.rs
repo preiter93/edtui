@@ -25,7 +25,7 @@ impl App {
     pub fn run(&mut self, term: &mut Term) -> Result<()> {
         while !self.should_quit {
             self.draw(term)?;
-            self.handle_events()?;
+            self.handle_events(term)?;
         }
         Term::stop()?;
         Ok(())
@@ -36,7 +36,7 @@ impl App {
         Ok(())
     }
 
-    pub fn handle_events(&mut self) -> Result<()> {
+    pub fn handle_events(&mut self, #[allow(unused)] term: &mut Term) -> Result<()> {
         let event = event::read()?;
 
         if let Event::Key(key) = event {
@@ -46,9 +46,12 @@ impl App {
             }
         };
 
-        self.context
-            .event_handler
-            .on_event(event, &mut self.context.state);
+        self.context.event_handler.on_event(
+            event,
+            &mut self.context.state,
+            #[cfg(feature = "system-editor")]
+            term,
+        );
 
         Ok(())
     }

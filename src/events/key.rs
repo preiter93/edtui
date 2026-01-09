@@ -2,6 +2,8 @@ use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::{DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine};
 use crate::actions::motion::{MoveHalfPageDown, MoveToFirstRow, MoveToLastRow};
 use crate::actions::search::StartSearch;
+#[cfg(feature = "system-editor")]
+use crate::actions::OpenSystemEditor;
 use crate::actions::{
     Action, AppendCharToSearch, AppendNewline, ChangeInnerBetween, ChangeInnerWord,
     ChangeSelection, Composed, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection,
@@ -171,7 +173,8 @@ impl KeyEventHandler {
 
 #[allow(clippy::too_many_lines)]
 fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
-    HashMap::from([
+    #[allow(unused_mut)]
+    let mut map = HashMap::from([
         // Go into normal mode
         (
             KeyEventRegister::i(vec![KeyEvent::Esc]),
@@ -673,7 +676,16 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 .chain(SwitchMode(EditorMode::Normal))
                 .into(),
         ),
-    ])
+    ]);
+
+    // Open system editor (Ctrl+e in normal mode)
+    #[cfg(feature = "system-editor")]
+    map.insert(
+        KeyEventRegister::n(vec![KeyEvent::Ctrl('e')]),
+        OpenSystemEditor.into(),
+    );
+
+    map
 }
 
 #[allow(clippy::too_many_lines)]

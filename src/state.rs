@@ -42,6 +42,10 @@ pub struct EditorState {
 
     /// Clipboard for yank and paste operations.
     pub(crate) clip: Clipboard,
+
+    /// Flag indicating a system editor was requested.
+    #[cfg(feature = "system-editor")]
+    pub(crate) system_edit_requested: bool,
 }
 
 impl Default for EditorState {
@@ -73,6 +77,8 @@ impl EditorState {
             undo: Stack::new(),
             redo: Stack::new(),
             clip: Clipboard::default(),
+            #[cfg(feature = "system-editor")]
+            system_edit_requested: false,
         }
     }
 

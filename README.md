@@ -68,6 +68,7 @@ let event_handler = EditorEventHandler::new(key_handler);
 - Line wrapping.
 - Syntax highlighting.
 - Line numbers (absolute and relative).
+- External system editor support (optional, via `system-editor` feature).
 
 ### Theming
 
@@ -154,6 +155,19 @@ ratatui::crossterm::execute!(std::io::stdout(), DisableBracketedPaste);
 
 See `examples/app/term.rs` for a an example.
 
+### External Editor
+
+With the `system-editor` feature enabled you can open the editor content in an external
+text editor (e.g., nvim) using `Ctrl+e` in normal mode.
+
+With this feature enabled, `on_event` requires a terminal parameter:
+```rust
+event_handler.on_event(event, &mut state, &mut terminal);
+```
+
+The editor used is determined by the `VISUAL` or `EDITOR` environment variables,
+falling back to a platform-specific default if neither is set.
+
 ### Keybindings
 `EdTUI` offers Vim keybindings by default and Emacs keybindings as an alternative.
 
@@ -161,44 +175,45 @@ See `examples/app/term.rs` for a an example.
 
 ##### Normal Mode:
 
-| Keybinding                | Description                                  |
-|---------------------------|----------------------------------------------|
-| `i`                       | Enter Insert mode                            |
-| `v`                       | Enter Visual mode                            |
-| `h`, `j`, `k`, `l`        | Navigate left, down, up, and right           |
-| `w`                       | Move forward to the start of a word          |
-| `e`                       | Move forward to the end of a word            |
-| `b`                       | Move backward to the start of a word         |
-| `ctrl+d`                  | Jump a half page down                        |
-| `ctrl+u`                  | Jump a half page up                          |
-| `x`                       | Delete the character under the cursor        |
-| `u`, `ctrl+r`             | Undo/Redo last action                        |
-| `Esc`                     | Escape Visual mode                           |
-| `0`                       | Move cursor to start of line                 |
-| `_`                       | Move cursor to first non-blank character     |
-| `$`                       | Move cursor to end of line                   |
-| `gg`                      | Move cursor to the first row                 |
-| `G `                      | Move cursor to the last row                  |
-| `%`                       | Move cursor to closing/opening bracket       |
-| `a`                       | Append after the cursor                      |
-| `A`                       | Append at the end of the line                |
-| `o`                       | Add a new line below and enter Insert mode   |
-| `O`                       | Add a new line above and enter Insert mode   |
-| `J`                       | Join current line with the line below        |
-| `d`                       | Delete the selection (Visual mode)           |
-| `dd`                      | Delete the current line                      |
-| `D`                       | Delete to the end of the line                |
-| `viw`                     | Select between word.                         |
-| `ciw`                     | Change between word.                         |
-| `vi` + `", ', (, [ or {`  | Select between delimiter `", ', (, [ or {`   |
-| `ci` + `", ', (, [ or {`  | Change between delimiter `", ', (, [ or {`   |
-| `u`                       | Undo the last change                         |
-| `r`                       | Redo the last undone action                  |
-| `y`                       | Copy the selected text in visual mode        |
-| `yy`                      | Copy the current line in normal mode         |
-| `p`                       | Paste the copied text                        |
-| `Home`                    | Move cursor to start of line                 |
-| `End`                     | Move cursor to end of line                   |
+| Keybinding                | Description                                              |
+|---------------------------|----------------------------------------------------------|
+| `i`                       | Enter Insert mode                                        |
+| `v`                       | Enter Visual mode                                        |
+| `h`, `j`, `k`, `l`        | Navigate left, down, up, and right                       |
+| `w`                       | Move forward to the start of a word                      |
+| `e`                       | Move forward to the end of a word                        |
+| `b`                       | Move backward to the start of a word                     |
+| `ctrl+d`                  | Jump a half page down                                    |
+| `ctrl+u`                  | Jump a half page up                                      |
+| `x`                       | Delete the character under the cursor                    |
+| `u`, `ctrl+r`             | Undo/Redo last action                                    |
+| `Esc`                     | Escape Visual mode                                       |
+| `0`                       | Move cursor to start of line                             |
+| `_`                       | Move cursor to first non-blank character                 |
+| `$`                       | Move cursor to end of line                               |
+| `gg`                      | Move cursor to the first row                             |
+| `G `                      | Move cursor to the last row                              |
+| `%`                       | Move cursor to closing/opening bracket                   |
+| `a`                       | Append after the cursor                                  |
+| `A`                       | Append at the end of the line                            |
+| `o`                       | Add a new line below and enter Insert mode               |
+| `O`                       | Add a new line above and enter Insert mode               |
+| `J`                       | Join current line with the line below                    |
+| `d`                       | Delete the selection (Visual mode)                       |
+| `dd`                      | Delete the current line                                  |
+| `D`                       | Delete to the end of the line                            |
+| `viw`                     | Select between word.                                     |
+| `ciw`                     | Change between word.                                     |
+| `vi` + `", ', (, [ or {`  | Select between delimiter `", ', (, [ or {`               |
+| `ci` + `", ', (, [ or {`  | Change between delimiter `", ', (, [ or {`               |
+| `u`                       | Undo the last change                                     |
+| `r`                       | Redo the last undone action                              |
+| `y`                       | Copy the selected text in visual mode                    |
+| `yy`                      | Copy the current line in normal mode                     |
+| `p`                       | Paste the copied text                                    |
+| `Home`                    | Move cursor to start of line                             |
+| `End`                     | Move cursor to end of line                               |
+| `ctrl+e`                  | Open in system editor (requires `system-editor` feature) |
 
 ##### Insert Mode:
 
