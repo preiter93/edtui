@@ -1,11 +1,11 @@
-0.10.3 - ?
+Released
+--------
+
+0.10.3 - 10 Jan 2026
 ===================
 - Add `OpenSystemEditor` which opens a system editor.
     - Invoked with `ctrl+e` in vim mode.
     - Invoked with `alt+e` in emacs mode.
-
-Released
---------
 
 0.10.2 - 08 Jan 2026
 ===================
