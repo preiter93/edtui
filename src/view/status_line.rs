@@ -1,14 +1,7 @@
-use ratatui_core::layout::HorizontalAlignment;
-use ratatui_core::{
-    buffer::Buffer,
-    layout::Rect,
-    style::Style,
-    text::{Line, Span},
-    widgets::Widget,
-};
-use ratatui_widgets::paragraph::Paragraph;
-
 use super::theme::{DARK_GRAY, WHITE};
+use ratatui_core::layout::{Constraint, HorizontalAlignment, Layout};
+use ratatui_core::{buffer::Buffer, layout::Rect, style::Style, text::Span, widgets::Widget};
+use ratatui_widgets::block::Block;
 
 /// An optional status line for Editor.
 #[derive(Debug, Clone)]
@@ -18,9 +11,9 @@ pub struct EditorStatusLine {
     /// The current search buffer. Shown only in search mode.
     search: Option<String>,
     /// The style for the mode of the status line
-    style_mode: Style,
+    style_mode: Option<Style>,
     /// The style for the search of the status line
-    style_search: Style,
+    style_search: Option<Style>,
     /// The style for the line itself
     style_line: Style,
     /// Horizontal alignment of the status bar
@@ -35,10 +28,10 @@ impl Default for EditorStatusLine {
         Self {
             mode: String::new(),
             search: None,
-            style_mode: Style::default().fg(WHITE).bg(DARK_GRAY).bold(),
-            style_search: Style::default().fg(WHITE).bg(DARK_GRAY),
+            style_mode: Some(Style::default().fg(WHITE).bg(DARK_GRAY).bold()),
+            style_search: Some(Style::default().fg(WHITE).bg(DARK_GRAY)),
             style_line: Style::default().fg(WHITE).bg(DARK_GRAY),
-            alignment: HorizontalAlignment::Center,
+            alignment: HorizontalAlignment::Left,
         }
     }
 }
@@ -49,7 +42,7 @@ impl EditorStatusLine {
     /// This method allows you to customize the appearance of the
     /// status lines mode.
     #[must_use]
-    pub fn style_mode(mut self, style: Style) -> Self {
+    pub fn style_mode(mut self, style: Option<Style>) -> Self {
         self.style_mode = style;
         self
     }
@@ -59,7 +52,7 @@ impl EditorStatusLine {
     /// This method allows you to customize the appearance of the
     /// status lines search.
     #[must_use]
-    pub fn style_search(mut self, style: Style) -> Self {
+    pub fn style_search(mut self, style: Option<Style>) -> Self {
         self.style_search = style;
         self
     }
@@ -114,17 +107,45 @@ impl EditorStatusLine {
 
 impl Widget for EditorStatusLine {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let constraints = match self.alignment {
+            HorizontalAlignment::Left => vec![Constraint::Length(10), Constraint::Min(1)],
+            HorizontalAlignment::Center => vec![
+                Constraint::Min(1),
+                Constraint::Length(10),
+                Constraint::Min(1),
+            ],
+            HorizontalAlignment::Right => vec![Constraint::Min(1), Constraint::Length(10)],
+        };
+
+        let layout = Layout::horizontal(constraints).split(area);
+
         let search_text = match self.search {
             None => String::new(),
             Some(search) => format!("/{search}"),
         };
 
-        let search_span = Span::raw(search_text).style(self.style_search);
-        let mode_span = Span::raw(format!("{:^10}", self.mode)).style(self.style_mode);
+        let mode_span = Span::raw(format!("{:^10}", self.mode))
+            .style(self.style_mode.unwrap_or(self.style_line));
+        let search_span =
+            Span::raw(search_text).style(self.style_search.unwrap_or(self.style_line));
 
-        let mode_line = Line::from(vec![mode_span, search_span]).alignment(self.alignment);
-        let mode_paragraph = Paragraph::new(mode_line).style(self.style_line);
+        let line_block = Block::new().style(self.style_line);
 
-        mode_paragraph.render(area, buf);
+        line_block.render(area, buf);
+
+        match self.alignment {
+            HorizontalAlignment::Left => {
+                mode_span.render(layout[0], buf);
+                search_span.render(layout[1], buf);
+            }
+            HorizontalAlignment::Center => {
+                mode_span.render(layout[1], buf);
+                search_span.render(layout[2], buf);
+            }
+            HorizontalAlignment::Right => {
+                mode_span.render(layout[1], buf);
+                search_span.render(layout[0], buf);
+            }
+        }
     }
 }
