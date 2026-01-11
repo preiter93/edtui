@@ -2,8 +2,6 @@
 
 use crate::actions::Execute;
 use crate::{EditorState, Index2, Lines};
-#[cfg(feature = "mouse-support")]
-use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
@@ -12,7 +10,12 @@ use ratatui_core::terminal::Terminal;
 use std::io::{stdout, Result};
 
 /// Action that requests opening the editor content in an external system editor.
-/// Bound to `Ctrl+e` in normal mode.
+///
+/// In Vim mode, this is bound to `Ctrl+e` in normal mode.
+/// In Emacs mode, this is bound to `Alt+e`.
+///
+/// This action only sets a flag; the actual editor opening happens when
+/// [`open`] is called.
 #[derive(Clone, Debug)]
 pub struct OpenSystemEditor;
 
@@ -22,23 +25,21 @@ impl Execute for OpenSystemEditor {
     }
 }
 
-/// Checks if a system editor request is pending and runs the system editor if so.
+/// Opens the editor content in an external system editor if a request is pending.
 ///
-/// Temporarily exits the TUI, opens the system's default text editor with the current
-/// content, waits for the editor to close, and updates the editor state.
+/// This function checks if [`OpenSystemEditor`] was executed (via [`is_pending`]).
 ///
-/// ## Terminal state handling
+/// ## Terminal Mode Restoration
 ///
-/// If the `mouse-support` feature is enabled mouse capture is explicitly
-/// re-enabled when returning to the TUI.
+/// This function only restores raw mode and the alternate screen. Any other
+/// terminal modes (mouse capture, bracketed paste, focus events, etc.) must
+/// be re-enabled by the caller after this function returns.
 ///
-/// Other terminal modes (such as bracketed paste, focus reporting, or any
-/// application-specific terminal flags) are not restored.
-/// This is due to limitations in crossterm, which does not expose a way
-/// (to my knowledge) to get the current terminal mode state.
+/// ## Errors
 ///
-/// Callers that rely on additional terminal modes must re-enable them after
-/// this function returns.
+/// Returns an error if:
+/// - Terminal mode changes fail
+/// - The external editor fails to open or returns an error
 pub fn open<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> Result<()> {
     if !std::mem::take(&mut state.system_edit_requested) {
         return Ok(());
@@ -48,10 +49,6 @@ pub fn open<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> 
 
     let content = state.lines.to_string();
 
-    #[cfg(feature = "mouse-support")]
-    {
-        let _ = crossterm::execute!(stdout(), DisableMouseCapture);
-    }
     disable_raw_mode()?;
     crossterm::execute!(stdout(), LeaveAlternateScreen)?;
 
@@ -59,10 +56,6 @@ pub fn open<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> 
 
     crossterm::execute!(stdout(), EnterAlternateScreen)?;
     enable_raw_mode()?;
-    #[cfg(feature = "mouse-support")]
-    {
-        let _ = crossterm::execute!(stdout(), EnableMouseCapture);
-    }
     let _ = terminal.clear();
 
     let edited = result.map_err(std::io::Error::other)?;
@@ -75,6 +68,17 @@ pub fn open<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> 
 }
 
 /// Returns whether a system editor request is currently pending.
+///
+/// Use this after handling events to check if the user requested to open
+/// the system editor.
+///
+/// ```ignore
+/// event_handler.on_event(event, &mut state);
+///
+/// if system_editor::is_pending(&state) {
+///     system_editor::open(&mut state, &mut terminal)?;
+/// }
+/// ```
 #[must_use]
 pub fn is_pending(state: &EditorState) -> bool {
     state.system_edit_requested

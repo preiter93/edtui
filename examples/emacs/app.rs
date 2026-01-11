@@ -46,12 +46,9 @@ impl App {
             }
         };
 
-        self.context.event_handler.on_event(
-            event,
-            &mut self.context.state,
-            #[cfg(feature = "system-editor")]
-            term,
-        );
+        self.context
+            .event_handler
+            .on_event(event, &mut self.context.state);
 
         Ok(())
     }
