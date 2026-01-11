@@ -47,7 +47,7 @@ name = "system_editor"
 required-features = ["system-editor"]
 
 [features]
-default = ["arboard", "mouse-support", "syntax-highlighting", "system-editor"]
+default = ["arboard", "mouse-support", "syntax-highlighting"]
 arboard = ["dep:arboard"]
 mouse-support = []
 syntax-highlighting = ["dep:syntect", "dep:once_cell"]
