@@ -158,11 +158,21 @@ See `examples/app/term.rs` for a an example.
 ### System Editor
 
 With the `system-editor` feature enabled you can open the editor content in an external
-text editor (e.g., nvim) using `Ctrl+e` in normal mode.
+text editor (e.g., nvim) using `Ctrl+e` in normal mode (or `Alt+e` in Emacs mode).
 
-With this feature enabled, `on_event` requires a terminal parameter:
+The system editor is decoupled from the event handler. After handling events, check
+if a system editor request is pending and call `open` yourself:
+
 ```rust
-event_handler.on_event(event, &mut state, &mut terminal);
+use edtui::system_editor;
+
+event_handler.on_event(event, &mut state);
+
+if system_editor::is_pending(&state) {
+    system_editor::open(&mut state, &mut terminal)?;
+    // Re-enable mouse capture or other terminal modes if necessary
+    // crossterm::execute!(stdout(), EnableMouseCapture, EnableBracketedPaste)?;
+}
 ```
 
 The editor used is determined by the `VISUAL` or `EDITOR` environment variables,

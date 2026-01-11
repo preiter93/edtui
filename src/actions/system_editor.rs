@@ -10,7 +10,12 @@ use ratatui_core::terminal::Terminal;
 use std::io::{stdout, Result};
 
 /// Action that requests opening the editor content in an external system editor.
-/// Bound to `Ctrl+e` in normal mode.
+///
+/// In Vim mode, this is bound to `Ctrl+e` in normal mode.
+/// In Emacs mode, this is bound to `Alt+e`.
+///
+/// This action only sets a flag; the actual editor opening happens when
+/// [`open`] is called.
 #[derive(Clone, Debug)]
 pub struct OpenSystemEditor;
 
@@ -20,10 +25,21 @@ impl Execute for OpenSystemEditor {
     }
 }
 
-/// Checks if a system editor request is pending and runs the system editor if so.
+/// Opens the editor content in an external system editor if a request is pending.
 ///
-/// Temporarily exits the TUI, opens the system's default text editor with the current
-/// content, waits for the editor to close, and updates the editor state.
+/// This function checks if [`OpenSystemEditor`] was executed via [`is_pending`].
+///
+/// ## Terminal Mode Restoration
+///
+/// This function only restores raw mode and the alternate screen. Any other
+/// terminal modes (mouse capture, bracketed paste, etc.) must
+/// be re-enabled by the caller after this function returns.
+///
+/// ## Errors
+///
+/// Returns an error if:
+/// - Terminal mode changes fail
+/// - The external editor fails to open or returns an error
 pub fn open<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> Result<()> {
     if !std::mem::take(&mut state.system_edit_requested) {
         return Ok(());
@@ -52,6 +68,17 @@ pub fn open<B: Backend>(state: &mut EditorState, terminal: &mut Terminal<B>) -> 
 }
 
 /// Returns whether a system editor request is currently pending.
+///
+/// Use this after handling events to check if the user requested to open
+/// the system editor.
+///
+/// ```ignore
+/// event_handler.on_event(event, &mut state);
+///
+/// if system_editor::is_pending(&state) {
+///     system_editor::open(&mut state, &mut terminal)?;
+/// }
+/// ```
 #[must_use]
 pub fn is_pending(state: &EditorState) -> bool {
     state.system_edit_requested

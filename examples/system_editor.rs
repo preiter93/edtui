@@ -7,7 +7,7 @@
 
 #![cfg(feature = "system-editor")]
 
-use edtui::{EditorEventHandler, EditorState, EditorView, Lines};
+use edtui::{system_editor, EditorEventHandler, EditorState, EditorView, Lines};
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyModifiers},
     widgets::Widget,
@@ -17,6 +17,7 @@ use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = ratatui::init();
+
     let result = run(&mut terminal);
     ratatui::restore();
     result
@@ -47,7 +48,15 @@ Press Ctrl+c to quit.
                 break;
             }
         }
-        event_handler.on_event(event, &mut state, terminal);
+        event_handler.on_event(event, &mut state);
+
+        // Check if system editor was requested and open it
+        if system_editor::is_pending(&state) {
+            system_editor::open(&mut state, terminal)?;
+
+            // Optional; Restore terminal modes after returning from system editor.
+            // execute!(stdout(), EnableMouseCapture, EnableBracketedPaste)?;
+        }
     }
     Ok(())
 }

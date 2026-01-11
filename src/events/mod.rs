@@ -4,11 +4,6 @@ mod key;
 pub(crate) mod mouse;
 pub(crate) mod paste;
 
-#[cfg(feature = "system-editor")]
-use crate::actions::system_editor;
-#[cfg(feature = "system-editor")]
-use ratatui_core::{backend::Backend, terminal::Terminal};
-
 pub use key::{KeyEvent, KeyEventHandler, KeyEventRegister};
 
 #[cfg(feature = "mouse-support")]
@@ -53,21 +48,12 @@ impl EditorEventHandler {
     }
 
     /// Handles key and mouse events.
-    pub fn on_event<T>(
-        &mut self,
-        event: T,
-        state: &mut EditorState,
-        #[cfg(feature = "system-editor")] terminal: &mut Terminal<impl Backend>,
-    ) where
+    pub fn on_event<T>(&mut self, event: T, state: &mut EditorState)
+    where
         T: Into<Event>,
     {
         match event.into() {
-            Event::Key(event) => self.on_key_event(
-                event,
-                state,
-                #[cfg(feature = "system-editor")]
-                terminal,
-            ),
+            Event::Key(event) => self.on_key_event(event, state),
             #[cfg(feature = "mouse-support")]
             Event::Mouse(event) => self.on_mouse_event(event, state),
             Event::Paste(text) => self.on_paste_event(text, state),
@@ -76,18 +62,11 @@ impl EditorEventHandler {
     }
 
     /// Handles key events.
-    pub fn on_key_event<T>(
-        &mut self,
-        event: T,
-        state: &mut EditorState,
-        #[cfg(feature = "system-editor")] terminal: &mut Terminal<impl Backend>,
-    ) where
+    pub fn on_key_event<T>(&mut self, event: T, state: &mut EditorState)
+    where
         T: Into<KeyEvent>,
     {
         self.key_handler.on_event(event.into(), state);
-
-        #[cfg(feature = "system-editor")]
-        let _ = system_editor::open(state, terminal);
     }
 
     #[cfg(feature = "mouse-support")]

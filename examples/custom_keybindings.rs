@@ -26,12 +26,7 @@ fn run(terminal: &mut DefaultTerminal) -> Result<(), Box<dyn Error>> {
             if key.code == KeyCode::Char('c') && key.modifiers == KeyModifiers::CONTROL {
                 break;
             }
-            app.event_handler.on_key_event(
-                key,
-                &mut app.state,
-                #[cfg(feature = "system-editor")]
-                terminal,
-            );
+            app.event_handler.on_key_event(key, &mut app.state);
         }
     }
     Ok(())
