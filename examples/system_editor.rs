@@ -9,19 +9,14 @@
 
 use edtui::{system_editor, EditorEventHandler, EditorState, EditorView, Lines};
 use ratatui::{
-    crossterm::{
-        event::{self, EnableBracketedPaste, EnableMouseCapture, Event, KeyCode, KeyModifiers},
-        execute,
-    },
+    crossterm::event::{self, Event, KeyCode, KeyModifiers},
     widgets::Widget,
     DefaultTerminal,
 };
-use std::{error::Error, io::stdout};
+use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = ratatui::init();
-    // Enable mouse capture and bracketed paste
-    execute!(stdout(), EnableMouseCapture, EnableBracketedPaste)?;
 
     let result = run(&mut terminal);
     ratatui::restore();
@@ -59,10 +54,8 @@ Press Ctrl+c to quit.
         if system_editor::is_pending(&state) {
             system_editor::open(&mut state, terminal)?;
 
-            // Restore terminal modes after returning from system editor.
-            // The system editor only restores raw mode and alternate screen;
-            // other modes must be re-enabled manually.
-            execute!(stdout(), EnableMouseCapture, EnableBracketedPaste)?;
+            // Optional; Restore terminal modes after returning from system editor.
+            // execute!(stdout(), EnableMouseCapture, EnableBracketedPaste)?;
         }
     }
     Ok(())

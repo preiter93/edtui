@@ -1,6 +1,11 @@
 Released
 --------
 
+0.10.4 - 11 Jan 2026
+===================
+- Added HorizontalAlignement for status line (Julien-cpsn)
+- Split `OpenSystemEditor` from event loop to make terminal modes restorable
+
 0.10.3 - 10 Jan 2026
 ===================
 - Add `OpenSystemEditor` which opens a system editor.
