@@ -43,11 +43,11 @@ impl EditorStatusLine {
     /// status lines content.
     #[deprecated(
         since = "0.10.4",
-        note = "Please use `alignment(HorizontalAlignment::Left)` or `alignment(HorizontalAlignment::Right)` instead"
+        note = "Please use `style_mode` and `style_search` instead"
     )]
     #[must_use]
     pub fn style_text(mut self, style: Style) -> Self {
-        self.style_mode = Some(style.clone());
+        self.style_mode = Some(style);
         self.style_search = Some(style);
         self
     }
@@ -57,8 +57,8 @@ impl EditorStatusLine {
     /// This method allows you to customize the appearance of the
     /// status lines mode.
     #[must_use]
-    pub fn style_mode(mut self, style: Option<Style>) -> Self {
-        self.style_mode = style;
+    pub fn style_mode(mut self, style: impl Into<Option<Style>>) -> Self {
+        self.style_mode = style.into();
         self
     }
 
@@ -67,8 +67,8 @@ impl EditorStatusLine {
     /// This method allows you to customize the appearance of the
     /// status lines search.
     #[must_use]
-    pub fn style_search(mut self, style: Option<Style>) -> Self {
-        self.style_search = style;
+    pub fn style_search(mut self, style: impl Into<Option<Style>>) -> Self {
+        self.style_search = style.into();
         self
     }
 
