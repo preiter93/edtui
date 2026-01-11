@@ -23,6 +23,11 @@ impl MouseEventHandler {
             return;
         }
 
+        // Check if the mouse event is within the editor's screen area
+        if !Self::is_within_bounds(&event, state) {
+            return;
+        }
+
         if let MouseEvent::Down(_) = event {
             state.selection = None;
             if state.mode == EditorMode::Visual {
@@ -61,6 +66,22 @@ impl MouseEventHandler {
             }
             MouseEvent::None => (),
         };
+    }
+
+    /// Checks if the mouse event occurred within the editor's screen area.
+    fn is_within_bounds(event: &MouseEvent, state: &EditorState) -> bool {
+        let mouse = match event {
+            MouseEvent::Down(pos) | MouseEvent::Up(pos) | MouseEvent::Drag(pos) => pos,
+            MouseEvent::None => return false,
+        };
+
+        let area = &state.view.screen_area;
+        let x: usize = area.x.into();
+        let y: usize = area.y.into();
+        let width: usize = area.width.into();
+        let height: usize = area.height.into();
+
+        mouse.col >= x && mouse.col < x + width && mouse.row >= y && mouse.row < y + height
     }
 }
 
