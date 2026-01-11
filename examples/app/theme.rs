@@ -4,6 +4,7 @@ use ratatui::{
     style::{Color, Style},
     widgets::{Block, BorderType, Borders},
 };
+use ratatui_core::layout::HorizontalAlignment;
 
 #[derive(Default)]
 pub struct Theme<'a> {
@@ -26,9 +27,10 @@ impl<'a> Theme<'a> {
                 .selection_style(Style::default().bg(ORANGE).fg(DARK_NIGHT))
                 .status_line(
                     EditorStatusLine::default()
-                        .style_text(Style::default().fg(DARK_NIGHT).bg(GREEN))
+                        .style_mode(Some(Style::default().fg(DARK_NIGHT).bg(GREEN)))
+                        .style_search(Some(Style::default().fg(WHITE).bg(DARK_GRAY)))
                         .style_line(Style::default().fg(WHITE).bg(DARK_GRAY))
-                        .align_left(true),
+                        .alignment(HorizontalAlignment::Left),
                 ),
         }
     }
