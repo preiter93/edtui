@@ -37,6 +37,21 @@ impl Default for EditorStatusLine {
 }
 
 impl EditorStatusLine {
+    /// Overwrite the style for the status lines content.
+    ///
+    /// This method allows you to customize the appearance of the
+    /// status lines content.
+    #[deprecated(
+        since = "0.10.4",
+        note = "Please use `alignment(HorizontalAlignment::Left)` or `alignment(HorizontalAlignment::Right)` instead"
+    )]
+    #[must_use]
+    pub fn style_text(mut self, style: Style) -> Self {
+        self.style_mode = Some(style.clone());
+        self.style_search = Some(style);
+        self
+    }
+
     /// Overwrite the style for the status lines mode.
     ///
     /// This method allows you to customize the appearance of the
@@ -86,7 +101,7 @@ impl EditorStatusLine {
     }
 
     #[deprecated(
-        since = "0.10.3",
+        since = "0.10.4",
         note = "Please use `alignment(HorizontalAlignment::Left)` or `alignment(HorizontalAlignment::Right)` instead"
     )]
     pub fn align_left(self, align_left: bool) -> Self {
