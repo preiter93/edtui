@@ -27,12 +27,12 @@ impl Execute for OpenSystemEditor {
 
 /// Opens the editor content in an external system editor if a request is pending.
 ///
-/// This function checks if [`OpenSystemEditor`] was executed (via [`is_pending`]).
+/// This function checks if [`OpenSystemEditor`] was executed via [`is_pending`].
 ///
 /// ## Terminal Mode Restoration
 ///
 /// This function only restores raw mode and the alternate screen. Any other
-/// terminal modes (mouse capture, bracketed paste, focus events, etc.) must
+/// terminal modes (mouse capture, bracketed paste, etc.) must
 /// be re-enabled by the caller after this function returns.
 ///
 /// ## Errors
