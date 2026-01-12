@@ -3,7 +3,7 @@ pub(crate) mod line_wrapper;
 mod render_line;
 pub mod status_line;
 #[cfg(feature = "syntax-highlighting")]
-pub(crate) mod syntax_higlighting;
+pub mod syntax_higlighting;
 pub mod theme;
 
 use render_line::RenderLine;
@@ -406,6 +406,7 @@ fn generate_spans<'a>(
             syntax,
             row_index,
             col_skips,
+            base_style,
             highlight_style,
         );
     }

@@ -308,7 +308,9 @@ pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView, LineNumbers};
 
 #[cfg(feature = "syntax-highlighting")]
-pub use view::syntax_higlighting::SyntaxHighlighter;
+pub use view::syntax_higlighting::{
+    SyntaxHighlighter, SyntaxHighlighterError, SYNTAX_SET, THEME_SET,
+};
 
 #[cfg(feature = "syntax-highlighting")]
 pub use syntect;
