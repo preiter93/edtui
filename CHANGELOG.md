@@ -1,6 +1,10 @@
 Released
 --------
 
+0.10.6  - 13 Jan 2026
+===================
+- feat: Support scrolling with mouse
+
 0.10.5 - 11 Jan 2026
 ===================
 - Fix mouse events being handled outside editor bounds
