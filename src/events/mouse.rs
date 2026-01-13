@@ -9,6 +9,9 @@ use crate::{
     EditorMode, EditorState,
 };
 
+/// The number of lines to scroll per scroll wheel event.
+const SCROLL_LINES: usize = 1;
+
 /// Handles a mouse event.
 #[derive(Clone, Debug, Default)]
 pub struct MouseEventHandler {}
@@ -21,6 +24,23 @@ impl MouseEventHandler {
         let event = event.into();
         if event == MouseEvent::None {
             return;
+        }
+
+        // Handle scroll events
+        match event {
+            MouseEvent::ScrollUp(mouse) => {
+                if Self::is_position_within_bounds(&mouse, state) {
+                    Self::handle_scroll_up(state);
+                }
+                return;
+            }
+            MouseEvent::ScrollDown(mouse) => {
+                if Self::is_position_within_bounds(&mouse, state) {
+                    Self::handle_scroll_down(state);
+                }
+                return;
+            }
+            _ => {}
         }
 
         // Check if the mouse event is within the editor's screen area
@@ -64,17 +84,56 @@ impl MouseEventHandler {
                     set_selection(&mut state.selection, state.cursor);
                 }
             }
-            MouseEvent::None => (),
+            MouseEvent::ScrollUp(_) | MouseEvent::ScrollDown(_) | MouseEvent::None => (),
         };
+    }
+
+    fn handle_scroll_up(state: &mut EditorState) {
+        state.view.viewport.y = state.view.viewport.y.saturating_sub(SCROLL_LINES);
+        Self::clamp_cursor_to_viewport(state);
+    }
+
+    fn handle_scroll_down(state: &mut EditorState) {
+        let last_visible_row = state.view.viewport.y + state.view.num_rows.saturating_sub(1);
+        if last_visible_row >= state.lines.last_row_index() {
+            return;
+        }
+        let max_viewport_y = state.lines.len().saturating_sub(1);
+        state.view.viewport.y = (state.view.viewport.y + SCROLL_LINES).min(max_viewport_y);
+        Self::clamp_cursor_to_viewport(state);
+    }
+
+    fn clamp_cursor_to_viewport(state: &mut EditorState) {
+        let viewport_y = state.view.viewport.y;
+        let viewport_height = state.view.num_rows;
+
+        if viewport_height == 0 {
+            return;
+        }
+
+        let viewport_bottom = viewport_y + viewport_height.saturating_sub(1);
+
+        if state.cursor.row < viewport_y {
+            state.cursor.row = viewport_y;
+            state.clamp_column();
+        } else if state.cursor.row > viewport_bottom {
+            state.cursor.row = viewport_bottom.min(state.lines.last_row_index());
+            state.clamp_column();
+        }
     }
 
     /// Checks if the mouse event occurred within the editor's screen area.
     fn is_within_bounds(event: &MouseEvent, state: &EditorState) -> bool {
         let mouse = match event {
             MouseEvent::Down(pos) | MouseEvent::Up(pos) | MouseEvent::Drag(pos) => pos,
+            MouseEvent::ScrollUp(pos) | MouseEvent::ScrollDown(pos) => pos,
             MouseEvent::None => return false,
         };
 
+        Self::is_position_within_bounds(mouse, state)
+    }
+
+    fn is_position_within_bounds(mouse: &MousePosition, state: &EditorState) -> bool {
         let area = &state.view.screen_area;
         let x: usize = area.x.into();
         let y: usize = area.y.into();
@@ -165,7 +224,13 @@ pub enum MouseEvent {
     /// A mouse Drag event.
     Drag(MousePosition),
 
-    /// A mouse event that is handled by the editor.
+    /// A scroll up (wheel up) event.
+    ScrollUp(MousePosition),
+
+    /// A scroll down (wheel down) event.
+    ScrollDown(MousePosition),
+
+    /// A mouse event that is not handled by the editor.
     None,
 }
 
@@ -175,6 +240,10 @@ impl From<CTMouseEvent> for MouseEvent {
             MouseEventKind::Down(_) => Self::Down(MousePosition::new(event.row, event.column)),
             MouseEventKind::Up(_) => Self::Up(MousePosition::new(event.row, event.column)),
             MouseEventKind::Drag(_) => Self::Drag(MousePosition::new(event.row, event.column)),
+            MouseEventKind::ScrollUp => Self::ScrollUp(MousePosition::new(event.row, event.column)),
+            MouseEventKind::ScrollDown => {
+                Self::ScrollDown(MousePosition::new(event.row, event.column))
+            }
             _ => Self::None,
         }
     }
