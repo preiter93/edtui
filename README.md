@@ -50,7 +50,7 @@ use edtui::{KeyEventHandler, KeyEventRegister, EditorEventHandler};
 
 let mut key_handler = KeyEventHandler::vim_mode();
 key_handler.insert(
-    KeyEventRegister::n(vec![KeyEvent::Ctrl('x')]),
+    KeyEventRegister::n(vec![KeyEvent::CtrlChar('x')]),
     SwitchMode(EditorMode::Insert),
 );
 let event_handler = EditorEventHandler::new(key_handler);

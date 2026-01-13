@@ -30,8 +30,14 @@ pub enum KeyEvent {
     Backspace,
     Delete,
     Tab,
+    #[deprecated]
     Ctrl(char),
+    CtrlChar(char),
+    CtrlKey(SpecialKey),
+    #[deprecated]
     Alt(char),
+    AltChar(char),
+    AltKey(SpecialKey),
     Home,
     End,
     None,
@@ -41,16 +47,21 @@ impl From<CTKeyEvent> for KeyEvent {
     fn from(key: CTKeyEvent) -> Self {
         if key.modifiers.contains(KeyModifiers::CONTROL) {
             return match key.code {
-                KeyCode::Char(c) => KeyEvent::Ctrl(c),
-                _ => KeyEvent::None,
+                KeyCode::Char(c) => KeyEvent::CtrlChar(c),
+                _ => match SpecialKey::try_from(key.code) {
+                    Ok(special_key) => KeyEvent::CtrlKey(special_key),
+                    Err(_) => KeyEvent::None,
+                },
             };
         }
 
         if key.modifiers.contains(KeyModifiers::ALT) {
             return match key.code {
-                KeyCode::Char(c) => KeyEvent::Alt(c),
-                KeyCode::Backspace => KeyEvent::Alt('\x08'),
-                _ => KeyEvent::None,
+                KeyCode::Char(c) => KeyEvent::AltChar(c),
+                _ => match SpecialKey::try_from(key.code) {
+                    Ok(special_key) => KeyEvent::AltKey(special_key),
+                    Err(_) => KeyEvent::None,
+                },
             };
         }
 
@@ -68,6 +79,41 @@ impl From<CTKeyEvent> for KeyEvent {
             KeyCode::Home => KeyEvent::Home,
             KeyCode::End => KeyEvent::End,
             _ => KeyEvent::None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+pub enum SpecialKey {
+    Left,
+    Right,
+    Up,
+    Down,
+    Enter,
+    Tab,
+    Backspace,
+    Delete,
+    Home,
+    End,
+}
+
+impl TryFrom<KeyCode> for SpecialKey {
+    type Error = ();
+
+    fn try_from(value: KeyCode) -> Result<Self, Self::Error> {
+        match value {
+            KeyCode::Backspace => Ok(SpecialKey::Backspace),
+            KeyCode::Enter => Ok(SpecialKey::Enter),
+            KeyCode::Left => Ok(SpecialKey::Left),
+            KeyCode::Right => Ok(SpecialKey::Right),
+            KeyCode::Up => Ok(SpecialKey::Up),
+            KeyCode::Down => Ok(SpecialKey::Down),
+            KeyCode::Home => Ok(SpecialKey::Home),
+            KeyCode::End => Ok(SpecialKey::End),
+            KeyCode::Tab => Ok(SpecialKey::Tab),
+            KeyCode::Delete => Ok(SpecialKey::Delete),
+            _ => Err(()),
         }
     }
 }
@@ -363,19 +409,19 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             MoveToEndOfLine().into(),
         ),
         (
-            KeyEventRegister::n(vec![KeyEvent::Ctrl('d')]),
+            KeyEventRegister::n(vec![KeyEvent::CtrlChar('d')]),
             MoveHalfPageDown().into(),
         ),
         (
-            KeyEventRegister::v(vec![KeyEvent::Ctrl('d')]),
+            KeyEventRegister::v(vec![KeyEvent::CtrlChar('d')]),
             MoveHalfPageDown().into(),
         ),
         (
-            KeyEventRegister::n(vec![KeyEvent::Ctrl('u')]),
+            KeyEventRegister::n(vec![KeyEvent::CtrlChar('u')]),
             MoveHalfPageUp().into(),
         ),
         (
-            KeyEventRegister::v(vec![KeyEvent::Ctrl('u')]),
+            KeyEventRegister::v(vec![KeyEvent::CtrlChar('u')]),
             MoveHalfPageUp().into(),
         ),
         // `Home` and `End` go to first/last position in a line
@@ -403,9 +449,9 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::v(vec![KeyEvent::End]),
             MoveToEndOfLine().into(),
         ),
-        // `Ctrl+u` deltes from cursor to first non-whitespace character in insert mode
+        // `Ctrl+u` deletes from cursor to first non-whitespace character in insert mode
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('u')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('u')]),
             DeleteToFirstCharOfLine.into(),
         ),
         // Move cursor to start/first/last position and enter insert mode
@@ -656,7 +702,10 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Undo
         (KeyEventRegister::n(vec![KeyEvent::Char('u')]), Undo.into()),
         // Redo
-        (KeyEventRegister::n(vec![KeyEvent::Ctrl('r')]), Redo.into()),
+        (
+            KeyEventRegister::n(vec![KeyEvent::CtrlChar('r')]),
+            Redo.into(),
+        ),
         // Copy
         (
             KeyEventRegister::v(vec![KeyEvent::Char('y')]),
@@ -681,7 +730,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
     // Open system editor (Ctrl+e in normal mode)
     #[cfg(feature = "system-editor")]
     map.insert(
-        KeyEventRegister::n(vec![KeyEvent::Ctrl('e')]),
+        KeyEventRegister::n(vec![KeyEvent::CtrlChar('e')]),
         OpenSystemEditor.into(),
     );
 
@@ -692,17 +741,17 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
 fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
     HashMap::from([
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('s')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('s')]),
             Composed::new(StartSearch)
                 .chain(SwitchMode(EditorMode::Search))
                 .into(),
         ),
         (
-            KeyEventRegister::s(vec![KeyEvent::Ctrl('s')]),
+            KeyEventRegister::s(vec![KeyEvent::CtrlChar('s')]),
             FindNext.into(),
         ),
         (
-            KeyEventRegister::s(vec![KeyEvent::Ctrl('r')]),
+            KeyEventRegister::s(vec![KeyEvent::CtrlChar('r')]),
             FindPrevious.into(),
         ),
         (
@@ -712,7 +761,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
                 .into(),
         ),
         (
-            KeyEventRegister::s(vec![KeyEvent::Ctrl('g')]),
+            KeyEventRegister::s(vec![KeyEvent::CtrlChar('g')]),
             Composed::new(StopSearch)
                 .chain(SwitchMode(EditorMode::Insert))
                 .into(),
@@ -722,7 +771,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             RemoveCharFromSearch.into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('f')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('f')]),
             MoveForward(1).into(),
         ),
         (
@@ -730,7 +779,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             MoveForward(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('b')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('b')]),
             MoveBackward(1).into(),
         ),
         (
@@ -738,12 +787,12 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             MoveBackward(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('p')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('p')]),
             MoveUp(1).into(),
         ),
         (KeyEventRegister::i(vec![KeyEvent::Up]), MoveUp(1).into()),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('n')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('n')]),
             MoveDown(1).into(),
         ),
         (
@@ -751,31 +800,31 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             MoveDown(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('f')]),
+            KeyEventRegister::i(vec![KeyEvent::AltChar('f')]),
             MoveWordForward(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('b')]),
+            KeyEventRegister::i(vec![KeyEvent::AltChar('b')]),
             MoveWordBackward(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('v')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('v')]),
             MoveHalfPageDown().into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('v')]),
+            KeyEventRegister::i(vec![KeyEvent::AltChar('v')]),
             MoveHalfPageUp().into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('<')]),
+            KeyEventRegister::i(vec![KeyEvent::AltChar('<')]),
             MoveToFirstRow().into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('>')]),
+            KeyEventRegister::i(vec![KeyEvent::AltChar('>')]),
             MoveToLastRow().into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('a')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('a')]),
             MoveToStartOfLine().into(),
         ),
         (
@@ -787,19 +836,19 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             MoveToEndOfLine().into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('e')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('e')]),
             MoveToEndOfLine().into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('u')]),
+            KeyEventRegister::i(vec![KeyEvent::AltChar('u')]),
             DeleteToFirstCharOfLine.into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('k')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('k')]),
             DeleteToEndOfLine.into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('o')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('o')]),
             Composed::new(LineBreak(1))
                 .chain(MoveUp(1))
                 .chain(MoveToEndOfLine())
@@ -810,7 +859,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             LineBreak(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('j')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('j')]),
             LineBreak(1).into(),
         ),
         (
@@ -818,7 +867,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             DeleteChar(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('h')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('h')]),
             DeleteChar(1).into(),
         ),
         (
@@ -826,11 +875,11 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             DeleteCharForward(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('d')]),
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('d')]),
             DeleteCharForward(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('d')]),
+            KeyEventRegister::i(vec![KeyEvent::AltChar('d')]),
             Composed::new(SwitchMode(EditorMode::Visual))
                 .chain(MoveWordForwardToEndOfWord(1))
                 .chain(DeleteSelection)
@@ -838,19 +887,28 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
                 .into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('\x08')]),
+            KeyEventRegister::i(vec![KeyEvent::AltKey(SpecialKey::Backspace)]),
             Composed::new(SwitchMode(EditorMode::Visual))
                 .chain(MoveWordBackward(1))
                 .chain(DeleteSelection)
                 .chain(SwitchMode(EditorMode::Insert))
                 .into(),
         ),
-        (KeyEventRegister::i(vec![KeyEvent::Ctrl('u')]), Undo.into()),
-        (KeyEventRegister::i(vec![KeyEvent::Ctrl('r')]), Redo.into()),
-        (KeyEventRegister::i(vec![KeyEvent::Ctrl('y')]), Paste.into()),
+        (
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('u')]),
+            Undo.into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('r')]),
+            Redo.into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyEvent::CtrlChar('y')]),
+            Paste.into(),
+        ),
         #[cfg(feature = "system-editor")]
         (
-            KeyEventRegister::i(vec![KeyEvent::Alt('e')]),
+            KeyEventRegister::i(vec![KeyEvent::AltChar('e')]),
             OpenSystemEditor.into(),
         ),
     ])

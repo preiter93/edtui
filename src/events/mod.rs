@@ -4,7 +4,7 @@ mod key;
 pub(crate) mod mouse;
 pub(crate) mod paste;
 
-pub use key::{KeyEvent, KeyEventHandler, KeyEventRegister};
+pub use key::{KeyEvent, KeyEventHandler, KeyEventRegister, SpecialKey};
 
 #[cfg(feature = "mouse-support")]
 pub use mouse::{MouseEvent, MouseEventHandler};
