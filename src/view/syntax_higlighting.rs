@@ -9,19 +9,23 @@ use once_cell::sync::Lazy;
 use ratatui_core::style::{Color, Style};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::sync::Arc;
 use syntect::dumps::from_binary;
 
-pub static SYNTAX_SET: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
-pub static THEME_SET: Lazy<ThemeSet> = Lazy::new(load_defaults);
+pub static SYNTAX_SET: Lazy<Arc<SyntaxSet>> =
+    Lazy::new(|| Arc::new(SyntaxSet::load_defaults_newlines()));
+pub static THEME_SET: Lazy<Arc<ThemeSet>> = Lazy::new(|| Arc::new(load_default_themes()));
 
-pub fn load_defaults() -> ThemeSet {
+fn load_default_themes() -> ThemeSet {
     from_binary(include_bytes!("../../assets/default.themedump"))
 }
 
 /// Syntax highlighter settings including theme and syntax.
 pub struct SyntaxHighlighter {
     theme: Theme,
+    theme_set: Arc<ThemeSet>,
     syntax_ref: SyntaxReference,
+    syntax_set: Arc<SyntaxSet>,
 }
 
 #[derive(Debug)]
@@ -46,18 +50,26 @@ impl SyntaxHighlighter {
     ///
     /// let syntax_highlighter = SyntaxHighlighter::new("dracula", "rs");
     /// ```
-    pub fn new<'a>(theme: &'a str, extension: &'a str) -> Result<Self, SyntaxHighlighterError<'a>> {
-        let theme = match THEME_SET.themes.get(theme) {
+    pub fn new<'c>(theme: &'c str, extension: &'c str) -> Result<Self, SyntaxHighlighterError<'c>> {
+        let theme_set = THEME_SET.clone();
+        let syntax_set = SYNTAX_SET.clone();
+
+        let theme = match theme_set.themes.get(theme) {
             Some(v) => v.clone(),
             None => return Err(ThemeNotFound(theme)),
         };
 
-        let syntax_ref = match SYNTAX_SET.find_syntax_by_extension(extension) {
+        let syntax_ref = match syntax_set.find_syntax_by_extension(extension) {
             Some(v) => v.clone(),
             None => return Err(ExtensionNotFound(extension)),
         };
 
-        Ok(Self { theme, syntax_ref })
+        Ok(Self {
+            theme,
+            theme_set,
+            syntax_ref,
+            syntax_set,
+        })
     }
 
     /// Creates a new [`SyntaxHighlighter`] with a given custom given Theme and SyntaxReference
@@ -71,17 +83,28 @@ impl SyntaxHighlighter {
     /// use syntect::highlighting::Theme;
     /// use syntect::parsing::{SyntaxDefinition, SyntaxSetBuilder};
     /// use edtui::SyntaxHighlighter;
+    /// use edtui::{THEME_SET, SYNTAX_SET};
     ///
     /// let theme = Theme::default(); // My custom theme
     /// let mut syntax_set_builder = SyntaxSetBuilder::new(); // My custom syntax set builder
     /// syntax_set_builder.add_plain_text_syntax(); // Add your syntax
     /// let syntax_set = syntax_set_builder.build(); // My custom syntax set
     /// let syntax_ref = syntax_set.syntaxes().first().unwrap().clone(); // My custom syntax reference
-    /// let syntax_highlighter = SyntaxHighlighter::new_custom(theme, syntax_ref);
+    /// let syntax_highlighter = SyntaxHighlighter::with_sets(theme, THEME_SET.clone(), syntax_ref, SYNTAX_SET.clone());
     /// ```
     #[must_use]
-    pub fn new_custom(theme: Theme, syntax_ref: SyntaxReference) -> Self {
-        Self { theme, syntax_ref }
+    pub fn with_sets(
+        theme: Theme,
+        theme_set: Arc<ThemeSet>,
+        syntax_ref: SyntaxReference,
+        syntax_set: Arc<SyntaxSet>,
+    ) -> SyntaxHighlighter {
+        Self {
+            theme,
+            theme_set,
+            syntax_ref,
+            syntax_set,
+        }
     }
 
     /// Set a custom theme. If you would like to use a predefined
@@ -147,7 +170,7 @@ impl SyntaxHighlighter {
     /// "`visual-studio-dark`"
     /// "`zenburn`"
     pub fn theme(mut self, theme: &'_ str) -> Result<Self, SyntaxHighlighterError<'_>> {
-        let theme = match THEME_SET.themes.get(theme) {
+        let theme = match self.theme_set.themes.get(theme) {
             Some(v) => v.clone(),
             None => return Err(ThemeNotFound(theme)),
         };
@@ -162,7 +185,7 @@ impl SyntaxHighlighter {
         mut self,
         extension: &'_ str,
     ) -> Result<Self, SyntaxHighlighterError<'_>> {
-        let syntax_ref = match SYNTAX_SET.find_syntax_by_extension(extension) {
+        let syntax_ref = match self.syntax_set.find_syntax_by_extension(extension) {
             Some(v) => v.clone(),
             None => return Err(ExtensionNotFound(extension)),
         };
@@ -172,22 +195,25 @@ impl SyntaxHighlighter {
         Ok(self)
     }
 
-    pub(super) fn highlight_line(&self, line: &str) -> Vec<InternalSpan> {
+    pub(super) fn highlight_line(&self, line: &str, base_style: &Style) -> Vec<InternalSpan> {
         // Highlight lines
         let mut highlight_lines = HighlightLines::new(&self.syntax_ref, &self.theme);
-        let highlighted_line = highlight_lines.highlight_line(line, &SYNTAX_SET).unwrap();
-
-        // Convert the highlighted lines into spans
         let mut spans = Vec::new();
-        for &(style, text) in &highlighted_line {
-            spans.push(InternalSpan::new(
-                text.to_string(),
-                &Style::default().fg(Color::Rgb(
-                    style.foreground.r,
-                    style.foreground.g,
-                    style.foreground.b,
-                )),
-            ));
+
+        if let Ok(highlighted_line) = highlight_lines.highlight_line(line, &self.syntax_set) {
+            // Convert the highlighted lines into spans
+            for &(style, text) in &highlighted_line {
+                spans.push(InternalSpan::new(
+                    text.to_string(),
+                    &Style::default().fg(Color::Rgb(
+                        style.foreground.r,
+                        style.foreground.g,
+                        style.foreground.b,
+                    )),
+                ));
+            }
+        } else {
+            spans.push(InternalSpan::new(line.to_string(), base_style));
         }
 
         spans

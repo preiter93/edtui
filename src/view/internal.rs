@@ -219,10 +219,11 @@ pub(crate) fn line_into_highlighted_spans_with_selections<'a>(
     syntax_highligher: &SyntaxHighlighter,
     row_index: usize,
     col_skips: usize,
+    base_style: &Style,
     highlight_style: &Style,
 ) -> Vec<Span<'a>> {
     let line: String = line.iter().collect();
-    let mut internal_spans = syntax_highligher.highlight_line(&line);
+    let mut internal_spans = syntax_highligher.highlight_line(&line, base_style);
 
     let selections = selections
         .iter()
