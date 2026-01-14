@@ -1,6 +1,10 @@
 Released
 --------
 
+0.10.7  - 14 Jan 2026
+===================
+- feat: Allow setting custom theme/syntax set (@Julien-cpsn)
+
 0.10.6  - 13 Jan 2026
 ===================
 - feat: Support scrolling with mouse
