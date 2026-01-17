@@ -30,8 +30,8 @@
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct KeyInput {
-    pub(crate) key: KeyCode,
-    pub(crate) modifiers: Modifiers,
+    pub key: KeyCode,
+    pub modifiers: Modifiers,
 }
 
 impl KeyInput {
