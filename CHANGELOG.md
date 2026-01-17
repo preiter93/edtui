@@ -1,3 +1,8 @@
+0.11.0  - ? Jan 2026
+===================
+- Deprecated `KeyEvent` in favor of `KeyInput`. `KeyInput` supports multiple modifiers and provides a better api
+- Added Chainable trait to improve ergonomics when chaining actions
+
 Released
 --------
 

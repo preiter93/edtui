@@ -1,6 +1,6 @@
 use edtui::{
     actions::SwitchMode,
-    events::{KeyEvent, KeyEventHandler, KeyEventRegister},
+    events::{KeyEventHandler, KeyEventRegister, KeyInput},
     EditorEventHandler, EditorMode, EditorState, EditorView, Lines,
 };
 use ratatui::{
@@ -42,12 +42,12 @@ impl App {
         let mut key_handler = KeyEventHandler::vim_mode();
 
         key_handler.insert(
-            KeyEventRegister::n(vec![KeyEvent::Ctrl('x')]),
+            KeyEventRegister::n(vec![KeyInput::ctrl('x')]),
             SwitchMode(EditorMode::Insert),
         );
 
         key_handler.insert(
-            KeyEventRegister::i(vec![KeyEvent::Ctrl('q')]),
+            KeyEventRegister::i(vec![KeyInput::ctrl('q')]),
             SwitchMode(EditorMode::Normal),
         );
 

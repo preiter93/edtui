@@ -1,10 +1,11 @@
-pub(crate) mod deprecated_input;
 mod key;
 #[cfg(feature = "mouse-support")]
 pub(crate) mod mouse;
 pub(crate) mod paste;
 
-pub use key::{KeyEvent, KeyEventHandler, KeyEventRegister};
+#[allow(deprecated)]
+pub use key::deprecated::KeyEvent;
+pub use key::{input::KeyInput, KeyEventHandler, KeyEventRegister, KeyInputSequence};
 
 #[cfg(feature = "mouse-support")]
 pub use mouse::{MouseEvent, MouseEventHandler};
@@ -64,7 +65,7 @@ impl EditorEventHandler {
     /// Handles key events.
     pub fn on_key_event<T>(&mut self, event: T, state: &mut EditorState)
     where
-        T: Into<KeyEvent>,
+        T: Into<KeyInput>,
     {
         self.key_handler.on_event(event.into(), state);
     }
@@ -85,7 +86,7 @@ impl EditorEventHandler {
 }
 
 pub enum Event {
-    Key(KeyEvent),
+    Key(KeyInput),
     #[cfg(feature = "mouse-support")]
     Mouse(MouseEvent),
     Paste(String),

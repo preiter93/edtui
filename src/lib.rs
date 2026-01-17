@@ -46,11 +46,9 @@
 //!
 //! Or customize keybindings:
 //! ```ignore
-//! use edtui::{KeyEventHandler, KeyEventRegister, EditorEventHandler};
-//!
 //! let mut key_handler = KeyEventHandler::vim_mode();
 //! key_handler.insert(
-//!     KeyEventRegister::n(vec![KeyEvent::Ctrl('x')]),
+//!     KeyEventRegister::n(vec![KeyInput::ctrl('x')]),
 //!     SwitchMode(EditorMode::Insert),
 //! );
 //! let event_handler = EditorEventHandler::new(key_handler);
@@ -301,8 +299,6 @@ mod helper;
 mod state;
 mod view;
 
-#[allow(deprecated)]
-pub use events::deprecated_input::EditorInput;
 pub use events::EditorEventHandler;
 pub use state::{mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView, LineNumbers};
