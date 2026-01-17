@@ -1,5 +1,3 @@
-# edtui
-
 <div align="center">
 
 ### `EdTUI`
