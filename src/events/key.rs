@@ -8,10 +8,10 @@ use crate::actions::search::StartSearch;
 #[cfg(feature = "system-editor")]
 use crate::actions::OpenSystemEditor;
 use crate::actions::{
-    Action, AppendCharToSearch, AppendNewline, ChangeInnerBetween, ChangeInnerWord,
-    ChangeSelection, Composed, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection,
-    Execute, FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow,
-    LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst,
+    Action, AppendCharToSearch, AppendNewline, Chainable, ChangeInnerBetween, ChangeInnerWord,
+    ChangeSelection, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection, Execute,
+    FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak,
+    MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst,
     MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
     MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
     SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, Undo,
@@ -146,16 +146,12 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Goes into search mode and starts of a new search.
         (
             KeyEventRegister::n(vec![KeyInput::new('/')]),
-            Composed::new(StartSearch)
-                .chain(SwitchMode(EditorMode::Search))
-                .into(),
+            StartSearch.chain(SwitchMode(EditorMode::Search)).into(),
         ),
         // Trigger initial search
         (
             KeyEventRegister::s(vec![KeyInput::new(KeyCode::Enter)]),
-            Composed::new(FindFirst)
-                .chain(SwitchMode(EditorMode::Normal))
-                .into(),
+            FindFirst.chain(SwitchMode(EditorMode::Normal)).into(),
         ),
         // Find next
         (
@@ -170,9 +166,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Clear search
         (
             KeyEventRegister::s(vec![KeyInput::new(KeyCode::Esc)]),
-            Composed::new(StopSearch)
-                .chain(SwitchMode(EditorMode::Normal))
-                .into(),
+            StopSearch.chain(SwitchMode(EditorMode::Normal)).into(),
         ),
         // Delete last character from search
         (
@@ -182,9 +176,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Go into insert mode and move one char forward
         (
             KeyEventRegister::n(vec![KeyInput::new('a')]),
-            Composed::new(SwitchMode(EditorMode::Insert))
-                .chain(MoveForward(1))
-                .into(),
+            SwitchMode(EditorMode::Insert).chain(MoveForward(1)).into(),
         ),
         // Move cursor forward
         (
@@ -369,13 +361,11 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Move cursor to start/first/last position and enter insert mode
         (
             KeyEventRegister::n(vec![KeyInput::shift('I')]),
-            Composed::new(SwitchMode(EditorMode::Insert))
-                .chain(MoveToFirst())
-                .into(),
+            SwitchMode(EditorMode::Insert).chain(MoveToFirst()).into(),
         ),
         (
             KeyEventRegister::n(vec![KeyInput::shift('A')]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(MoveToEndOfLine())
                 .chain(MoveForward(1))
                 .into(),
@@ -409,13 +399,13 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Append/insert new line and switch into insert mode
         (
             KeyEventRegister::n(vec![KeyInput::new('o')]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(AppendNewline(1))
                 .into(),
         ),
         (
             KeyEventRegister::n(vec![KeyInput::shift('O')]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(InsertNewline(1))
                 .into(),
         ),
@@ -456,9 +446,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Delete the current selection
         (
             KeyEventRegister::v(vec![KeyInput::new('d')]),
-            Composed::new(DeleteSelection)
-                .chain(SwitchMode(EditorMode::Normal))
-                .into(),
+            DeleteSelection.chain(SwitchMode(EditorMode::Normal)).into(),
         ),
         // Join the current line with the line below
         (
@@ -509,9 +497,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('w'),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
-                .chain(ChangeInnerWord)
-                .into(),
+            SwitchMode(EditorMode::Insert).chain(ChangeInnerWord).into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -519,7 +505,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('"'),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(ChangeInnerBetween::new('"', '"'))
                 .into(),
         ),
@@ -529,7 +515,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('\''),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(ChangeInnerBetween::new('\'', '\''))
                 .into(),
         ),
@@ -539,7 +525,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('('),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(ChangeInnerBetween::new('(', ')'))
                 .into(),
         ),
@@ -549,7 +535,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new(')'),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(ChangeInnerBetween::new('(', ')'))
                 .into(),
         ),
@@ -559,7 +545,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('{'),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(ChangeInnerBetween::new('{', '}'))
                 .into(),
         ),
@@ -569,7 +555,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('}'),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(ChangeInnerBetween::new('{', '}'))
                 .into(),
         ),
@@ -579,7 +565,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('['),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(ChangeInnerBetween::new('[', ']'))
                 .into(),
         ),
@@ -589,22 +575,18 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new(']'),
             ]),
-            Composed::new(SwitchMode(EditorMode::Insert))
+            SwitchMode(EditorMode::Insert)
                 .chain(ChangeInnerBetween::new('[', ']'))
                 .into(),
         ),
         // Change selection
         (
             KeyEventRegister::v(vec![KeyInput::new('c')]),
-            Composed::new(SwitchMode(EditorMode::Insert))
-                .chain(ChangeSelection)
-                .into(),
+            SwitchMode(EditorMode::Insert).chain(ChangeSelection).into(),
         ),
         (
             KeyEventRegister::v(vec![KeyInput::new('x')]),
-            Composed::new(ChangeSelection)
-                .chain(SwitchMode(EditorMode::Normal))
-                .into(),
+            ChangeSelection.chain(SwitchMode(EditorMode::Normal)).into(),
         ),
         // Select  the line
         (
@@ -618,9 +600,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         // Copy
         (
             KeyEventRegister::v(vec![KeyInput::new('y')]),
-            Composed::new(CopySelection)
-                .chain(SwitchMode(EditorMode::Normal))
-                .into(),
+            CopySelection.chain(SwitchMode(EditorMode::Normal)).into(),
         ),
         (
             KeyEventRegister::n(vec![KeyInput::new('y'), KeyInput::new('y')]),
@@ -630,7 +610,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (KeyEventRegister::n(vec![KeyInput::new('p')]), Paste.into()),
         (
             KeyEventRegister::v(vec![KeyInput::new('p')]),
-            Composed::new(PasteOverSelection)
+            PasteOverSelection
                 .chain(SwitchMode(EditorMode::Normal))
                 .into(),
         ),
@@ -651,9 +631,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
     HashMap::from([
         (
             KeyEventRegister::i(vec![KeyInput::ctrl('s')]),
-            Composed::new(StartSearch)
-                .chain(SwitchMode(EditorMode::Search))
-                .into(),
+            StartSearch.chain(SwitchMode(EditorMode::Search)).into(),
         ),
         (
             KeyEventRegister::s(vec![KeyInput::ctrl('s')]),
@@ -665,15 +643,13 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         ),
         (
             KeyEventRegister::s(vec![KeyInput::new(KeyCode::Enter)]),
-            Composed::new(SelectCurrentSearch)
+            SelectCurrentSearch
                 .chain(SwitchMode(EditorMode::Insert))
                 .into(),
         ),
         (
             KeyEventRegister::s(vec![KeyInput::ctrl('g')]),
-            Composed::new(StopSearch)
-                .chain(SwitchMode(EditorMode::Insert))
-                .into(),
+            StopSearch.chain(SwitchMode(EditorMode::Insert)).into(),
         ),
         (
             KeyEventRegister::s(vec![KeyInput::new(KeyCode::Backspace)]),
@@ -761,7 +737,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         ),
         (
             KeyEventRegister::i(vec![KeyInput::ctrl('o')]),
-            Composed::new(LineBreak(1))
+            LineBreak(1)
                 .chain(MoveUp(1))
                 .chain(MoveToEndOfLine())
                 .into(),
@@ -792,7 +768,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt('d')]),
-            Composed::new(SwitchMode(EditorMode::Visual))
+            SwitchMode(EditorMode::Visual)
                 .chain(MoveWordForwardToEndOfWord(1))
                 .chain(DeleteSelection)
                 .chain(SwitchMode(EditorMode::Insert))
@@ -800,7 +776,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt(KeyCode::Backspace)]),
-            Composed::new(SwitchMode(EditorMode::Visual))
+            SwitchMode(EditorMode::Visual)
                 .chain(MoveWordBackward(1))
                 .chain(DeleteSelection)
                 .chain(SwitchMode(EditorMode::Insert))

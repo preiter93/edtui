@@ -99,6 +99,16 @@ pub trait Execute {
     fn execute(&mut self, state: &mut EditorState);
 }
 
+pub trait Chainable {
+    fn chain<A: Into<Action>>(self, action: A) -> Composed;
+}
+
+impl<T: Into<Action>> Chainable for T {
+    fn chain<A: Into<Action>>(self, action: A) -> Composed {
+        Composed::new(self.into()).chain(action)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct SwitchMode(pub EditorMode);
 
@@ -188,5 +198,22 @@ mod tests {
 
         SwitchMode(EditorMode::Visual).execute(&mut state);
         assert_eq!(state.mode, EditorMode::Visual);
+    }
+
+    #[test]
+    fn test_chainable_actions() {
+        let mut state = test_state();
+        assert_eq!(state.mode, EditorMode::Normal);
+
+        // Test the new chainable syntax: SwitchMode().chain().chain()
+        let mut action = SwitchMode(EditorMode::Insert)
+            .chain(MoveToEndOfLine())
+            .chain(SwitchMode(EditorMode::Visual));
+
+        action.execute(&mut state);
+
+        // Verify the final state after chaining
+        assert_eq!(state.mode, EditorMode::Visual);
+        assert!(state.selection.is_some());
     }
 }
