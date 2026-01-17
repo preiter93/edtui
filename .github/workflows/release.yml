@@ -1,0 +1,162 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., v0.1.0)"
+        required: true
+        type: string
+      dry_run:
+        description: "Dry run (skip GitHub release and crates.io publish)"
+        required: false
+        type: boolean
+        default: true
+      publish_crate:
+        description: "Publish to crates.io (ignored if dry_run is true)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Determine version and mode
+        id: config
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "dry_run=${{ inputs.dry_run }}" >> $GITHUB_OUTPUT
+            echo "publish_crate=${{ inputs.publish_crate }}" >> $GITHUB_OUTPUT
+          else
+            # Tag push - not a dry run, but still require explicit publish
+            echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "dry_run=false" >> $GITHUB_OUTPUT
+            echo "publish_crate=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print configuration
+        run: |
+          echo "🏷️  Version: ${{ steps.config.outputs.version }}"
+          echo "🧪 Dry run: ${{ steps.config.outputs.dry_run }}"
+          echo "📦 Publish to crates.io: ${{ steps.config.outputs.publish_crate }}"
+
+      - name: Verify crate version matches tag
+        run: |
+          TAG="${{ steps.config.outputs.version }}"
+          # Remove 'v' prefix for comparison
+          TAG_VERSION="${TAG#v}"
+          CARGO_VERSION=$(grep -m1 '^version' Cargo.toml | sed 's/.*"\(.*\)".*/\1/')
+          if [[ "$TAG_VERSION" != "$CARGO_VERSION" ]]; then
+            echo "❌ Error: Tag version ($TAG_VERSION) does not match Cargo.toml version ($CARGO_VERSION)"
+            exit 1
+          fi
+          echo "✅ Version verified: $CARGO_VERSION"
+
+      - name: Run tests
+        run: cargo test --all --verbose
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Dry run cargo publish
+        run: |
+          echo "📦 Running cargo publish --dry-run..."
+          cargo publish --dry-run
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          TAG="${{ steps.config.outputs.version }}"
+      
+          echo "📝 Generating changelog for tag $TAG..."
+      
+          git cliff --unreleased --tag "$TAG" --strip all -o RELEASE_CHANGELOG.md
+      
+          echo ""
+          echo "========== Release Changelog =========="
+          cat RELEASE_CHANGELOG.md
+          echo "======================================"
+
+      - name: Create GitHub Release
+        if: steps.config.outputs.dry_run == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.config.outputs.version }}
+          name: ${{ steps.config.outputs.version }}
+          body_path: RELEASE_CHANGELOG.md
+          draft: false
+          prerelease: ${{ contains(steps.config.outputs.version, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip GitHub Release (dry run)
+        if: steps.config.outputs.dry_run == 'true'
+        run: echo "⏭️  Skipping GitHub release (dry run mode)"
+
+      - name: Publish to crates.io
+        if: steps.config.outputs.dry_run == 'false' && steps.config.outputs.publish_crate == 'true'
+        run: |
+          echo "📦 Publishing to crates.io..."
+          rm -f RELEASE_CHANGELOG.md
+          cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Skip crates.io publish
+        if: steps.config.outputs.dry_run == 'true' || steps.config.outputs.publish_crate == 'false'
+        run: |
+          if [[ "${{ steps.config.outputs.dry_run }}" == "true" ]]; then
+            echo "⏭️  Skipping crates.io publish (dry run mode)"
+          else
+            echo "⏭️  Skipping crates.io publish (publish_crate not enabled)"
+          fi
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "========== Release Summary =========="
+          echo "Version: ${{ steps.config.outputs.version }}"
+          echo "Dry run: ${{ steps.config.outputs.dry_run }}"
+          if [[ "${{ steps.config.outputs.dry_run }}" == "true" ]]; then
+            echo "Status: ✅ Dry run completed successfully"
+            echo ""
+            echo "To perform an actual release, run the workflow again with:"
+            echo "  - dry_run: false"
+            echo "  - publish_crate: true (if you want to publish to crates.io)"
+          else
+            echo "GitHub Release: ✅ Created"
+            if [[ "${{ steps.config.outputs.publish_crate }}" == "true" ]]; then
+              echo "crates.io: ✅ Published"
+            else
+              echo "crates.io: ⏭️ Skipped (not enabled)"
+            fi
+          fi
+          echo "====================================="
