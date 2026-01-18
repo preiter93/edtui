@@ -963,4 +963,35 @@ mod tests {
         assert_eq!(register.keys[0], KeyInput::ctrl('a'));
         assert_eq!(register.keys[1], KeyInput::new(CTKeyCode::Enter));
     }
+
+    #[test]
+    fn test_insert_hello_world() {
+        use crate::EditorState;
+
+        let mut state = EditorState::default();
+        state.mode = EditorMode::Insert;
+
+        let mut handler = KeyEventHandler::default();
+
+        let inputs = vec![
+            KeyInput::shift('H'),
+            KeyInput::new('e'),
+            KeyInput::new('l'),
+            KeyInput::new('l'),
+            KeyInput::new('o'),
+            KeyInput::new(' '),
+            KeyInput::shift('W'),
+            KeyInput::new('o'),
+            KeyInput::new('r'),
+            KeyInput::new('l'),
+            KeyInput::new('d'),
+            KeyInput::shift('!'),
+        ];
+
+        for input in inputs {
+            handler.on_event(input, &mut state);
+        }
+
+        assert_eq!(state.lines.to_string(), String::from("Hello World!"));
+    }
 }
