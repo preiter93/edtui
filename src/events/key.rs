@@ -884,7 +884,7 @@ impl KeyEventHandler {
         if mode == EditorMode::Insert {
             if let input::KeyCode::Char(c) = key_input.key {
                 if key_input.modifiers == input::Modifiers::NONE
-                    || key_input.modifiers == input::Modifiers::SHIFT 
+                    || key_input.modifiers == input::Modifiers::SHIFT
                 {
                     if self.capture_on_insert {
                         state.capture();

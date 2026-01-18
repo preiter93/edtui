@@ -1,6 +1,10 @@
 Released
 --------
 
+0.11.1 - 2026-01-18
+===================
+- *fix(input)*: allow shift modifier for insert mode (@shaunrd0)
+
 0.11.0 - 2026-01-18
 ===================
 - *(input)* Introduce new key input to allow multi-mods input
