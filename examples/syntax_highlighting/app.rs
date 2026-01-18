@@ -83,7 +83,7 @@ impl App {
 impl Widget for &mut App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let [left, right] =
-            Layout::horizontal([Constraint::Length(40), Constraint::Min(0)]).areas(area);
+            Layout::horizontal([Constraint::Length(30), Constraint::Min(0)]).areas(area);
 
         let mut list_items: Vec<ListItem> = Vec::new();
 
@@ -113,6 +113,7 @@ impl Widget for &mut App {
             .wrap(true)
             .theme(Theme::new().editor)
             .syntax_highlighter(syntax_highlighter)
+            .line_numbers(edtui::LineNumbers::Absolute)
             .render(right, buf)
     }
 }
