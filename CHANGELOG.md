@@ -1,3 +1,11 @@
+Released
+--------
+
+0.11.0 - 2026-01-18
+===================
+- *(input)* Introduce new key input to allow multi-mods input
+- *(ci)* Add release workflow
+
 0.10.7  - 14 Jan 2026
 ===================
 - feat: Allow setting custom theme/syntax set (@Julien-cpsn)
