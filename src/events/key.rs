@@ -986,12 +986,16 @@ mod tests {
             KeyInput::new('l'),
             KeyInput::new('d'),
             KeyInput::shift('!'),
+            KeyInput::new(KeyCode::Enter),
+            KeyInput::shift('H'),
+            KeyInput::new('i'),
+            KeyInput::shift('!'),
         ];
 
         for input in inputs {
             handler.on_event(input, &mut state);
         }
 
-        assert_eq!(state.lines.to_string(), String::from("Hello World!"));
+        assert_eq!(state.lines.to_string(), String::from("Hello World!\nHi!"));
     }
 }
