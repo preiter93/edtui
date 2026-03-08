@@ -5,6 +5,7 @@ Released
 ===================
 - feat: add PageUp/PageDown full page navigation
 - feat: add Ctrl+Left/Right word navigation
+- feat: add viewport_offset() and set_viewport_offset() API
 - feat: add custom highlight API for arbitrary styled ranges
 - feat: add AltGr key normalization for international keyboards
 - feat: add single-line mode to block newline insertion

@@ -173,6 +173,34 @@ impl EditorState {
     pub fn set_highlights(&mut self, highlights: Vec<Highlight>) {
         self.highlights = highlights;
     }
+
+    /// Returns the current viewport offset as (x, y).
+    ///
+    /// The viewport offset represents the top-left corner of the visible area
+    /// in editor coordinates. This is useful for implementing custom scroll
+    /// behavior.
+    ///
+    /// - `x` is the horizontal offset (column)
+    /// - `y` is the vertical offset (row)
+    #[must_use]
+    pub fn viewport_offset(&self) -> (usize, usize) {
+        (self.view.viewport.x, self.view.viewport.y)
+    }
+
+    /// Sets the viewport offset to the specified (x, y) position.
+    ///
+    /// This allows manual control of the scroll position. The viewport offset
+    /// represents the top-left corner of the visible area in editor coordinates.
+    ///
+    /// - `x` is the horizontal offset (column)
+    /// - `y` is the vertical offset (row)
+    ///
+    /// Note: The viewport may be adjusted during the next render to keep the
+    /// cursor visible, depending on the cursor position.
+    pub fn set_viewport_offset(&mut self, x: usize, y: usize) {
+        self.view.viewport.x = x;
+        self.view.viewport.y = y;
+    }
 }
 
 #[cfg(test)]
