@@ -1044,4 +1044,63 @@ mod tests {
 
         assert_eq!(state.lines.to_string(), String::from("Hello World!\nHi!"));
     }
+
+    #[test]
+    fn test_altgr_normalization_inserts_characters() {
+        use crate::EditorState;
+        use crossterm::event::{KeyEvent as CTKeyEvent, KeyModifiers as CTMods};
+
+        let mut state = EditorState::default();
+        state.mode = EditorMode::Insert;
+
+        let mut handler = KeyEventHandler::emacs_mode();
+
+        // Simulate AltGr+[ (reported as Ctrl+Alt+[ on international keyboards)
+        let altgr_bracket = CTKeyEvent::new(
+            crossterm::event::KeyCode::Char('['),
+            CTMods::CONTROL | CTMods::ALT,
+        );
+        handler.on_event(altgr_bracket, &mut state);
+
+        // Simulate AltGr+]
+        let altgr_bracket_close = CTKeyEvent::new(
+            crossterm::event::KeyCode::Char(']'),
+            CTMods::CONTROL | CTMods::ALT,
+        );
+        handler.on_event(altgr_bracket_close, &mut state);
+
+        // Simulate AltGr+{ (with shift)
+        let altgr_brace = CTKeyEvent::new(
+            crossterm::event::KeyCode::Char('{'),
+            CTMods::CONTROL | CTMods::ALT | CTMods::SHIFT,
+        );
+        handler.on_event(altgr_brace, &mut state);
+
+        // Simulate AltGr+}
+        let altgr_brace_close = CTKeyEvent::new(
+            crossterm::event::KeyCode::Char('}'),
+            CTMods::CONTROL | CTMods::ALT | CTMods::SHIFT,
+        );
+        handler.on_event(altgr_brace_close, &mut state);
+
+        assert_eq!(state.lines.to_string(), "[]{}");
+    }
+
+    #[test]
+    fn test_altgr_does_not_affect_letter_keybindings() {
+        use crate::EditorState;
+
+        let mut state = EditorState::new(crate::Lines::from("Hello World"));
+        state.mode = EditorMode::Insert;
+
+        let mut handler = KeyEventHandler::emacs_mode();
+
+        // Alt+f should move forward word, not insert 'f'
+        let alt_f = KeyInput::alt('f');
+        handler.on_event(alt_f, &mut state);
+
+        // Cursor should have moved to position 6 ('W'), not inserted 'f'
+        assert_eq!(state.cursor.col, 6);
+        assert_eq!(state.lines.to_string(), "Hello World");
+    }
 }
