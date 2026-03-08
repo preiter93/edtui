@@ -43,6 +43,9 @@ name = "emacs"
 name = "custom_keybindings"
 
 [[example]]
+name = "single_line_emacs"
+
+[[example]]
 name = "system_editor"
 required-features = ["system-editor"]
 
