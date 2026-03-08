@@ -112,6 +112,28 @@ impl<'a, 'b> EditorView<'a, 'b> {
         self
     }
 
+    /// Enables single-line mode, which blocks newline insertion.
+    ///
+    /// When enabled, pressing Enter, Ctrl+J, Ctrl+M, or any other key combination
+    /// that would insert a newline will be ignored. This is useful for search boxes,
+    /// single-line input fields, and similar use cases.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use edtui::{EditorState, EditorView};
+    ///
+    /// let mut state = EditorState::default();
+    ///
+    /// // Create a single-line input field
+    /// EditorView::new(&mut state).single_line(true);
+    /// ```
+    #[must_use]
+    pub fn single_line(self, single_line: bool) -> Self {
+        self.state.view.single_line = single_line;
+        self
+    }
+
     /// Sets whether overflowing lines should wrap onto the next line.
     ///
     /// # Note

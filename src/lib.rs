@@ -101,6 +101,21 @@
 //!
 //! ![](resources/line_numbers.png)
 //!
+//! ## Single-Line Mode
+//!
+//! For search boxes and single-line input fields, enable single-line mode to block newline insertion:
+//!
+//! ```ignore
+//! use edtui::{EditorState, EditorView};
+//!
+//! let mut state = EditorState::default();
+//! EditorView::new(&mut state)
+//!         .single_line(true)
+//!         .render(area, buf);
+//! ```
+//!
+//! When enabled, newline insertion is blocked and pasting text with newlines will replace them with spaces.
+//!
 //! ## Mouse Events
 //!
 //! `Edtui` supports mouse input for moving the cursor and selecting text.

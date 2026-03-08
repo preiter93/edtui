@@ -127,6 +127,31 @@ impl EditorState {
     pub fn cursor_screen_position(&self) -> Option<Position> {
         self.view.cursor_screen_position
     }
+
+    /// Enables or disables single-line mode.
+    ///
+    /// When enabled, newline insertion is blocked. This is useful for search boxes,
+    /// single-line input fields, and similar use cases.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use edtui::{EditorState, Lines};
+    ///
+    /// let mut state = EditorState::new(Lines::from("Search query"));
+    /// state.set_single_line(true);
+    /// ```
+    pub fn set_single_line(&mut self, single_line: bool) {
+        self.view.single_line = single_line;
+    }
+
+    /// Returns whether single-line mode is enabled.
+    ///
+    /// In single-line mode, newline insertion is blocked.
+    #[must_use]
+    pub fn is_single_line(&self) -> bool {
+        self.view.single_line
+    }
 }
 
 #[cfg(test)]
@@ -180,5 +205,52 @@ mod tests {
         let pos = state.cursor_screen_position().unwrap();
         assert_eq!(pos.x, 3);
         assert_eq!(pos.y, 2);
+    }
+
+    #[test]
+    fn test_single_line_mode_blocks_line_break() {
+        use crate::actions::LineBreak;
+
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.set_single_line(true);
+        state.cursor = Index2::new(0, 5);
+
+        LineBreak(1).execute(&mut state);
+
+        // Line break should be blocked
+        assert_eq!(state.lines, Lines::from("Hello World"));
+        assert_eq!(state.cursor, Index2::new(0, 5));
+    }
+
+    #[test]
+    fn test_single_line_mode_blocks_insert_newline_char() {
+        use crate::actions::InsertChar;
+
+        let mut state = EditorState::new(Lines::from("Hello"));
+        state.set_single_line(true);
+        state.cursor = Index2::new(0, 5);
+
+        InsertChar('\n').execute(&mut state);
+
+        // Newline char should be blocked
+        assert_eq!(state.lines, Lines::from("Hello"));
+    }
+
+    #[test]
+    fn test_single_line_mode_paste_replaces_newlines() {
+        use crate::actions::Paste;
+        use crate::clipboard::InternalClipboard;
+
+        let mut state = EditorState::new(Lines::from("Hello"));
+        state.set_clipboard(InternalClipboard::default());
+        state.set_single_line(true);
+        state.cursor = Index2::new(0, 5);
+
+        // Paste text with newlines
+        state.clip.set_text("Line1\nLine2\nLine3".to_string());
+        Paste.execute(&mut state);
+
+        // Newlines should be replaced with spaces
+        assert_eq!(state.lines, Lines::from("HelloLine1 Line2 Line3"));
     }
 }
