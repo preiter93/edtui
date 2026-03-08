@@ -358,6 +358,34 @@ impl Execute for MoveHalfPageUp {
     }
 }
 
+#[derive(Clone, Debug, Copy)]
+pub struct MovePageDown();
+
+impl Execute for MovePageDown {
+    fn execute(&mut self, state: &mut EditorState) {
+        let jump_rows = state.view.num_rows;
+        state.cursor.row = min(state.cursor.row + jump_rows, state.lines.last_row_index());
+
+        if state.mode == EditorMode::Visual {
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+        }
+    }
+}
+
+#[derive(Clone, Debug, Copy)]
+pub struct MovePageUp();
+
+impl Execute for MovePageUp {
+    fn execute(&mut self, state: &mut EditorState) {
+        let jump_rows = state.view.num_rows;
+        state.cursor.row = state.cursor.row.saturating_sub(jump_rows);
+
+        if state.mode == EditorMode::Visual {
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+        }
+    }
+}
+
 #[derive(Debug, Clone, Eq)]
 pub(crate) enum CharacterClass {
     Unknown,

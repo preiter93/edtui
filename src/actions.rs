@@ -23,9 +23,9 @@ pub use self::delete::{
 };
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
-    MoveBackward, MoveDown, MoveForward, MoveHalfPageDown, MoveHalfPageUp, MoveToEndOfLine,
-    MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward,
-    MoveWordForward, MoveWordForwardToEndOfWord,
+    MoveBackward, MoveDown, MoveForward, MoveHalfPageDown, MoveHalfPageUp, MovePageDown,
+    MovePageUp, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
+    MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord,
 };
 use self::search::StartSearch;
 pub use self::search::{
@@ -56,6 +56,8 @@ pub enum Action {
     MoveToMatchingBracket(MoveToMatchinBracket),
     MoveHalfPageDown(MoveHalfPageDown),
     MoveHalfPageUp(MoveHalfPageUp),
+    MovePageDown(MovePageDown),
+    MovePageUp(MovePageUp),
     InsertChar(InsertChar),
     LineBreak(LineBreak),
     AppendNewline(AppendNewline),

@@ -115,6 +115,8 @@ pub enum KeyCode {
     Tab,
     Home,
     End,
+    PageUp,
+    PageDown,
 }
 
 impl From<char> for KeyCode {
@@ -139,6 +141,8 @@ impl From<crossterm::event::KeyCode> for KeyCode {
             CTKeyCode::Down => KeyCode::Down,
             CTKeyCode::Home => KeyCode::Home,
             CTKeyCode::End => KeyCode::End,
+            CTKeyCode::PageUp => KeyCode::PageUp,
+            CTKeyCode::PageDown => KeyCode::PageDown,
             _ => unimplemented!(),
         }
     }

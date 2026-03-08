@@ -3,7 +3,9 @@ pub(crate) mod input;
 
 use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::{DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine};
-use crate::actions::motion::{MoveHalfPageDown, MoveToFirstRow, MoveToLastRow};
+use crate::actions::motion::{
+    MoveHalfPageDown, MovePageDown, MovePageUp, MoveToFirstRow, MoveToLastRow,
+};
 use crate::actions::search::StartSearch;
 #[cfg(feature = "system-editor")]
 use crate::actions::OpenSystemEditor;
@@ -335,6 +337,31 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::v(vec![KeyInput::ctrl('u')]),
             MoveHalfPageUp().into(),
+        ),
+        // Page up/down for full page navigation
+        (
+            KeyEventRegister::n(vec![KeyInput::new(KeyCode::PageDown)]),
+            MovePageDown().into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::new(KeyCode::PageDown)]),
+            MovePageDown().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::PageDown)]),
+            MovePageDown().into(),
+        ),
+        (
+            KeyEventRegister::n(vec![KeyInput::new(KeyCode::PageUp)]),
+            MovePageUp().into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::new(KeyCode::PageUp)]),
+            MovePageUp().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::PageUp)]),
+            MovePageUp().into(),
         ),
         // `Home` and `End` go to first/last position in a line
         (
@@ -718,6 +745,14 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::i(vec![KeyInput::alt('v')]),
             MoveHalfPageUp().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::PageDown)]),
+            MovePageDown().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::PageUp)]),
+            MovePageUp().into(),
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt('<')]),
