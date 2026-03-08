@@ -229,6 +229,7 @@ pub(crate) fn line_into_spans_with_selections<'a>(
     spans
 }
 
+#[allow(clippy::too_many_arguments)]
 #[cfg(feature = "syntax-highlighting")]
 pub(crate) fn line_into_highlighted_spans_with_selections<'a>(
     line: &[char],

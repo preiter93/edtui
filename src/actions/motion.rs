@@ -368,7 +368,7 @@ impl Execute for MovePageDown {
         // Scroll viewport down
         state.view.viewport.y = min(state.view.viewport.y + jump_rows, max_viewport_y);
 
-        // Cursor at top of viewport (screen row 0)
+        // Cursor at top of viewport
         state.cursor.row = state.view.viewport.y;
 
         if state.mode == EditorMode::Visual {
@@ -387,7 +387,7 @@ impl Execute for MovePageUp {
         // Scroll viewport up
         state.view.viewport.y = state.view.viewport.y.saturating_sub(jump_rows);
 
-        // Cursor at bottom of viewport (screen row num_rows - 1)
+        // Cursor at bottom of viewport
         let last_visible_row = state.view.viewport.y + jump_rows.saturating_sub(1);
         state.cursor.row = min(last_visible_row, state.lines.last_row_index());
 

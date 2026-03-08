@@ -418,6 +418,7 @@ impl Widget for EditorView<'_, '_> {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn generate_spans<'a>(
     line: &[char],
     selections: &[&Option<Selection>],

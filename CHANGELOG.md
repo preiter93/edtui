@@ -1,21 +1,6 @@
 Released
 --------
 
-0.11.2 - 2026-03-08
-===================
-- feat: add PageUp/PageDown full page navigation
-- feat: add Ctrl+Left/Right word navigation
-- feat: add viewport_offset() and set_viewport_offset() API
-- feat: add custom highlight API for arbitrary styled ranges
-- feat: add AltGr key normalization for international keyboards
-- feat: add single-line mode to block newline insertion
-- feat: add cursor_screen_position() API
-- feat: add set_viewport_height API
-- fix: backspace bug in emacs bindings
-- fix: Alt+Backspace word deletion behavior in emacs mode
-- fix: Ctrl+Right word navigation in insert mode now lands after last character
-- fix: PageUp/PageDown now scrolls viewport and positions cursor correctly
-
 0.11.1 - 2026-01-18
 ===================
 - *fix(input)*: allow shift modifier for insert mode (@shaunrd0)
