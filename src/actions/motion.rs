@@ -130,10 +130,9 @@ fn move_word_forward(state: &mut EditorState) {
             return;
         }
     }
-    state.cursor = Index2::new(
-        state.cursor.row,
-        state.lines.last_col_index(state.cursor.row),
-    );
+
+    let max_col = max_col(&state.lines, &state.cursor, state.mode);
+    state.cursor = Index2::new(state.cursor.row, max_col);
 }
 
 /// Move one word forward to the end of the word.
@@ -573,6 +572,39 @@ mod tests {
         assert_eq!(state.cursor, Index2::new(0, 7));
 
         // From 'w' through "world" to end
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 11));
+    }
+
+    #[test]
+    fn test_move_word_forward_single_line() {
+        // "Hello World" - should land on 'W' first, then on 'd' (end of line)
+        let mut state = EditorState::new(Lines::from("Hello World"));
+
+        // Start at 'H', move to 'W'
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 6));
+
+        // From 'W', move to end of "World" (position 10, the 'd')
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 10));
+
+        // From 'd', should stay at 'd' (already at end)
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 10));
+    }
+
+    #[test]
+    fn test_move_word_forward_single_line_insert_mode() {
+        // In insert mode, cursor should land AFTER 'd' (position 11)
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.mode = EditorMode::Insert;
+
+        // Start at 'H', move to 'W'
+        MoveWordForward(1).execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 6));
+
+        // From 'W', move to position after "World" (position 11, after 'd')
         MoveWordForward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 11));
     }

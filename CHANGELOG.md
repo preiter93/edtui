@@ -12,6 +12,7 @@ Released
 - feat: add cursor_screen_position() API
 - fix: backspace bug in emacs bindings
 - fix: Alt+Backspace word deletion behavior in emacs mode
+- fix: Ctrl+Right word navigation in insert mode now lands after last character
 
 0.11.1 - 2026-01-18
 ===================
