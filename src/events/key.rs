@@ -2,7 +2,10 @@ pub(crate) mod deprecated;
 pub(crate) mod input;
 
 use crate::actions::cpaste::PasteOverSelection;
-use crate::actions::delete::{DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine};
+use crate::actions::delete::{
+    DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine, DeleteWordBackward,
+    DeleteWordForward,
+};
 use crate::actions::motion::{
     MoveHalfPageDown, MovePageDown, MovePageUp, MoveToFirstRow, MoveToLastRow,
 };
@@ -819,19 +822,11 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt('d')]),
-            SwitchMode(EditorMode::Visual)
-                .chain(MoveWordForwardToEndOfWord(1))
-                .chain(DeleteSelection)
-                .chain(SwitchMode(EditorMode::Insert))
-                .into(),
+            DeleteWordForward(1).into(),
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt(KeyCode::Backspace)]),
-            SwitchMode(EditorMode::Visual)
-                .chain(MoveWordBackward(1))
-                .chain(DeleteSelection)
-                .chain(SwitchMode(EditorMode::Insert))
-                .into(),
+            DeleteWordBackward(1).into(),
         ),
         (KeyEventRegister::i(vec![KeyInput::ctrl('u')]), Undo.into()),
         (KeyEventRegister::i(vec![KeyInput::ctrl('r')]), Redo.into()),

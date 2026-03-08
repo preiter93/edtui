@@ -2,8 +2,9 @@ use jagged::index::RowIndex;
 
 use super::Execute;
 use crate::{
+    actions::motion::CharacterClass,
     clipboard::ClipboardTrait,
-    helper::{is_out_of_bounds, max_col_insert},
+    helper::{is_out_of_bounds, max_col_insert, skip_whitespace, skip_whitespace_rev},
     state::selection::Selection,
     EditorState, Index2, Lines,
 };
@@ -135,6 +136,118 @@ fn delete_char_forward(lines: &mut Lines, index: &mut Index2) {
     }
 
     let _ = lines.remove(*index);
+}
+
+/// Deletes from cursor to the end of the current word (Emacs Alt+d).
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteWordForward(pub usize);
+
+impl Execute for DeleteWordForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+        state.capture();
+        for _ in 0..self.0 {
+            delete_word_forward(state);
+        }
+    }
+}
+
+fn delete_word_forward(state: &mut EditorState) {
+    let start = state.cursor;
+    let start_char = state.lines.get(start);
+
+    if start_char.is_none() {
+        if state.cursor.row + 1 < state.lines.len() {
+            state.lines.join_lines(state.cursor.row);
+        }
+        return;
+    }
+
+    let mut end = start;
+    let start_class = CharacterClass::from(start_char);
+
+    for (ch, idx) in state.lines.iter().from(start) {
+        if CharacterClass::from(ch) != start_class {
+            break;
+        }
+        end = idx;
+    }
+    end.col += 1;
+
+    skip_whitespace(&state.lines, &mut end);
+    delete_range(&mut state.lines, start, end, &mut state.clip);
+}
+
+/// Deletes from cursor backward to start of previous word (Emacs Alt+Backspace).
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteWordBackward(pub usize);
+
+impl Execute for DeleteWordBackward {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+        state.capture();
+        for _ in 0..self.0 {
+            delete_word_backward(state);
+        }
+    }
+}
+
+fn delete_word_backward(state: &mut EditorState) {
+    let end = state.cursor;
+
+    if end.row == 0 && end.col == 0 {
+        return;
+    }
+
+    if end.col == 0 {
+        state.cursor.row -= 1;
+        state.cursor.col = state.lines.len_col(state.cursor.row).unwrap_or(0);
+        state.lines.join_lines(state.cursor.row);
+        return;
+    }
+
+    let mut start = Index2::new(end.row, end.col.saturating_sub(1));
+    skip_whitespace_rev(&state.lines, &mut start);
+    let start_class = CharacterClass::from(state.lines.get(start));
+
+    for (ch, idx) in state.lines.iter().from(start).rev() {
+        if idx.col == 0 {
+            start = idx;
+            break;
+        }
+        if CharacterClass::from(ch) != start_class {
+            break;
+        }
+        start = idx;
+    }
+
+    delete_range(&mut state.lines, start, end, &mut state.clip);
+    state.cursor = start;
+}
+
+fn delete_range(
+    lines: &mut Lines,
+    start: Index2,
+    end: Index2,
+    clip: &mut crate::clipboard::Clipboard,
+) {
+    if start.row != end.row || start.col >= end.col {
+        return;
+    }
+
+    let Some(row) = lines.get_mut(RowIndex::new(start.row)) else {
+        return;
+    };
+
+    let end_col = end.col.min(row.len());
+    let start_col = start.col.min(end_col);
+
+    let deleted: String = row.drain(start_col..end_col).collect();
+    clip.set_text(deleted);
 }
 
 /// Deletes the current line.
@@ -429,5 +542,64 @@ mod tests {
         DeleteCharForward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 10));
         assert_eq!(state.lines, Lines::from("HelloWorld"));
+    }
+
+    #[test]
+    fn test_delete_word_forward() {
+        let mut state = EditorState::new(Lines::from("Hello World Test"));
+        state.mode = EditorMode::Insert;
+        state.cursor = Index2::new(0, 0);
+
+        DeleteWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "World Test");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+
+        DeleteWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "Test");
+    }
+
+    #[test]
+    fn test_delete_word_forward_mid_word() {
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.mode = EditorMode::Insert;
+        state.cursor = Index2::new(0, 2);
+
+        DeleteWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "HeWorld");
+    }
+
+    #[test]
+    fn test_delete_word_backward() {
+        let mut state = EditorState::new(Lines::from("Hello World Test"));
+        state.mode = EditorMode::Insert;
+        state.cursor = Index2::new(0, 12);
+
+        DeleteWordBackward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "Hello Test");
+        assert_eq!(state.cursor, Index2::new(0, 6));
+    }
+
+    #[test]
+    fn test_delete_word_backward_mid_word() {
+        // On "o" of World, should only delete "W"
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.mode = EditorMode::Insert;
+        state.cursor = Index2::new(0, 7);
+
+        DeleteWordBackward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "Hello orld");
+        assert_eq!(state.cursor, Index2::new(0, 6));
+    }
+
+    #[test]
+    fn test_delete_word_backward_at_word_start() {
+        // On "W" of World, should delete "Hello " (previous word + whitespace)
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.mode = EditorMode::Insert;
+        state.cursor = Index2::new(0, 6);
+
+        DeleteWordBackward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "World");
+        assert_eq!(state.cursor, Index2::new(0, 0));
     }
 }

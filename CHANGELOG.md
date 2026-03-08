@@ -11,6 +11,7 @@ Released
 - feat: add single-line mode to block newline insertion
 - feat: add cursor_screen_position() API
 - fix: backspace bug in emacs bindings
+- fix: Alt+Backspace word deletion behavior in emacs mode
 
 0.11.1 - 2026-01-18
 ===================
