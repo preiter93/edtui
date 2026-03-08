@@ -13,6 +13,7 @@ Released
 - fix: backspace bug in emacs bindings
 - fix: Alt+Backspace word deletion behavior in emacs mode
 - fix: Ctrl+Right word navigation in insert mode now lands after last character
+- fix: PageUp/PageDown now scrolls viewport and positions cursor correctly
 
 0.11.1 - 2026-01-18
 ===================

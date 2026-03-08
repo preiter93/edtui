@@ -363,7 +363,13 @@ pub struct MovePageDown();
 impl Execute for MovePageDown {
     fn execute(&mut self, state: &mut EditorState) {
         let jump_rows = state.view.num_rows;
-        state.cursor.row = min(state.cursor.row + jump_rows, state.lines.last_row_index());
+        let max_viewport_y = state.lines.len().saturating_sub(jump_rows);
+
+        // Scroll viewport down
+        state.view.viewport.y = min(state.view.viewport.y + jump_rows, max_viewport_y);
+
+        // Cursor at top of viewport (screen row 0)
+        state.cursor.row = state.view.viewport.y;
 
         if state.mode == EditorMode::Visual {
             set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
@@ -377,7 +383,13 @@ pub struct MovePageUp();
 impl Execute for MovePageUp {
     fn execute(&mut self, state: &mut EditorState) {
         let jump_rows = state.view.num_rows;
-        state.cursor.row = state.cursor.row.saturating_sub(jump_rows);
+
+        // Scroll viewport up
+        state.view.viewport.y = state.view.viewport.y.saturating_sub(jump_rows);
+
+        // Cursor at bottom of viewport (screen row num_rows - 1)
+        let last_visible_row = state.view.viewport.y + jump_rows.saturating_sub(1);
+        state.cursor.row = min(last_visible_row, state.lines.last_row_index());
 
         if state.mode == EditorMode::Visual {
             set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
@@ -616,6 +628,61 @@ mod tests {
         state.cursor = Index2::new(0, 99);
         MoveWordForward(1).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(1, 0));
+    }
+
+    #[test]
+    fn test_move_page_down() {
+        // After page down, viewport scrolls and cursor is at top of new viewport (screen row 0)
+        let mut state = EditorState::new(Lines::from(
+            "Line 0\nLine 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9",
+        ));
+        state.view.num_rows = 3; // Viewport shows 3 lines
+
+        // Start at line 0, viewport at 0
+        assert_eq!(state.cursor.row, 0);
+        assert_eq!(state.view.viewport.y, 0);
+
+        // Page down: viewport scrolls to line 3, cursor at top of viewport (line 3)
+        MovePageDown().execute(&mut state);
+        assert_eq!(state.view.viewport.y, 3);
+        assert_eq!(state.cursor.row, 3); // cursor at screen row 0
+
+        // Page down: viewport scrolls to line 6, cursor at top of viewport (line 6)
+        MovePageDown().execute(&mut state);
+        assert_eq!(state.view.viewport.y, 6);
+        assert_eq!(state.cursor.row, 6); // cursor at screen row 0
+
+        // Page down: viewport can only go to line 7 (10 lines - 3 visible = max 7)
+        // cursor at top of viewport (line 7)
+        MovePageDown().execute(&mut state);
+        assert_eq!(state.view.viewport.y, 7);
+        assert_eq!(state.cursor.row, 7); // cursor at screen row 0
+    }
+
+    #[test]
+    fn test_move_page_up() {
+        // After page up, viewport scrolls and cursor is at bottom of new viewport
+        let mut state = EditorState::new(Lines::from(
+            "Line 0\nLine 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9",
+        ));
+        state.view.num_rows = 3; // Viewport shows 3 lines
+        state.cursor.row = 9; // Start at last line
+        state.view.viewport.y = 7; // Viewport showing lines 7-9
+
+        // Page up: viewport scrolls to line 4, cursor at bottom of viewport (line 6)
+        MovePageUp().execute(&mut state);
+        assert_eq!(state.view.viewport.y, 4);
+        assert_eq!(state.cursor.row, 6); // cursor at screen row 2 (bottom)
+
+        // Page up: viewport scrolls to line 1, cursor at bottom of viewport (line 3)
+        MovePageUp().execute(&mut state);
+        assert_eq!(state.view.viewport.y, 1);
+        assert_eq!(state.cursor.row, 3); // cursor at screen row 2 (bottom)
+
+        // Page up: viewport scrolls to line 0, cursor at bottom of viewport (line 2)
+        MovePageUp().execute(&mut state);
+        assert_eq!(state.view.viewport.y, 0);
+        assert_eq!(state.cursor.row, 2); // cursor at screen row 2 (bottom)
     }
 
     #[test]
