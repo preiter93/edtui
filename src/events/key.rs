@@ -220,6 +220,14 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::i(vec![KeyInput::new(KeyCode::Left)]),
             MoveBackward(1).into(),
         ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Right)]),
+            MoveWordForward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Left)]),
+            MoveWordBackward(1).into(),
+        ),
         // Move cursor up
         (
             KeyEventRegister::n(vec![KeyInput::new('k')]),
@@ -693,6 +701,14 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt('b')]),
+            MoveWordBackward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Right)]),
+            MoveWordForward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Left)]),
             MoveWordBackward(1).into(),
         ),
         (
