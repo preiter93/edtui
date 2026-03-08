@@ -364,11 +364,17 @@ impl Widget for EditorView<'_, '_> {
             row_index += 1;
         }
 
-        // Render the cursor on top.
-        if let Some(cell) = buf.cell_mut(cursor_position.unwrap_or(Position::new(
+        // Compute the final cursor position.
+        let final_cursor_position = cursor_position.unwrap_or(Position::new(
             content_main.left(),
             content_main.top() + self.state.cursor.row as u16,
-        ))) {
+        ));
+
+        // Store the cursor screen position for external access.
+        self.state.view.cursor_screen_position = Some(final_cursor_position);
+
+        // Render the cursor on top.
+        if let Some(cell) = buf.cell_mut(final_cursor_position) {
             cell.set_style(self.theme.cursor_style);
         }
 

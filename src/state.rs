@@ -12,6 +12,7 @@ use crate::actions::Execute;
 use crate::clipboard::{Clipboard, ClipboardTrait};
 use crate::helper::max_col;
 use crate::{Index2, Lines};
+use ratatui_core::layout::Position;
 
 /// Represents the state of an editor.
 #[derive(Clone)]
@@ -113,5 +114,71 @@ impl EditorState {
     pub(crate) fn clamp_column(&mut self) {
         let max_col = max_col(&self.lines, &self.cursor, self.mode);
         self.cursor.col = self.cursor.col.min(max_col);
+    }
+
+    /// Returns the cursor's screen position, computed during the last render.
+    ///
+    /// This is the absolute position in terminal coordinates where the cursor
+    /// should be displayed. It accounts for viewport scrolling, line wrapping,
+    /// tab width, and the editor's position on screen.
+    ///
+    /// Returns `None` if the editor has not been rendered yet.
+    #[must_use]
+    pub fn cursor_screen_position(&self) -> Option<Position> {
+        self.view.cursor_screen_position
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::EditorView;
+    use ratatui_core::{buffer::Buffer, layout::Rect, widgets::Widget};
+
+    #[test]
+    fn test_cursor_screen_position_after_render() {
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        assert!(state.cursor_screen_position().is_none());
+
+        let area = Rect::new(0, 0, 20, 5);
+        let mut buffer = Buffer::empty(area);
+        EditorView::new(&mut state).render(area, &mut buffer);
+
+        let pos = state.cursor_screen_position();
+        assert!(pos.is_some());
+
+        let pos = pos.unwrap();
+        assert_eq!(pos.x, 0);
+        assert_eq!(pos.y, 0);
+    }
+
+    #[test]
+    fn test_cursor_screen_position_with_offset() {
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.cursor = Index2::new(0, 5);
+
+        let area = Rect::new(10, 5, 20, 5);
+        let mut buffer = Buffer::empty(Rect::new(0, 0, 40, 20));
+        EditorView::new(&mut state).render(area, &mut buffer);
+
+        let pos = state.cursor_screen_position().unwrap();
+        // Cursor column 5 + area.x (10) = 15
+        assert_eq!(pos.x, 15);
+        // Cursor row 0 + area.y (5) = 5
+        assert_eq!(pos.y, 5);
+    }
+
+    #[test]
+    fn test_cursor_screen_position_multiline() {
+        let mut state = EditorState::new(Lines::from("Line 1\nLine 2\nLine 3"));
+        state.cursor = Index2::new(2, 3);
+
+        let area = Rect::new(0, 0, 20, 10);
+        let mut buffer = Buffer::empty(area);
+        EditorView::new(&mut state).render(area, &mut buffer);
+
+        let pos = state.cursor_screen_position().unwrap();
+        assert_eq!(pos.x, 3);
+        assert_eq!(pos.y, 2);
     }
 }
