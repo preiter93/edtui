@@ -201,6 +201,14 @@ impl EditorState {
         self.view.viewport.x = x;
         self.view.viewport.y = y;
     }
+
+    /// Sets the viewport height (number of visible rows).
+    ///
+    /// This is set automatically during render, so there is usually no need
+    /// to call this manually.
+    pub fn set_viewport_height(&mut self, height: usize) {
+        self.view.update_num_rows(height);
+    }
 }
 
 #[cfg(test)]

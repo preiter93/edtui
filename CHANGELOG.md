@@ -10,6 +10,7 @@ Released
 - feat: add AltGr key normalization for international keyboards
 - feat: add single-line mode to block newline insertion
 - feat: add cursor_screen_position() API
+- feat: add set_viewport_height API
 - fix: backspace bug in emacs bindings
 - fix: Alt+Backspace word deletion behavior in emacs mode
 - fix: Ctrl+Right word navigation in insert mode now lands after last character
