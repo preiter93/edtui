@@ -759,7 +759,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             DeleteChar(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyInput::new(KeyCode::Backspace)]),
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::Delete)]),
             DeleteCharForward(1).into(),
         ),
         (
