@@ -878,7 +878,7 @@ impl KeyEventHandler {
         T: Into<KeyInput> + Copy + std::fmt::Debug,
     {
         let mode = state.mode;
-        let key_input = key.into();
+        let key_input = key.into().normalize_altgr();
 
         // Always insert characters in insert mode
         if mode == EditorMode::Insert {
