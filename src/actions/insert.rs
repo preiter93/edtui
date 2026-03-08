@@ -6,22 +6,33 @@ use crate::{
     EditorState,
 };
 
-/// Inserts a single character at the current cursor position
+/// Inserts a single character at the current cursor position.
+///
+/// In single-line mode, newline characters (`\n`, `\r`) are ignored.
 #[derive(Clone, Debug, Copy)]
 pub struct InsertChar(pub char);
 
 impl Execute for InsertChar {
     fn execute(&mut self, state: &mut EditorState) {
+        // Block newline characters in single-line mode
+        if state.view.single_line && matches!(self.0, '\n' | '\r') {
+            return;
+        }
         insert_char(&mut state.lines, &mut state.cursor, self.0, false);
     }
 }
 
-/// Inserts a newline at the current cursor position
+/// Inserts a newline at the current cursor position.
+///
+/// In single-line mode, this action is ignored.
 #[derive(Clone, Debug, Copy)]
 pub struct LineBreak(pub usize);
 
 impl Execute for LineBreak {
     fn execute(&mut self, state: &mut EditorState) {
+        if state.view.single_line {
+            return;
+        }
         if state.lines.is_empty() {
             state.lines.push(Vec::new());
         }
@@ -32,11 +43,16 @@ impl Execute for LineBreak {
 }
 
 /// Appends a newline below the current cursor position.
+///
+/// In single-line mode, this action is ignored.
 #[derive(Clone, Debug, Copy)]
 pub struct AppendNewline(pub usize);
 
 impl Execute for AppendNewline {
     fn execute(&mut self, state: &mut EditorState) {
+        if state.view.single_line {
+            return;
+        }
         state.capture();
         state.cursor.col = 0;
         for _ in 0..self.0 {
@@ -53,11 +69,16 @@ impl Execute for AppendNewline {
 }
 
 /// Appends a newline at the current cursor position.
+///
+/// In single-line mode, this action is ignored.
 #[derive(Clone, Debug, Copy)]
 pub struct InsertNewline(pub usize);
 
 impl Execute for InsertNewline {
     fn execute(&mut self, state: &mut EditorState) {
+        if state.view.single_line {
+            return;
+        }
         state.cursor.col = 0;
         for _ in 0..self.0 {
             state.lines.insert(RowIndex::new(state.cursor.row), vec![]);

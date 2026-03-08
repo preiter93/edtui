@@ -2,8 +2,13 @@ pub(crate) mod deprecated;
 pub(crate) mod input;
 
 use crate::actions::cpaste::PasteOverSelection;
-use crate::actions::delete::{DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine};
-use crate::actions::motion::{MoveHalfPageDown, MoveToFirstRow, MoveToLastRow};
+use crate::actions::delete::{
+    DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine, DeleteWordBackward,
+    DeleteWordForward,
+};
+use crate::actions::motion::{
+    MoveHalfPageDown, MovePageDown, MovePageUp, MoveToFirstRow, MoveToLastRow,
+};
 use crate::actions::search::StartSearch;
 #[cfg(feature = "system-editor")]
 use crate::actions::OpenSystemEditor;
@@ -220,6 +225,14 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::i(vec![KeyInput::new(KeyCode::Left)]),
             MoveBackward(1).into(),
         ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Right)]),
+            MoveWordForward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Left)]),
+            MoveWordBackward(1).into(),
+        ),
         // Move cursor up
         (
             KeyEventRegister::n(vec![KeyInput::new('k')]),
@@ -327,6 +340,31 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::v(vec![KeyInput::ctrl('u')]),
             MoveHalfPageUp().into(),
+        ),
+        // Page up/down for full page navigation
+        (
+            KeyEventRegister::n(vec![KeyInput::new(KeyCode::PageDown)]),
+            MovePageDown().into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::new(KeyCode::PageDown)]),
+            MovePageDown().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::PageDown)]),
+            MovePageDown().into(),
+        ),
+        (
+            KeyEventRegister::n(vec![KeyInput::new(KeyCode::PageUp)]),
+            MovePageUp().into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::new(KeyCode::PageUp)]),
+            MovePageUp().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::PageUp)]),
+            MovePageUp().into(),
         ),
         // `Home` and `End` go to first/last position in a line
         (
@@ -696,12 +734,28 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             MoveWordBackward(1).into(),
         ),
         (
+            KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Right)]),
+            MoveWordForward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Left)]),
+            MoveWordBackward(1).into(),
+        ),
+        (
             KeyEventRegister::i(vec![KeyInput::ctrl('v')]),
             MoveHalfPageDown().into(),
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt('v')]),
             MoveHalfPageUp().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::PageDown)]),
+            MovePageDown().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::PageUp)]),
+            MovePageUp().into(),
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt('<')]),
@@ -759,7 +813,7 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             DeleteChar(1).into(),
         ),
         (
-            KeyEventRegister::i(vec![KeyInput::new(KeyCode::Backspace)]),
+            KeyEventRegister::i(vec![KeyInput::new(KeyCode::Delete)]),
             DeleteCharForward(1).into(),
         ),
         (
@@ -768,19 +822,11 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt('d')]),
-            SwitchMode(EditorMode::Visual)
-                .chain(MoveWordForwardToEndOfWord(1))
-                .chain(DeleteSelection)
-                .chain(SwitchMode(EditorMode::Insert))
-                .into(),
+            DeleteWordForward(1).into(),
         ),
         (
             KeyEventRegister::i(vec![KeyInput::alt(KeyCode::Backspace)]),
-            SwitchMode(EditorMode::Visual)
-                .chain(MoveWordBackward(1))
-                .chain(DeleteSelection)
-                .chain(SwitchMode(EditorMode::Insert))
-                .into(),
+            DeleteWordBackward(1).into(),
         ),
         (KeyEventRegister::i(vec![KeyInput::ctrl('u')]), Undo.into()),
         (KeyEventRegister::i(vec![KeyInput::ctrl('r')]), Redo.into()),
@@ -878,7 +924,7 @@ impl KeyEventHandler {
         T: Into<KeyInput> + Copy + std::fmt::Debug,
     {
         let mode = state.mode;
-        let key_input = key.into();
+        let key_input = key.into().normalize_altgr();
 
         // Always insert characters in insert mode
         if mode == EditorMode::Insert {
@@ -997,5 +1043,64 @@ mod tests {
         }
 
         assert_eq!(state.lines.to_string(), String::from("Hello World!\nHi!"));
+    }
+
+    #[test]
+    fn test_altgr_normalization_inserts_characters() {
+        use crate::EditorState;
+        use crossterm::event::{KeyEvent as CTKeyEvent, KeyModifiers as CTMods};
+
+        let mut state = EditorState::default();
+        state.mode = EditorMode::Insert;
+
+        let mut handler = KeyEventHandler::emacs_mode();
+
+        // Simulate AltGr+[ (reported as Ctrl+Alt+[ on international keyboards)
+        let altgr_bracket = CTKeyEvent::new(
+            crossterm::event::KeyCode::Char('['),
+            CTMods::CONTROL | CTMods::ALT,
+        );
+        handler.on_event(altgr_bracket, &mut state);
+
+        // Simulate AltGr+]
+        let altgr_bracket_close = CTKeyEvent::new(
+            crossterm::event::KeyCode::Char(']'),
+            CTMods::CONTROL | CTMods::ALT,
+        );
+        handler.on_event(altgr_bracket_close, &mut state);
+
+        // Simulate AltGr+{ (with shift)
+        let altgr_brace = CTKeyEvent::new(
+            crossterm::event::KeyCode::Char('{'),
+            CTMods::CONTROL | CTMods::ALT | CTMods::SHIFT,
+        );
+        handler.on_event(altgr_brace, &mut state);
+
+        // Simulate AltGr+}
+        let altgr_brace_close = CTKeyEvent::new(
+            crossterm::event::KeyCode::Char('}'),
+            CTMods::CONTROL | CTMods::ALT | CTMods::SHIFT,
+        );
+        handler.on_event(altgr_brace_close, &mut state);
+
+        assert_eq!(state.lines.to_string(), "[]{}");
+    }
+
+    #[test]
+    fn test_altgr_does_not_affect_letter_keybindings() {
+        use crate::EditorState;
+
+        let mut state = EditorState::new(crate::Lines::from("Hello World"));
+        state.mode = EditorMode::Insert;
+
+        let mut handler = KeyEventHandler::emacs_mode();
+
+        // Alt+f should move forward word, not insert 'f'
+        let alt_f = KeyInput::alt('f');
+        handler.on_event(alt_f, &mut state);
+
+        // Cursor should have moved to position 6 ('W'), not inserted 'f'
+        assert_eq!(state.cursor.col, 6);
+        assert_eq!(state.lines.to_string(), "Hello World");
     }
 }

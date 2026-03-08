@@ -75,6 +75,29 @@ impl KeyInput {
             modifiers: modifiers.into(),
         }
     }
+
+    /// Normalize AltGr key events for international keyboard support.
+    ///
+    /// Strips Ctrl+Alt modifiers from non-alphabetic characters, allowing
+    /// symbols like `[`, `]`, `{`, `}`, `\`, `@` to be typed on keyboards
+    /// where these require AltGr (e.g., German, Swiss German).
+    #[must_use]
+    pub fn normalize_altgr(self) -> Self {
+        if let KeyCode::Char(c) = self.key {
+            // AltGr is typically reported as Ctrl+Alt on Windows/some terminals
+            // Some terminals may report it as just Alt
+            let has_altgr_modifiers = self.modifiers.is_ctrl_alt() || self.modifiers.is_alt_only();
+
+            if has_altgr_modifiers && !c.is_ascii_alphabetic() {
+                return Self {
+                    key: self.key,
+                    modifiers: self.modifiers.without_ctrl_alt(),
+                };
+            }
+        }
+
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -92,6 +115,8 @@ pub enum KeyCode {
     Tab,
     Home,
     End,
+    PageUp,
+    PageDown,
 }
 
 impl From<char> for KeyCode {
@@ -116,6 +141,8 @@ impl From<crossterm::event::KeyCode> for KeyCode {
             CTKeyCode::Down => KeyCode::Down,
             CTKeyCode::Home => KeyCode::Home,
             CTKeyCode::End => KeyCode::End,
+            CTKeyCode::PageUp => KeyCode::PageUp,
+            CTKeyCode::PageDown => KeyCode::PageDown,
             _ => unimplemented!(),
         }
     }
@@ -153,6 +180,28 @@ impl Modifiers {
         alt: false,
         shift: true,
     };
+
+    /// Returns true if Ctrl+Alt are both pressed (typical AltGr representation).
+    #[must_use]
+    pub(crate) fn is_ctrl_alt(&self) -> bool {
+        self.ctrl && self.alt
+    }
+
+    /// Returns true if Alt is pressed (without Ctrl).
+    #[must_use]
+    pub(crate) fn is_alt_only(&self) -> bool {
+        self.alt && !self.ctrl
+    }
+
+    /// Returns modifiers with Ctrl and Alt stripped, preserving only Shift.
+    #[must_use]
+    pub(crate) fn without_ctrl_alt(&self) -> Self {
+        Self {
+            ctrl: false,
+            alt: false,
+            shift: self.shift,
+        }
+    }
 }
 
 impl From<crossterm::event::KeyModifiers> for Modifiers {
@@ -171,5 +220,60 @@ impl From<crossterm::event::KeyEvent> for KeyInput {
             key: ev.code.into(),
             modifiers: ev.modifiers.into(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_altgr_symbol() {
+        // Ctrl+Alt+[ should normalize to just [
+        let mods = Modifiers {
+            ctrl: true,
+            alt: true,
+            shift: false,
+        };
+        let input = KeyInput::with_modifiers('[', mods);
+        let normalized = input.normalize_altgr();
+        assert_eq!(normalized.key, KeyCode::Char('['));
+        assert_eq!(normalized.modifiers, Modifiers::NONE);
+    }
+
+    #[test]
+    fn test_normalize_altgr_preserves_shift() {
+        // Ctrl+Alt+Shift+{ should normalize to Shift+{
+        let mods = Modifiers {
+            ctrl: true,
+            alt: true,
+            shift: true,
+        };
+        let input = KeyInput::with_modifiers('{', mods);
+        let normalized = input.normalize_altgr();
+        assert_eq!(normalized.key, KeyCode::Char('{'));
+        assert_eq!(normalized.modifiers, Modifiers::SHIFT);
+    }
+
+    #[test]
+    fn test_normalize_altgr_keeps_letter_keybindings() {
+        // Alt+f should NOT be normalized (it's a keybinding)
+        let input = KeyInput::alt('f');
+        let normalized = input.normalize_altgr();
+        assert_eq!(normalized.modifiers, Modifiers::ALT);
+    }
+
+    #[test]
+    fn test_normalize_altgr_keeps_ctrl_alt_letter() {
+        // Ctrl+Alt+b should NOT be normalized (it's a keybinding)
+        let mods = Modifiers {
+            ctrl: true,
+            alt: true,
+            shift: false,
+        };
+        let input = KeyInput::with_modifiers('b', mods);
+        let normalized = input.normalize_altgr();
+        assert!(normalized.modifiers.ctrl);
+        assert!(normalized.modifiers.alt);
     }
 }

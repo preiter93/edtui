@@ -12,7 +12,7 @@ use syntax_higlighting::SyntaxHighlighter;
 
 use crate::{
     helper::{max_col, rect_indent_y},
-    state::{selection::Selection, EditorState},
+    state::{highlight::Highlight, selection::Selection, EditorState},
     EditorMode, Index2,
 };
 
@@ -109,6 +109,28 @@ impl<'a, 'b> EditorView<'a, 'b> {
     #[must_use]
     pub fn syntax_highlighter(mut self, syntax_highlighter: Option<SyntaxHighlighter>) -> Self {
         self.syntax_highlighter = syntax_highlighter;
+        self
+    }
+
+    /// Enables single-line mode, which blocks newline insertion.
+    ///
+    /// When enabled, pressing Enter, Ctrl+J, Ctrl+M, or any other key combination
+    /// that would insert a newline will be ignored. This is useful for search boxes,
+    /// single-line input fields, and similar use cases.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use edtui::{EditorState, EditorView};
+    ///
+    /// let mut state = EditorState::default();
+    ///
+    /// // Create a single-line input field
+    /// EditorView::new(&mut state).single_line(true);
+    /// ```
+    #[must_use]
+    pub fn single_line(self, single_line: bool) -> Self {
+        self.state.view.single_line = single_line;
         self
     }
 
@@ -283,6 +305,7 @@ impl Widget for EditorView<'_, '_> {
             let spans = generate_spans(
                 line,
                 &selections,
+                &self.state.highlights,
                 row_index,
                 col_skips,
                 &self.theme.base,
@@ -364,11 +387,17 @@ impl Widget for EditorView<'_, '_> {
             row_index += 1;
         }
 
-        // Render the cursor on top.
-        if let Some(cell) = buf.cell_mut(cursor_position.unwrap_or(Position::new(
+        // Compute the final cursor position.
+        let final_cursor_position = cursor_position.unwrap_or(Position::new(
             content_main.left(),
             content_main.top() + self.state.cursor.row as u16,
-        ))) {
+        ));
+
+        // Store the cursor screen position for external access.
+        self.state.view.cursor_screen_position = Some(final_cursor_position);
+
+        // Render the cursor on top.
+        if let Some(cell) = buf.cell_mut(final_cursor_position) {
             cell.set_style(self.theme.cursor_style);
         }
 
@@ -389,13 +418,15 @@ impl Widget for EditorView<'_, '_> {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn generate_spans<'a>(
     line: &[char],
     selections: &[&Option<Selection>],
+    highlights: &[Highlight],
     row_index: usize,
     col_skips: usize,
     base_style: &Style,
-    highlight_style: &Style,
+    selection_style: &Style,
     #[cfg(feature = "syntax-highlighting")] syntax_highlighter: Option<&SyntaxHighlighter>,
 ) -> Vec<Span<'a>> {
     #[cfg(feature = "syntax-highlighting")]
@@ -403,19 +434,21 @@ fn generate_spans<'a>(
         return line_into_highlighted_spans_with_selections(
             line,
             selections,
+            highlights,
             syntax,
             row_index,
             col_skips,
             base_style,
-            highlight_style,
+            selection_style,
         );
     }
     line_into_spans_with_selections(
         line,
         selections,
+        highlights,
         row_index,
         col_skips,
         base_style,
-        highlight_style,
+        selection_style,
     )
 }

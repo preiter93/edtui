@@ -4,7 +4,7 @@ use crate::{
     view::LineNumbers,
     Lines,
 };
-use ratatui_core::layout::Rect;
+use ratatui_core::layout::{Position, Rect};
 
 /// Represents the (x, y) offset of the editor's viewport.
 /// It represents the top-left local editor coordinate.
@@ -25,6 +25,11 @@ pub(crate) struct ViewState {
     pub(crate) tab_width: usize,
     /// Line numbers configuration.
     pub(crate) line_numbers: LineNumbers,
+    /// The cursor's screen position, computed during the last render.
+    /// This is the absolute position in terminal coordinates where the cursor should be displayed.
+    pub(crate) cursor_screen_position: Option<Position>,
+    /// Whether the editor is in single-line mode (blocks newline insertion).
+    pub(crate) single_line: bool,
 }
 
 impl Default for ViewState {
@@ -36,6 +41,8 @@ impl Default for ViewState {
             wrap: true,
             tab_width: 2,
             line_numbers: LineNumbers::None,
+            cursor_screen_position: None,
+            single_line: false,
         }
     }
 }

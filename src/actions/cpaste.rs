@@ -26,6 +26,13 @@ impl Execute for Paste {
         state.capture();
         state.clamp_column();
 
+        // In single-line mode, replace newlines with spaces
+        if state.view.single_line {
+            let s = s.replace('\n', " ").replace('\r', "");
+            append_str(&mut state.lines, &mut state.cursor, &s);
+            return;
+        }
+
         let s = if let Some(stripped) = s.strip_prefix('\n') {
             state.cursor = Index2::new(min(max_row(state), state.cursor.row + 1), 0);
             state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
@@ -48,7 +55,15 @@ impl Execute for PasteOverSelection {
             state.capture();
             state.clamp_column();
             let _ = delete_selection(state, &selection);
-            insert_str(&mut state.lines, &mut state.cursor, &state.clip.get_text());
+
+            // In single-line mode, replace newlines with spaces
+            let text = state.clip.get_text();
+            let text = if state.view.single_line {
+                text.replace('\n', " ").replace('\r', "")
+            } else {
+                text
+            };
+            insert_str(&mut state.lines, &mut state.cursor, &text);
         }
     }
 }

@@ -19,13 +19,13 @@ pub use system_editor::OpenSystemEditor;
 pub use self::cpaste::{CopyLine, CopySelection, Paste};
 pub use self::delete::{
     DeleteChar, DeleteCharForward, DeleteLine, DeleteSelection, DeleteToFirstCharOfLine,
-    JoinLineWithLineBelow, RemoveChar, ReplaceChar,
+    DeleteWordBackward, DeleteWordForward, JoinLineWithLineBelow, RemoveChar, ReplaceChar,
 };
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
-    MoveBackward, MoveDown, MoveForward, MoveHalfPageDown, MoveHalfPageUp, MoveToEndOfLine,
-    MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward,
-    MoveWordForward, MoveWordForwardToEndOfWord,
+    MoveBackward, MoveDown, MoveForward, MoveHalfPageDown, MoveHalfPageUp, MovePageDown,
+    MovePageUp, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
+    MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord,
 };
 use self::search::StartSearch;
 pub use self::search::{
@@ -56,6 +56,8 @@ pub enum Action {
     MoveToMatchingBracket(MoveToMatchinBracket),
     MoveHalfPageDown(MoveHalfPageDown),
     MoveHalfPageUp(MoveHalfPageUp),
+    MovePageDown(MovePageDown),
+    MovePageUp(MovePageUp),
     InsertChar(InsertChar),
     LineBreak(LineBreak),
     AppendNewline(AppendNewline),
@@ -67,6 +69,8 @@ pub enum Action {
     DeleteLine(DeleteLine),
     DeleteToFirstCharOfLine(DeleteToFirstCharOfLine),
     DeleteToEndOfLine(DeleteToEndOfLine),
+    DeleteWordForward(DeleteWordForward),
+    DeleteWordBackward(DeleteWordBackward),
     DeleteSelection(DeleteSelection),
     JoinLineWithLineBelow(JoinLineWithLineBelow),
     SelectInnerBetween(SelectInnerBetween),

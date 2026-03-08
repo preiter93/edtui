@@ -101,6 +101,21 @@
 //!
 //! ![](resources/line_numbers.png)
 //!
+//! ## Single-Line Mode
+//!
+//! For search boxes and single-line input fields, enable single-line mode to block newline insertion:
+//!
+//! ```ignore
+//! use edtui::{EditorState, EditorView};
+//!
+//! let mut state = EditorState::default();
+//! EditorView::new(&mut state)
+//!         .single_line(true)
+//!         .render(area, buf);
+//! ```
+//!
+//! When enabled, newline insertion is blocked and pasting text with newlines will replace them with spaces.
+//!
 //! ## Mouse Events
 //!
 //! `Edtui` supports mouse input for moving the cursor and selecting text.
@@ -193,6 +208,8 @@
 //! | `b`                       | Move backward to the start of a word                     |
 //! | `ctrl+d`                  | Jump a half page down                                    |
 //! | `ctrl+u`                  | Jump a half page up                                      |
+//! | `PageDown`                | Jump a full page down                                    |
+//! | `PageUp`                  | Jump a full page up                                      |
 //! | `x`                       | Delete the character under the cursor                    |
 //! | `u`, `ctrl+r`             | Undo/Redo last action                                    |
 //! | `Esc`                     | Escape Visual mode                                       |
@@ -234,6 +251,10 @@
 //! | `Arrows`    | Navigation                              |
 //! | `Home`      | Move cursor to start of line            |
 //! | `End`       | Move cursor to end of line              |
+//! | `Ctrl+Left` | Move backward to the start of a word    |
+//! | `Ctrl+Right`| Move forward to the start of a word     |
+//! | `PageDown`  | Jump a full page down                   |
+//! | `PageUp`    | Jump a full page up                     |
 //! | `ctrl+u`    | Delete until first character            |
 //!
 //! ### Emacs Mode
@@ -250,8 +271,10 @@
 //! | `Ctrl+p`        | Move to previous line                                    |
 //! | `Ctrl+a`        | Move to start of line                                    |
 //! | `Ctrl+e`        | Move to end of line                                      |
-//! | `Ctrl+v`        | Page down                                                |
-//! | `Alt+v`         | Page up                                                  |
+//! | `Ctrl+v`        | Half page down                                           |
+//! | `Alt+v`         | Half page up                                             |
+//! | `PageDown`      | Full page down                                           |
+//! | `PageUp`        | Full page up                                             |
 //! | `Alt+f`         | Forward word                                             |
 //! | `Alt+b`         | Backward word                                            |
 //! | `Alt+<`         | Beginning of buffer                                      |
@@ -273,6 +296,8 @@
 //! | `Arrows`        | Navigation                                               |
 //! | `Home`          | Move to start of line                                    |
 //! | `End`           | Move to end of line                                      |
+//! | `Ctrl+Left`     | Move backward to the start of a word                     |
+//! | `Ctrl+Right`    | Move forward to the start of a word                      |
 //! | `Alt+e`         | Open in system editor (requires `system-editor` feature) |
 //! | `Ctrl+s`        | Start search                                             |
 //! | `Ctrl+s`        | Search mode: Go to next match                            |
@@ -300,7 +325,7 @@ mod state;
 mod view;
 
 pub use events::EditorEventHandler;
-pub use state::{mode::EditorMode, EditorState};
+pub use state::{highlight::Highlight, mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView, LineNumbers};
 
 #[cfg(feature = "syntax-highlighting")]
