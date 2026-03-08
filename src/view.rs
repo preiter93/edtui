@@ -12,7 +12,7 @@ use syntax_higlighting::SyntaxHighlighter;
 
 use crate::{
     helper::{max_col, rect_indent_y},
-    state::{selection::Selection, EditorState},
+    state::{highlight::Highlight, selection::Selection, EditorState},
     EditorMode, Index2,
 };
 
@@ -305,6 +305,7 @@ impl Widget for EditorView<'_, '_> {
             let spans = generate_spans(
                 line,
                 &selections,
+                &self.state.highlights,
                 row_index,
                 col_skips,
                 &self.theme.base,
@@ -420,10 +421,11 @@ impl Widget for EditorView<'_, '_> {
 fn generate_spans<'a>(
     line: &[char],
     selections: &[&Option<Selection>],
+    highlights: &[Highlight],
     row_index: usize,
     col_skips: usize,
     base_style: &Style,
-    highlight_style: &Style,
+    selection_style: &Style,
     #[cfg(feature = "syntax-highlighting")] syntax_highlighter: Option<&SyntaxHighlighter>,
 ) -> Vec<Span<'a>> {
     #[cfg(feature = "syntax-highlighting")]
@@ -431,19 +433,21 @@ fn generate_spans<'a>(
         return line_into_highlighted_spans_with_selections(
             line,
             selections,
+            highlights,
             syntax,
             row_index,
             col_skips,
             base_style,
-            highlight_style,
+            selection_style,
         );
     }
     line_into_spans_with_selections(
         line,
         selections,
+        highlights,
         row_index,
         col_skips,
         base_style,
-        highlight_style,
+        selection_style,
     )
 }

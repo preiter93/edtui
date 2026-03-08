@@ -315,7 +315,7 @@ mod state;
 mod view;
 
 pub use events::EditorEventHandler;
-pub use state::{mode::EditorMode, EditorState};
+pub use state::{highlight::Highlight, mode::EditorMode, EditorState};
 pub use view::{theme::EditorTheme, EditorStatusLine, EditorView, LineNumbers};
 
 #[cfg(feature = "syntax-highlighting")]

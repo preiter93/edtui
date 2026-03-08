@@ -5,6 +5,7 @@
 use crate::SyntaxHighlighter;
 use crate::{
     helper::{char_width, span_width, split_str_at},
+    state::highlight::Highlight,
     state::selection::Selection,
 };
 use jagged::Index2;
@@ -30,7 +31,6 @@ impl InternalSpan {
         spans.iter().fold(0, |sum, span| sum + span.content.len())
     }
 
-    /// Splits an [`InternalSpan`] at a [`Selection`]. Returns an array of spans.
     fn split_at_selection(
         spans: &[Self],
         row_index: usize,
@@ -42,6 +42,25 @@ impl InternalSpan {
         debug_assert!(end_col >= start_col, "{start_col} {end_col}");
 
         Some(Self::split_spans(spans, start_col, end_col, style))
+    }
+
+    fn split_at_highlight(
+        spans: &[Self],
+        row_index: usize,
+        highlight: &Highlight,
+    ) -> Option<Vec<InternalSpan>> {
+        let spans_len = InternalSpan::spans_len(spans);
+        let (start_col, end_col) = highlight.get_columns_in_row(row_index, spans_len)?;
+        if end_col < start_col {
+            return None;
+        }
+
+        Some(Self::split_spans(
+            spans,
+            start_col,
+            end_col,
+            &highlight.style,
+        ))
     }
 
     /// Splits spans by `crop_at` from the left.
@@ -165,73 +184,82 @@ impl From<InternalSpan> for Span<'_> {
 pub(crate) fn line_into_spans_with_selections<'a>(
     line: &[char],
     selections: &[&Option<Selection>],
+    highlights: &[Highlight],
     row_index: usize,
     col_skips: usize,
     base_style: &Style,
-    highlight_style: &Style,
+    selection_style: &Style,
 ) -> Vec<Span<'a>> {
     let mut spans = Vec::new();
-    let mut push_span = |span: String, is_selected: bool| {
-        let style = if is_selected {
-            highlight_style
-        } else {
-            base_style
-        };
-
-        spans.push(Span::styled(span, *style));
-    };
 
     let mut current_span = String::new();
-    let mut previous_is_selected = false;
+    let mut current_style = *base_style;
 
-    // Iterate over the line's characters, starting from the offset
     for (i, &ch) in line.iter().skip(col_skips).enumerate() {
         let position = Index2::new(row_index, col_skips + i);
 
-        // Check if the current position is selected by any selection
-        let current_is_selected = selections
+        // Determine style: selection takes priority, then highlights, then base
+        let new_style = if selections
             .iter()
-            .filter_map(|selection| selection.as_ref())
-            .any(|selection| selection.contains(&position));
+            .filter_map(|s| s.as_ref())
+            .any(|s| s.contains(&position))
+        {
+            *selection_style
+        } else if let Some(h) = highlights.iter().find(|h| h.contains(&position)) {
+            h.style
+        } else {
+            *base_style
+        };
 
-        // If the selection state has changed, push the current span and start a new one
-        if i != 0 && previous_is_selected != current_is_selected {
-            push_span(current_span.clone(), previous_is_selected);
-            current_span.clear();
+        if i != 0 && new_style != current_style {
+            spans.push(Span::styled(
+                std::mem::take(&mut current_span),
+                current_style,
+            ));
         }
 
-        previous_is_selected = current_is_selected;
+        current_style = new_style;
         current_span.push(ch);
     }
 
-    // Push the final span
-    push_span(current_span.clone(), previous_is_selected);
+    if !current_span.is_empty() {
+        spans.push(Span::styled(current_span, current_style));
+    }
 
     spans
 }
 
-/// Converts a line into a vector of `Span`s, applying styles based on the given selections
-/// and syntax highlighting.
 #[cfg(feature = "syntax-highlighting")]
 pub(crate) fn line_into_highlighted_spans_with_selections<'a>(
     line: &[char],
     selections: &[&Option<Selection>],
+    highlights: &[Highlight],
     syntax_highligher: &SyntaxHighlighter,
     row_index: usize,
     col_skips: usize,
     base_style: &Style,
-    highlight_style: &Style,
+    selection_style: &Style,
 ) -> Vec<Span<'a>> {
     let line: String = line.iter().collect();
     let mut internal_spans = syntax_highligher.highlight_line(&line, base_style);
 
+    // Apply custom highlights first
+    for highlight in highlights.iter().filter(|h| h.contains_row(row_index)) {
+        if let Some(new_spans) =
+            InternalSpan::split_at_highlight(&internal_spans, row_index, highlight)
+        {
+            internal_spans = new_spans;
+        }
+    }
+
+    // Apply selections (they take priority over highlights)
     let selections = selections
         .iter()
         .filter_map(|selection| selection.as_ref().filter(|s| s.contains_row(row_index)));
 
     for selection in selections {
         if let Some(new_span) =
-            InternalSpan::split_at_selection(&internal_spans, row_index, selection, highlight_style)
+            InternalSpan::split_at_selection(&internal_spans, row_index, selection, selection_style)
         {
             internal_spans = new_span;
         }
@@ -346,7 +374,8 @@ mod tests {
         let selections = vec![&selection];
 
         // when `line_into_spans_with_selections` is called
-        let spans = line_into_spans_with_selections(&line, &selections, 0, 0, &base, &hightlighted);
+        let spans =
+            line_into_spans_with_selections(&line, &selections, &[], 0, 0, &base, &hightlighted);
 
         // then span is split into highlighted spans
         assert_eq!(spans[0], Span::styled("Hel", hightlighted));

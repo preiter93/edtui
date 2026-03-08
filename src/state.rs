@@ -1,10 +1,12 @@
 //! The editors state
+pub mod highlight;
 pub mod mode;
 mod search;
 pub mod selection;
 mod undo;
 mod view;
 
+use self::highlight::Highlight;
 use self::search::SearchState;
 use self::view::ViewState;
 use self::{mode::EditorMode, selection::Selection, undo::Stack};
@@ -28,6 +30,9 @@ pub struct EditorState {
 
     /// Represents the selection in the editor, if any.
     pub selection: Option<Selection>,
+
+    /// Custom highlight ranges with their styles.
+    pub highlights: Vec<Highlight>,
 
     /// Internal view state of the editor.
     pub(crate) view: ViewState,
@@ -73,6 +78,7 @@ impl EditorState {
             cursor: Index2::new(0, 0),
             mode: EditorMode::Normal,
             selection: None,
+            highlights: Vec::new(),
             view: ViewState::default(),
             search: SearchState::default(),
             undo: Stack::new(),
@@ -151,6 +157,21 @@ impl EditorState {
     #[must_use]
     pub fn is_single_line(&self) -> bool {
         self.view.single_line
+    }
+
+    /// Add a custom highlight range.
+    pub fn add_highlight(&mut self, highlight: Highlight) {
+        self.highlights.push(highlight);
+    }
+
+    /// Clear all custom highlights.
+    pub fn clear_highlights(&mut self) {
+        self.highlights.clear();
+    }
+
+    /// Set all highlights, replacing any existing ones.
+    pub fn set_highlights(&mut self, highlights: Vec<Highlight>) {
+        self.highlights = highlights;
     }
 }
 
