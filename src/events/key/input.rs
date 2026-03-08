@@ -183,19 +183,19 @@ impl Modifiers {
 
     /// Returns true if Ctrl+Alt are both pressed (typical AltGr representation).
     #[must_use]
-    pub fn is_ctrl_alt(&self) -> bool {
+    pub(crate) fn is_ctrl_alt(&self) -> bool {
         self.ctrl && self.alt
     }
 
     /// Returns true if Alt is pressed (without Ctrl).
     #[must_use]
-    pub fn is_alt_only(&self) -> bool {
+    pub(crate) fn is_alt_only(&self) -> bool {
         self.alt && !self.ctrl
     }
 
     /// Returns modifiers with Ctrl and Alt stripped, preserving only Shift.
     #[must_use]
-    pub fn without_ctrl_alt(&self) -> Self {
+    pub(crate) fn without_ctrl_alt(&self) -> Self {
         Self {
             ctrl: false,
             alt: false,
