@@ -364,12 +364,15 @@ impl Execute for MovePageDown {
     fn execute(&mut self, state: &mut EditorState) {
         let jump_rows = state.view.num_rows;
         let max_viewport_y = state.lines.len().saturating_sub(jump_rows);
+        let old_viewport_y = state.view.viewport.y;
 
-        // Scroll viewport down
         state.view.viewport.y = min(state.view.viewport.y + jump_rows, max_viewport_y);
 
-        // Cursor at top of viewport
-        state.cursor.row = state.view.viewport.y;
+        if old_viewport_y == max_viewport_y {
+            state.cursor.row = state.lines.last_row_index();
+        } else {
+            state.cursor.row = state.view.viewport.y;
+        }
 
         if state.mode == EditorMode::Visual {
             set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
@@ -383,13 +386,16 @@ pub struct MovePageUp();
 impl Execute for MovePageUp {
     fn execute(&mut self, state: &mut EditorState) {
         let jump_rows = state.view.num_rows;
+        let old_viewport_y = state.view.viewport.y;
 
-        // Scroll viewport up
         state.view.viewport.y = state.view.viewport.y.saturating_sub(jump_rows);
 
-        // Cursor at bottom of viewport
-        let last_visible_row = state.view.viewport.y + jump_rows.saturating_sub(1);
-        state.cursor.row = min(last_visible_row, state.lines.last_row_index());
+        if old_viewport_y == 0 {
+            state.cursor.row = 0;
+        } else {
+            let last_visible_row = state.view.viewport.y + jump_rows.saturating_sub(1);
+            state.cursor.row = min(last_visible_row, state.lines.last_row_index());
+        }
 
         if state.mode == EditorMode::Visual {
             set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
@@ -657,6 +663,11 @@ mod tests {
         MovePageDown().execute(&mut state);
         assert_eq!(state.view.viewport.y, 7);
         assert_eq!(state.cursor.row, 7); // cursor at screen row 0
+
+        // Page down again: already at bottom, cursor moves to last line
+        MovePageDown().execute(&mut state);
+        assert_eq!(state.view.viewport.y, 7);
+        assert_eq!(state.cursor.row, 9); // cursor at last line
     }
 
     #[test]
@@ -683,6 +694,11 @@ mod tests {
         MovePageUp().execute(&mut state);
         assert_eq!(state.view.viewport.y, 0);
         assert_eq!(state.cursor.row, 2); // cursor at screen row 2 (bottom)
+
+        // Page up again: already at top, cursor moves to first line
+        MovePageUp().execute(&mut state);
+        assert_eq!(state.view.viewport.y, 0);
+        assert_eq!(state.cursor.row, 0); // cursor at first line
     }
 
     #[test]
