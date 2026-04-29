@@ -219,6 +219,7 @@ falling back to a platform-specific default if neither is set.
 | `gg`                      | Move cursor to the first row                             |
 | `G `                      | Move cursor to the last row                              |
 | `%`                       | Move cursor to closing/opening bracket                   |
+| `{,}`                       | Move cursor to next/previous paragraph                |
 | `a`                       | Append after the cursor                                  |
 | `A`                       | Append at the end of the line                            |
 | `o`                       | Add a new line below and enter Insert mode               |
