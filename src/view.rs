@@ -293,8 +293,8 @@ impl Widget for EditorView<'_, '_> {
         let line_numbers_enabled = line_numbers != LineNumbers::None;
         let is_relative = line_numbers == LineNumbers::Relative;
 
-        let mut row_index = offset_y;
-        for line in lines.iter_row().skip(row_index) {
+        let row_index = offset_y;
+        for (row_index, line) in (offset_y..).zip(lines.iter_row().skip(row_index)) {
             if content_area.height == 0 {
                 break;
             }
@@ -383,8 +383,6 @@ impl Widget for EditorView<'_, '_> {
                 render_line.render(content_area, buf, tab_width);
                 rect_indent_y(content_area, num_lines)
             };
-
-            row_index += 1;
         }
 
         // Compute the final cursor position.

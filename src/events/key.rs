@@ -16,11 +16,11 @@ use crate::actions::{
     Action, AppendCharToSearch, AppendNewline, Chainable, ChangeInnerBetween, ChangeInnerWord,
     ChangeSelection, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection, Execute,
     FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak,
-    MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst,
-    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
-    MoveWordForwardToEndOfWord, MoveParagraphForward, MoveParagraphBackward,
-    Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
-    SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, Undo,
+    MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveParagraphBackward,
+    MoveParagraphForward, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine,
+    MoveUp, MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar,
+    RemoveCharFromSearch, SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
+    StopSearch, SwitchMode, Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};

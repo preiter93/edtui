@@ -24,9 +24,9 @@ pub use self::delete::{
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
     MoveBackward, MoveDown, MoveForward, MoveHalfPageDown, MoveHalfPageUp, MovePageDown,
-    MovePageUp, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
-    MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, MoveParagraphForward,
-    MoveParagraphBackward,
+    MovePageUp, MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
+    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
+    MoveWordForwardToEndOfWord,
 };
 use self::search::StartSearch;
 pub use self::search::{
