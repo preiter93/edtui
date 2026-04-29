@@ -18,7 +18,8 @@ use crate::actions::{
     FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak,
     MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveToEndOfLine, MoveToFirst,
     MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
-    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
+    MoveWordForwardToEndOfWord, MoveParagraphForward, MoveParagraphBackward,
+    Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
     SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, Undo,
 };
 use crate::events::KeyInput;
@@ -433,6 +434,23 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::v(vec![KeyInput::new('%')]),
             MoveToMatchinBracket().into(),
+        ),
+        // Move to next/previous paragraph boundary
+        (
+            KeyEventRegister::n(vec![KeyInput::new('}')]),
+            MoveParagraphForward().into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::new('}')]),
+            MoveParagraphForward().into(),
+        ),
+        (
+            KeyEventRegister::n(vec![KeyInput::new('{')]),
+            MoveParagraphBackward().into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::new('{')]),
+            MoveParagraphBackward().into(),
         ),
         // Append/insert new line and switch into insert mode
         (

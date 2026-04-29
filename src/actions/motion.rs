@@ -403,6 +403,67 @@ impl Execute for MovePageUp {
     }
 }
 
+/// Move to the next paragraph boundary (Vim `}`).
+/// A paragraph boundary is the first blank line after a block of non-blank
+/// lines, or the end of the buffer.
+#[derive(Clone, Debug, Copy)]
+pub struct MoveParagraphForward();
+
+impl Execute for MoveParagraphForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        let last = state.lines.last_row_index();
+        let mut row = state.cursor.row;
+
+        if !state.lines.is_last_row(state.cursor) {
+            while row < last && state.lines.is_empty_row(row).unwrap_or(true) {
+                row += 1;
+            }
+            while row < last && !state.lines.is_empty_row(row).unwrap_or(true) {
+                row += 1;
+            }
+
+            state.cursor.row = row;
+        }
+
+        if state.lines.is_last_row(state.cursor) {
+            state.cursor.col = max_col_normal(&state.lines, &state.cursor);
+        } else {
+            state.cursor.col = 0;
+        };
+
+        if state.mode == EditorMode::Visual {
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+        }
+    }
+}
+
+/// Move to the previous paragraph boundary (Vim `{`).
+#[derive(Clone, Debug, Copy)]
+pub struct MoveParagraphBackward();
+
+impl Execute for MoveParagraphBackward {
+    fn execute(&mut self, state: &mut EditorState) {
+        let mut row = state.cursor.row;
+
+        if !state.lines.is_first_row(state.cursor) {
+            while row > 0 && state.lines.is_empty_row(row).unwrap_or(true) {
+                row -= 1;
+            }
+            while row > 0 && !state.lines.is_empty_row(row).unwrap_or(true) {
+                row -= 1;
+            }
+
+            state.cursor.row = row;
+        }
+
+        state.cursor.col = 0;
+
+        if state.mode == EditorMode::Visual {
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+        }
+    }
+}
+
 #[derive(Debug, Clone, Eq)]
 pub(crate) enum CharacterClass {
     Unknown,
@@ -773,5 +834,137 @@ mod tests {
 
         MoveToFirst().execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 1));
+    }
+
+    fn paragraph_state() -> EditorState {
+        // Lines:
+        //   0: "first paragraph"
+        //   1: "still first"
+        //   2: ""
+        //   3: ""
+        //   4: ""
+        //   5: "second paragraph"
+        //   6: ""
+        //   7: ""
+        //   8: "third paragraph"
+        EditorState::new(Lines::from(
+            "first paragraph\nstill first\n\n\n\nsecond paragraph\n\n\nthird paragraph",
+        ))
+    }
+
+    #[test]
+    fn test_move_paragraph_forward() {
+        let mut state = paragraph_state();
+        assert_eq!(state.cursor, Index2::new(0, 0));
+
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(2, 0));
+
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(6, 0));
+
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(8, 14));
+
+        // Already at last line
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(8, 14));
+    }
+
+    #[test]
+    fn test_move_paragraph_backward() {
+        let mut state = paragraph_state();
+        state.cursor = Index2::new(8, 0);
+
+        MoveParagraphBackward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(7, 0));
+
+        MoveParagraphBackward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(4, 0));
+
+        MoveParagraphBackward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+
+        // Already at first line
+        MoveParagraphBackward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_move_paragraph_forward_from_middle() {
+        let mut state = paragraph_state();
+        state.cursor = Index2::new(1, 5);
+
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(2, 0));
+    }
+
+    #[test]
+    fn test_move_paragraph_backward_from_middle() {
+        let mut state = paragraph_state();
+        state.cursor = Index2::new(5, 5);
+
+        MoveParagraphBackward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(4, 0));
+    }
+
+    #[test]
+    fn test_move_paragraph_forward_visual_extends_selection() {
+        use crate::actions::SwitchMode;
+        let mut state = paragraph_state();
+        SwitchMode(EditorMode::Visual).execute(&mut state);
+
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(2, 0));
+        assert!(state.selection.is_some());
+        let sel = state.selection.unwrap();
+        assert_eq!(sel.start, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_move_paragraph_single_line() {
+        let mut state = EditorState::new(Lines::from("just one line"));
+
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 12));
+
+        MoveParagraphBackward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_move_paragraph_single_line_visual_selects_to_boundaries() {
+        use crate::actions::SwitchMode;
+        let mut state = EditorState::new(Lines::from("just one line"));
+        state.cursor = Index2::new(0, 5);
+        SwitchMode(EditorMode::Visual).execute(&mut state);
+
+        MoveParagraphBackward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        let sel = state.selection.clone().unwrap();
+        assert_eq!(sel.start, Index2::new(0, 5));
+        assert_eq!(sel.end, Index2::new(0, 0));
+
+        SwitchMode(EditorMode::Normal).execute(&mut state);
+        state.cursor = Index2::new(0, 5);
+        SwitchMode(EditorMode::Visual).execute(&mut state);
+
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor, Index2::new(0, 12));
+        let sel = state.selection.unwrap();
+        assert_eq!(sel.start, Index2::new(0, 5));
+        assert_eq!(sel.end, Index2::new(0, 12));
+    }
+
+    #[test]
+    fn test_move_paragraph_all_blank() {
+        let mut state = EditorState::new(Lines::from("\n\n\n"));
+        assert_eq!(state.cursor, Index2::new(0, 0));
+
+        MoveParagraphForward().execute(&mut state);
+        assert_eq!(state.cursor.row, 3);
+
+        MoveParagraphBackward().execute(&mut state);
+        assert_eq!(state.cursor.row, 0);
     }
 }
