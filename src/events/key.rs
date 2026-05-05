@@ -13,14 +13,14 @@ use crate::actions::search::StartSearch;
 #[cfg(feature = "system-editor")]
 use crate::actions::OpenSystemEditor;
 use crate::actions::{
-    Action, AppendCharToSearch, AppendNewline, Chainable, ChangeInnerBetween, ChangeInnerWord,
-    ChangeSelection, CopyLine, CopySelection, DeleteChar, DeleteLine, DeleteSelection, Execute,
-    FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak,
-    MoveBackward, MoveDown, MoveForward, MoveHalfPageUp, MoveParagraphBackward,
-    MoveParagraphForward, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine,
-    MoveUp, MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar,
-    RemoveCharFromSearch, SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
-    StopSearch, SwitchMode, Undo,
+    Action, AppendCharToSearch, AppendNewline, Chainable, ChangeInnerBetween, ChangeInnerBigWord,
+    ChangeInnerWord, ChangeSelection, CopyLine, CopySelection, DeleteChar, DeleteLine,
+    DeleteSelection, Execute, FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline,
+    JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp,
+    MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
+    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
+    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
+    SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};
@@ -503,6 +503,24 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::n(vec![KeyInput::new('d'), KeyInput::shift('W')]),
             DeleteBigWordForward(1).into(),
+        ),
+        // Delete inner word
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new('w'),
+            ]),
+            ChangeInnerWord.into(),
+        ),
+        // Delete inner big WORD
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::shift('W'),
+            ]),
+            ChangeInnerBigWord.into(),
         ),
         // Delete from the cursor to the end of the line
         (

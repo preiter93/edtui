@@ -35,8 +35,8 @@ pub use self::search::{
     SelectCurrentSearch, StopSearch,
 };
 pub use self::select::{
-    ChangeInnerBetween, ChangeInnerWord, ChangeSelection, SelectInnerBetween, SelectInnerWord,
-    SelectLine,
+    ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, SelectInnerBetween,
+    SelectInnerBigWord, SelectInnerWord, SelectLine,
 };
 
 #[enum_dispatch(Execute)]
@@ -82,6 +82,8 @@ pub enum Action {
     SelectInnerWord(SelectInnerWord),
     ChangeInnerBetween(ChangeInnerBetween),
     ChangeInnerWord(ChangeInnerWord),
+    SelectInnerBigWord(SelectInnerBigWord),
+    ChangeInnerBigWord(ChangeInnerBigWord),
     ChangeSelection(ChangeSelection),
     SelectLine(SelectLine),
     Undo(Undo),

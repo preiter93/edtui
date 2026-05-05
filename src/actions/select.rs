@@ -152,6 +152,59 @@ impl Execute for ChangeInnerWord {
 }
 
 #[derive(Clone, Debug, Copy)]
+pub struct SelectInnerBigWord;
+
+impl Execute for SelectInnerBigWord {
+    fn execute(&mut self, state: &mut EditorState) {
+        let row_index = state.cursor.row;
+        let Some(line) = state.lines.get(RowIndex::new(row_index)) else {
+            return;
+        };
+
+        let Some(len_col) = state.lines.len_col(state.cursor.row) else {
+            return;
+        };
+
+        let max_col_index = len_col.saturating_sub(1);
+        let start_col = state.cursor.col;
+        let start_is_whitespace =
+            CharacterClass::from(line.get(start_col)) == CharacterClass::Whitespace;
+
+        let boundary = |ch: &char| {
+            (CharacterClass::from(ch) == CharacterClass::Whitespace) != start_is_whitespace
+        };
+
+        let opening_predicate = |(ch, _): (&char, usize)| boundary(ch);
+        let closing_predicate = |(ch, _): (&char, usize)| boundary(ch);
+
+        if let Some(selection) = select_between(
+            &state.lines,
+            state.cursor,
+            opening_predicate,
+            closing_predicate,
+            |(_, col)| col == 0,
+            |(_, col)| col == max_col_index,
+        ) {
+            state.selection = Some(selection);
+        }
+    }
+}
+
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeInnerBigWord;
+
+impl Execute for ChangeInnerBigWord {
+    fn execute(&mut self, state: &mut EditorState) {
+        SelectInnerBigWord.execute(state);
+        if let Some(selection) = state.selection.take() {
+            state.capture();
+            let deleted = delete_selection(state, &selection);
+            state.clip.set_text(deleted.into());
+        }
+    }
+}
+
+#[derive(Clone, Debug, Copy)]
 pub struct ChangeInnerBetween {
     opening: char,
     closing: char,
@@ -465,5 +518,60 @@ mod tests {
 
         let want = Selection::new(Index2::new(0, 0), Index2::new(0, 4));
         assert_eq!(state.selection.unwrap(), want);
+    }
+
+    #[test]
+    fn test_change_inner_word() {
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.cursor = Index2::new(0, 1);
+
+        ChangeInnerWord.execute(&mut state);
+
+        assert_eq!(state.lines.to_string(), " World");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_change_inner_word_with_punctuation() {
+        let mut state = EditorState::new(Lines::from("foo.bar baz"));
+        state.cursor = Index2::new(0, 0);
+
+        ChangeInnerWord.execute(&mut state);
+
+        assert_eq!(state.lines.to_string(), ".bar baz");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_select_inner_big_word() {
+        let mut state = EditorState::new(Lines::from("foo.bar baz"));
+        state.cursor = Index2::new(0, 1);
+
+        SelectInnerBigWord.execute(&mut state);
+
+        let want = Selection::new(Index2::new(0, 0), Index2::new(0, 6));
+        assert_eq!(state.selection.unwrap(), want);
+    }
+
+    #[test]
+    fn test_change_inner_big_word() {
+        let mut state = EditorState::new(Lines::from("foo.bar baz"));
+        state.cursor = Index2::new(0, 1);
+
+        ChangeInnerBigWord.execute(&mut state);
+
+        assert_eq!(state.lines.to_string(), " baz");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_change_inner_big_word_on_punctuation() {
+        let mut state = EditorState::new(Lines::from("foo.bar baz"));
+        state.cursor = Index2::new(0, 3);
+
+        ChangeInnerBigWord.execute(&mut state);
+
+        assert_eq!(state.lines.to_string(), " baz");
+        assert_eq!(state.cursor, Index2::new(0, 0));
     }
 }
