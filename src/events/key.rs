@@ -3,8 +3,8 @@ pub(crate) mod input;
 
 use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::{
-    DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine, DeleteWordBackward,
-    DeleteWordForward,
+    DeleteBigWordForward, DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine,
+    DeleteWordBackward, DeleteWordForward,
 };
 use crate::actions::motion::{
     MoveHalfPageDown, MovePageDown, MovePageUp, MoveToFirstRow, MoveToLastRow,
@@ -493,6 +493,16 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::n(vec![KeyInput::new('d'), KeyInput::new('d')]),
             DeleteLine(1).into(),
+        ),
+        // Delete word forward
+        (
+            KeyEventRegister::n(vec![KeyInput::new('d'), KeyInput::new('w')]),
+            DeleteWordForward(1).into(),
+        ),
+        // Delete big WORD forward
+        (
+            KeyEventRegister::n(vec![KeyInput::new('d'), KeyInput::shift('W')]),
+            DeleteBigWordForward(1).into(),
         ),
         // Delete from the cursor to the end of the line
         (

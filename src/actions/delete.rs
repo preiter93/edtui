@@ -180,6 +180,50 @@ fn delete_word_forward(state: &mut EditorState) {
     delete_range(&mut state.lines, start, end, &mut state.clip);
 }
 
+/// Deletes from cursor forward to the next WORD boundary (Vim `dW`).
+/// A WORD is any sequence of non-whitespace characters.
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteBigWordForward(pub usize);
+
+impl Execute for DeleteBigWordForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+        state.capture();
+        for _ in 0..self.0 {
+            delete_big_word_forward(state);
+        }
+    }
+}
+
+fn delete_big_word_forward(state: &mut EditorState) {
+    let start = state.cursor;
+    let start_char = state.lines.get(start);
+
+    if start_char.is_none() {
+        if state.cursor.row + 1 < state.lines.len() {
+            state.lines.join_lines(state.cursor.row);
+        }
+        return;
+    }
+
+    let mut end = start;
+    let start_is_whitespace = CharacterClass::from(start_char) == CharacterClass::Whitespace;
+
+    for (ch, idx) in state.lines.iter().from(start) {
+        let is_whitespace = CharacterClass::from(ch) == CharacterClass::Whitespace;
+        if is_whitespace != start_is_whitespace {
+            break;
+        }
+        end = idx;
+    }
+    end.col += 1;
+
+    skip_whitespace(&state.lines, &mut end);
+    delete_range(&mut state.lines, start, end, &mut state.clip);
+}
+
 /// Deletes from cursor backward to start of previous word (Emacs Alt+Backspace).
 #[derive(Clone, Debug, Copy)]
 pub struct DeleteWordBackward(pub usize);
@@ -566,6 +610,38 @@ mod tests {
 
         DeleteWordForward(1).execute(&mut state);
         assert_eq!(state.lines.to_string(), "HeWorld");
+    }
+
+    #[test]
+    fn test_delete_big_word_forward() {
+        let mut state = EditorState::new(Lines::from("foo.bar baz"));
+        state.cursor = Index2::new(0, 0);
+
+        DeleteBigWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "baz");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_delete_big_word_forward_mid_word() {
+        let mut state = EditorState::new(Lines::from("foo.bar baz"));
+        state.cursor = Index2::new(0, 3);
+
+        DeleteBigWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "foobaz");
+    }
+
+    #[test]
+    fn test_delete_big_word_vs_small_word() {
+        let mut small = EditorState::new(Lines::from("foo.bar baz"));
+        small.cursor = Index2::new(0, 0);
+        DeleteWordForward(1).execute(&mut small);
+        assert_eq!(small.lines.to_string(), ".bar baz");
+
+        let mut big = EditorState::new(Lines::from("foo.bar baz"));
+        big.cursor = Index2::new(0, 0);
+        DeleteBigWordForward(1).execute(&mut big);
+        assert_eq!(big.lines.to_string(), "baz");
     }
 
     #[test]

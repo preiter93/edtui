@@ -18,8 +18,9 @@ pub use system_editor::OpenSystemEditor;
 
 pub use self::cpaste::{CopyLine, CopySelection, Paste};
 pub use self::delete::{
-    DeleteChar, DeleteCharForward, DeleteLine, DeleteSelection, DeleteToFirstCharOfLine,
-    DeleteWordBackward, DeleteWordForward, JoinLineWithLineBelow, RemoveChar, ReplaceChar,
+    DeleteBigWordForward, DeleteChar, DeleteCharForward, DeleteLine, DeleteSelection,
+    DeleteToFirstCharOfLine, DeleteWordBackward, DeleteWordForward, JoinLineWithLineBelow,
+    RemoveChar, ReplaceChar,
 };
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
@@ -73,6 +74,7 @@ pub enum Action {
     DeleteToFirstCharOfLine(DeleteToFirstCharOfLine),
     DeleteToEndOfLine(DeleteToEndOfLine),
     DeleteWordForward(DeleteWordForward),
+    DeleteBigWordForward(DeleteBigWordForward),
     DeleteWordBackward(DeleteWordBackward),
     DeleteSelection(DeleteSelection),
     JoinLineWithLineBelow(JoinLineWithLineBelow),
