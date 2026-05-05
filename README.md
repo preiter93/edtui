@@ -227,6 +227,10 @@ falling back to a platform-specific default if neither is set.
 | `J`                       | Join current line with the line below                    |
 | `d`                       | Delete the selection (Visual mode)                       |
 | `dd`                      | Delete the current line                                  |
+| `dw`                      | Delete word forward                                      |
+| `dW`                      | Delete WORD forward (whitespace-delimited)                |
+| `diw`                     | Delete inner word                                        |
+| `diW`                     | Delete inner WORD (whitespace-delimited)                  |
 | `D`                       | Delete to the end of the line                            |
 | `viw`                     | Select between word.                                     |
 | `ciw`                     | Change between word.                                     |
