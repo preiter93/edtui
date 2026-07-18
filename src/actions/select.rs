@@ -39,40 +39,48 @@ impl Execute for SelectInnerBetween {
     }
 }
 
+fn select_inner_motion<F>(state: &mut EditorState, is_boundary: F)
+where
+    F: Fn(&char) -> bool,
+{
+    let row_index = state.cursor.row;
+    if state.lines.get(RowIndex::new(row_index)).is_none() {
+        return;
+    }
+
+    let Some(len_col) = state.lines.len_col(state.cursor.row) else {
+        return;
+    };
+
+    let max_col_index = len_col.saturating_sub(1);
+
+    let opening_predicate = |(ch, _): (&char, usize)| is_boundary(ch);
+    let closing_predicate = |(ch, _): (&char, usize)| is_boundary(ch);
+
+    if let Some(selection) = select_between(
+        &state.lines,
+        state.cursor,
+        opening_predicate,
+        closing_predicate,
+        |(_, col)| col == 0,
+        |(_, col)| col == max_col_index,
+    ) {
+        state.selection = Some(selection);
+    }
+}
+
 #[derive(Clone, Debug, Copy)]
 pub struct SelectInnerWord;
 
 impl Execute for SelectInnerWord {
     fn execute(&mut self, state: &mut EditorState) {
-        let row_index = state.cursor.row;
-        let Some(line) = state.lines.get(RowIndex::new(row_index)) else {
+        let Some(line) = state.lines.get(RowIndex::new(state.cursor.row)) else {
             return;
         };
 
-        let Some(len_col) = state.lines.len_col(state.cursor.row) else {
-            return;
-        };
+        let start_class = CharacterClass::from(line.get(state.cursor.col));
 
-        let max_col_index = len_col.saturating_sub(1);
-
-        let start_col = state.cursor.col;
-        let start_char_class = CharacterClass::from(line.get(start_col));
-
-        let opening_predicate =
-            |(ch, _): (&char, usize)| CharacterClass::from(ch) != start_char_class.clone();
-        let closing_predicate =
-            |(ch, _): (&char, usize)| CharacterClass::from(ch) != start_char_class.clone();
-
-        if let Some(selection) = select_between(
-            &state.lines,
-            state.cursor,
-            opening_predicate,
-            closing_predicate,
-            |(_, col)| col == 0,
-            |(_, col)| col == max_col_index,
-        ) {
-            state.selection = Some(selection);
-        }
+        select_inner_motion(state, move |ch| CharacterClass::from(ch) != start_class);
     }
 }
 
@@ -156,37 +164,16 @@ pub struct SelectInnerBigWord;
 
 impl Execute for SelectInnerBigWord {
     fn execute(&mut self, state: &mut EditorState) {
-        let row_index = state.cursor.row;
-        let Some(line) = state.lines.get(RowIndex::new(row_index)) else {
+        let Some(line) = state.lines.get(RowIndex::new(state.cursor.row)) else {
             return;
         };
 
-        let Some(len_col) = state.lines.len_col(state.cursor.row) else {
-            return;
-        };
-
-        let max_col_index = len_col.saturating_sub(1);
-        let start_col = state.cursor.col;
         let start_is_whitespace =
-            CharacterClass::from(line.get(start_col)) == CharacterClass::Whitespace;
+            CharacterClass::from(line.get(state.cursor.col)) == CharacterClass::Whitespace;
 
-        let boundary = |ch: &char| {
+        select_inner_motion(state, move |ch| {
             (CharacterClass::from(ch) == CharacterClass::Whitespace) != start_is_whitespace
-        };
-
-        let opening_predicate = |(ch, _): (&char, usize)| boundary(ch);
-        let closing_predicate = |(ch, _): (&char, usize)| boundary(ch);
-
-        if let Some(selection) = select_between(
-            &state.lines,
-            state.cursor,
-            opening_predicate,
-            closing_predicate,
-            |(_, col)| col == 0,
-            |(_, col)| col == max_col_index,
-        ) {
-            state.selection = Some(selection);
-        }
+        });
     }
 }
 

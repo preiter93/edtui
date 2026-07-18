@@ -4,7 +4,9 @@ use super::Execute;
 use crate::{
     actions::motion::CharacterClass,
     clipboard::ClipboardTrait,
-    helper::{is_out_of_bounds, max_col_insert, skip_whitespace, skip_whitespace_rev},
+    helper::{
+        is_out_of_bounds, max_col_insert, max_col_normal, skip_whitespace, skip_whitespace_rev,
+    },
     state::selection::Selection,
     EditorState, Index2, Lines,
 };
@@ -154,22 +156,32 @@ impl Execute for DeleteWordForward {
     }
 }
 
-fn delete_word_forward(state: &mut EditorState) {
-    let start = state.cursor;
-    let start_char = state.lines.get(start);
+fn delete_motion_forward<F>(state: &mut EditorState, mut should_continue: F)
+where
+    F: FnMut(Option<&char>, Option<&char>) -> bool,
+{
+    let mut start = state.cursor;
+    let len_col = state.lines.len_col(start.row).unwrap_or_default();
 
-    if start_char.is_none() {
-        if state.cursor.row + 1 < state.lines.len() {
-            state.lines.join_lines(state.cursor.row);
+    // On an empty line there is nothing to delete
+    if len_col == 0 {
+        if start.row + 1 < state.lines.len() {
+            state.lines.join_lines(start.row);
         }
         return;
     }
 
+    // Clamp the cursor when it sits past the end of the line
+    start.col = start.col.min(max_col_normal(&state.lines, &start));
+    state.cursor = start;
+
+    let start_char = state.lines.get(start);
     let mut end = start;
-    let start_class = CharacterClass::from(start_char);
 
     for (ch, idx) in state.lines.iter().from(start) {
-        if CharacterClass::from(ch) != start_class {
+        // Stop at the end of the current line
+        // A forward word delete must not cross into the next line.
+        if idx.row != start.row || !should_continue(start_char, ch) {
             break;
         }
         end = idx;
@@ -178,6 +190,18 @@ fn delete_word_forward(state: &mut EditorState) {
 
     skip_whitespace(&state.lines, &mut end);
     delete_range(&mut state.lines, start, end, &mut state.clip);
+
+    state.cursor.col = state
+        .cursor
+        .col
+        .min(max_col_normal(&state.lines, &state.cursor));
+}
+
+/// Deletes from cursor forward to the next WORD boundary (Vim `dW`).
+fn delete_word_forward(state: &mut EditorState) {
+    delete_motion_forward(state, |a, b| {
+        CharacterClass::from(a) == CharacterClass::from(b)
+    });
 }
 
 /// Deletes from cursor forward to the next WORD boundary (Vim `dW`).
@@ -198,30 +222,11 @@ impl Execute for DeleteBigWordForward {
 }
 
 fn delete_big_word_forward(state: &mut EditorState) {
-    let start = state.cursor;
-    let start_char = state.lines.get(start);
-
-    if start_char.is_none() {
-        if state.cursor.row + 1 < state.lines.len() {
-            state.lines.join_lines(state.cursor.row);
-        }
-        return;
-    }
-
-    let mut end = start;
-    let start_is_whitespace = CharacterClass::from(start_char) == CharacterClass::Whitespace;
-
-    for (ch, idx) in state.lines.iter().from(start) {
-        let is_whitespace = CharacterClass::from(ch) == CharacterClass::Whitespace;
-        if is_whitespace != start_is_whitespace {
-            break;
-        }
-        end = idx;
-    }
-    end.col += 1;
-
-    skip_whitespace(&state.lines, &mut end);
-    delete_range(&mut state.lines, start, end, &mut state.clip);
+    delete_motion_forward(state, |a, b| {
+        let a_ws = CharacterClass::from(a) == CharacterClass::Whitespace;
+        let b_ws = CharacterClass::from(b) == CharacterClass::Whitespace;
+        a_ws == b_ws
+    });
 }
 
 /// Deletes from cursor backward to start of previous word (Emacs Alt+Backspace).
@@ -610,6 +615,42 @@ mod tests {
 
         DeleteWordForward(1).execute(&mut state);
         assert_eq!(state.lines.to_string(), "HeWorld");
+    }
+
+    #[test]
+    fn test_delete_word_forward_last_character() {
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.mode = EditorMode::Insert;
+        state.cursor = Index2::new(0, 10);
+
+        DeleteWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "Hello Worl");
+        assert_eq!(state.cursor, Index2::new(0, 9));
+
+        state.cursor = Index2::new(0, 10);
+        DeleteWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "Hello Wor");
+        assert_eq!(state.cursor, Index2::new(0, 8));
+    }
+
+    #[test]
+    fn test_delete_word_forward_does_not_cross_line() {
+        // Single char on the first line whose class matches the next line's
+        // first char must still be deleted (must not bleed into line below).
+        let mut state = EditorState::new(Lines::from("a\nHello"));
+        state.mode = EditorMode::Insert;
+        state.cursor = Index2::new(0, 0);
+
+        DeleteWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "\nHello");
+
+        // Same for a whitespace-delimited WORD delete.
+        let mut state = EditorState::new(Lines::from("a\nHello"));
+        state.mode = EditorMode::Insert;
+        state.cursor = Index2::new(0, 0);
+
+        DeleteBigWordForward(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), "\nHello");
     }
 
     #[test]

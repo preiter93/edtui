@@ -219,7 +219,7 @@ falling back to a platform-specific default if neither is set.
 | `gg`                      | Move cursor to the first row                             |
 | `G `                      | Move cursor to the last row                              |
 | `%`                       | Move cursor to closing/opening bracket                   |
-| `{,}`                       | Move cursor to next/previous paragraph                |
+| `{,}`                     | Move cursor to next/previous paragraph                   |
 | `a`                       | Append after the cursor                                  |
 | `A`                       | Append at the end of the line                            |
 | `o`                       | Add a new line below and enter Insert mode               |
@@ -228,9 +228,9 @@ falling back to a platform-specific default if neither is set.
 | `d`                       | Delete the selection (Visual mode)                       |
 | `dd`                      | Delete the current line                                  |
 | `dw`                      | Delete word forward                                      |
-| `dW`                      | Delete WORD forward (whitespace-delimited)                |
+| `dW`                      | Delete WORD forward (whitespace-delimited)               |
 | `diw`                     | Delete inner word                                        |
-| `diW`                     | Delete inner WORD (whitespace-delimited)                  |
+| `diW`                     | Delete inner WORD (whitespace-delimited)                 |
 | `D`                       | Delete to the end of the line                            |
 | `viw`                     | Select between word.                                     |
 | `ciw`                     | Change between word.                                     |
