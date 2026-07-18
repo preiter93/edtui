@@ -13,36 +13,66 @@ use crate::EditorMode;
 
 use super::{delete::delete_selection, Execute};
 
+/// Pastes the clipboard contents relative to the cursor.
+///
+/// With `before` set, characterwise text is inserted in front of the cursor
+/// and linewise text (clipboard starting with `\n`) opens a new line *above*
+/// the current one (mirroring Vim's `P`). Otherwise the text is pasted after
+/// the cursor / on the line below, matching Vim's `p`.
+fn paste(state: &mut EditorState, before: bool) {
+    let s = state.clip.get_text();
+    if s.is_empty() {
+        return;
+    }
+
+    state.capture();
+    state.clamp_column();
+
+    if state.view.single_line {
+        let s = s.replace('\n', " ").replace('\r', "");
+        if before {
+            insert_str(&mut state.lines, &mut state.cursor, &s);
+        } else {
+            append_str(&mut state.lines, &mut state.cursor, &s);
+        }
+        return;
+    }
+
+    if let Some(stripped) = s.strip_prefix('\n') {
+        let row = if before {
+            state.cursor.row
+        } else {
+            min(max_row(state), state.cursor.row + 1)
+        };
+        state.cursor = Index2::new(row, 0);
+        state.lines.insert(RowIndex::new(row), vec![]);
+        append_str(&mut state.lines, &mut state.cursor, stripped);
+    } else if before {
+        insert_str(&mut state.lines, &mut state.cursor, &s);
+    } else {
+        append_str(&mut state.lines, &mut state.cursor, &s);
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Paste;
 
 impl Execute for Paste {
     fn execute(&mut self, state: &mut EditorState) {
-        let s = state.clip.get_text();
-        if s.is_empty() {
-            return;
-        }
+        paste(state, false);
+    }
 
-        state.capture();
-        state.clamp_column();
+    fn is_repeatable(&self) -> bool {
+        true
+    }
+}
 
-        // In single-line mode, replace newlines with spaces
-        if state.view.single_line {
-            let s = s.replace('\n', " ").replace('\r', "");
-            append_str(&mut state.lines, &mut state.cursor, &s);
-            return;
-        }
+#[derive(Clone, Debug)]
+pub struct PasteBefore;
 
-        let s = if let Some(stripped) = s.strip_prefix('\n') {
-            state.cursor = Index2::new(min(max_row(state), state.cursor.row + 1), 0);
-            state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
-            stripped
-        } else {
-            state.clamp_column();
-            &s
-        };
-
-        append_str(&mut state.lines, &mut state.cursor, s);
+impl Execute for PasteBefore {
+    fn execute(&mut self, state: &mut EditorState) {
+        paste(state, true);
     }
 
     fn is_repeatable(&self) -> bool {
@@ -126,6 +156,32 @@ mod tests {
 
         assert_eq!(state.cursor, Index2::new(0, 3));
         assert_eq!(state.lines, Lines::from("HHelello World!\n\n123."));
+    }
+
+    #[test]
+    fn test_paste_before_characterwise() {
+        let mut state = test_state();
+        state.selection = Some(Selection::new(Index2::new(0, 0), Index2::new(0, 2)));
+
+        CopySelection.execute(&mut state);
+        PasteBefore.execute(&mut state);
+
+        // `P` inserts in front of the cursor, landing on the last pasted char.
+        assert_eq!(state.cursor, Index2::new(0, 2));
+        assert_eq!(state.lines, Lines::from("HelHello World!\n\n123."));
+    }
+
+    #[test]
+    fn test_paste_before_linewise() {
+        let mut state = test_state();
+        state.cursor = Index2::new(2, 1);
+        state.clip.set_text(String::from("\nnew line"));
+
+        PasteBefore.execute(&mut state);
+
+        // Linewise `P` opens a new line above the current row.
+        assert_eq!(state.cursor, Index2::new(2, 7));
+        assert_eq!(state.lines, Lines::from("Hello World!\n\nnew line\n123."));
     }
 
     #[test]

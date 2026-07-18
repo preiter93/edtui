@@ -267,7 +267,8 @@
 //! | `r`                       | Redo the last undone action                              |
 //! | `y`                       | Copy the selected text in visual mode                    |
 //! | `yy`                      | Copy the current line in normal mode                     |
-//! | `p`                       | Paste the copied text                                    |
+//! | `p`                       | Paste the copied text after the cursor                   |
+//! | `P`                       | Paste the copied text before the cursor                  |
 //! | `Home`                    | Move cursor to start of line                             |
 //! | `End`                     | Move cursor to end of line                               |
 //! | `ctrl+e`                  | Open in system editor (requires `system-editor` feature) |

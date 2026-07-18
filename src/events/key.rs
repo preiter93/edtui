@@ -21,9 +21,9 @@ use crate::actions::{
     JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp,
     MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
     MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
-    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, RepeatLastChange,
-    SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode,
-    TillForward, Undo,
+    MoveWordForwardToEndOfWord, Paste, PasteBefore, Redo, RemoveChar, RemoveCharFromSearch,
+    RepeatLastChange, SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
+    StopSearch, SwitchMode, TillForward, Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};
@@ -809,6 +809,10 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         ),
         // Paste
         (KeyEventRegister::n(vec![KeyInput::new('p')]), Paste.into()),
+        (
+            KeyEventRegister::n(vec![KeyInput::shift('P')]),
+            PasteBefore.into(),
+        ),
         (
             KeyEventRegister::v(vec![KeyInput::new('p')]),
             PasteOverSelection
