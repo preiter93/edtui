@@ -8,7 +8,7 @@ use crate::{
         is_out_of_bounds, max_col_insert, max_col_normal, skip_whitespace, skip_whitespace_rev,
     },
     state::selection::Selection,
-    EditorState, Index2, Lines,
+    EditorMode, EditorState, Index2, Lines,
 };
 
 /// Deletes a character at the current cursor position. Does not
@@ -156,8 +156,11 @@ impl Execute for DeleteWordForward {
     }
 }
 
-fn delete_motion_forward<F>(state: &mut EditorState, mut should_continue: F)
-where
+fn delete_motion_forward<F>(
+    state: &mut EditorState,
+    mut should_continue: F,
+    skip_trailing_whitespace: bool,
+) where
     F: FnMut(Option<&char>, Option<&char>) -> bool,
 {
     let mut start = state.cursor;
@@ -188,7 +191,9 @@ where
     }
     end.col += 1;
 
-    skip_whitespace(&state.lines, &mut end);
+    if skip_trailing_whitespace {
+        skip_whitespace(&state.lines, &mut end);
+    }
     delete_range(&mut state.lines, start, end, &mut state.clip);
 
     state.cursor.col = state
@@ -197,11 +202,13 @@ where
         .min(max_col_normal(&state.lines, &state.cursor));
 }
 
-/// Deletes from cursor forward to the next WORD boundary (Vim `dW`).
+/// Deletes from cursor forward to the next word boundary (Vim `dw`).
 fn delete_word_forward(state: &mut EditorState) {
-    delete_motion_forward(state, |a, b| {
-        CharacterClass::from(a) == CharacterClass::from(b)
-    });
+    delete_motion_forward(
+        state,
+        |a, b| CharacterClass::from(a) == CharacterClass::from(b),
+        true,
+    );
 }
 
 /// Deletes from cursor forward to the next WORD boundary (Vim `dW`).
@@ -222,11 +229,95 @@ impl Execute for DeleteBigWordForward {
 }
 
 fn delete_big_word_forward(state: &mut EditorState) {
-    delete_motion_forward(state, |a, b| {
-        let a_ws = CharacterClass::from(a) == CharacterClass::Whitespace;
-        let b_ws = CharacterClass::from(b) == CharacterClass::Whitespace;
-        a_ws == b_ws
-    });
+    delete_motion_forward(
+        state,
+        |a, b| {
+            let a_ws = CharacterClass::from(a) == CharacterClass::Whitespace;
+            let b_ws = CharacterClass::from(b) == CharacterClass::Whitespace;
+            a_ws == b_ws
+        },
+        true,
+    );
+}
+
+/// Deletes from the cursor to the end of the current word, without consuming
+/// trailing whitespace. This is the `cw` primitive, which in Vim behaves like
+/// `ce` rather than `dw`.
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteWordEnd(pub usize);
+
+impl Execute for DeleteWordEnd {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+        state.capture();
+        for _ in 0..self.0 {
+            delete_word_end(state);
+        }
+    }
+}
+
+fn delete_word_end(state: &mut EditorState) {
+    delete_motion_forward(
+        state,
+        |a, b| CharacterClass::from(a) == CharacterClass::from(b),
+        false,
+    );
+}
+
+/// Deletes from the cursor to the end of the current WORD, without consuming
+/// trailing whitespace. This is the `cW` primitive, which in Vim behaves like
+/// `cE` rather than `dW`. A WORD is any sequence of non-whitespace characters.
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteBigWordEnd(pub usize);
+
+impl Execute for DeleteBigWordEnd {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+        state.capture();
+        for _ in 0..self.0 {
+            delete_big_word_end(state);
+        }
+    }
+}
+
+fn delete_big_word_end(state: &mut EditorState) {
+    delete_motion_forward(
+        state,
+        |a, b| {
+            let a_ws = CharacterClass::from(a) == CharacterClass::Whitespace;
+            let b_ws = CharacterClass::from(b) == CharacterClass::Whitespace;
+            a_ws == b_ws
+        },
+        false,
+    );
+}
+
+/// Changes from the cursor to the end of the current word: deletes it and
+/// enters insert mode (Vim `cw`).
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeWord(pub usize);
+
+impl Execute for ChangeWord {
+    fn execute(&mut self, state: &mut EditorState) {
+        DeleteWordEnd(self.0).execute(state);
+        state.mode = EditorMode::Insert;
+    }
+}
+
+/// Changes from the cursor to the end of the current WORD: deletes it and
+/// enters insert mode (Vim `cW`).
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeBigWord(pub usize);
+
+impl Execute for ChangeBigWord {
+    fn execute(&mut self, state: &mut EditorState) {
+        DeleteBigWordEnd(self.0).execute(state);
+        state.mode = EditorMode::Insert;
+    }
 }
 
 /// Deletes from cursor backward to start of previous word (Emacs Alt+Backspace).
@@ -670,6 +761,40 @@ mod tests {
 
         DeleteBigWordForward(1).execute(&mut state);
         assert_eq!(state.lines.to_string(), "foobaz");
+    }
+
+    #[test]
+    fn test_delete_word_end_keeps_trailing_whitespace() {
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.cursor = Index2::new(0, 0);
+
+        DeleteWordEnd(1).execute(&mut state);
+        // Unlike `dw`, the trailing whitespace is preserved (Vim `cw` == `ce`).
+        assert_eq!(state.lines.to_string(), " World");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.mode, EditorMode::Normal);
+    }
+
+    #[test]
+    fn test_change_word_enters_insert_mode() {
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.cursor = Index2::new(0, 0);
+
+        ChangeWord(1).execute(&mut state);
+        assert_eq!(state.lines.to_string(), " World");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.mode, EditorMode::Insert);
+    }
+
+    #[test]
+    fn test_change_big_word_enters_insert_mode() {
+        let mut state = EditorState::new(Lines::from("foo.bar baz"));
+        state.cursor = Index2::new(0, 0);
+
+        ChangeBigWord(1).execute(&mut state);
+        // `cW` changes the whole WORD but keeps the trailing whitespace.
+        assert_eq!(state.lines.to_string(), " baz");
+        assert_eq!(state.mode, EditorMode::Insert);
     }
 
     #[test]

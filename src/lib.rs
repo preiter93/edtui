@@ -219,6 +219,7 @@
 //! | `gg`                      | Move cursor to the first row                             |
 //! | `G `                      | Move cursor to the last row                              |
 //! | `%`                       | Move cursor to closing/opening bracket                   |
+//! | `{,}`                     | Move cursor to next/previous paragraph                   |
 //! | `a`                       | Append after the cursor                                  |
 //! | `A`                       | Append at the end of the line                            |
 //! | `o`                       | Add a new line below and enter Insert mode               |
@@ -226,10 +227,18 @@
 //! | `J`                       | Join current line with the line below                    |
 //! | `d`                       | Delete the selection (Visual mode)                       |
 //! | `dd`                      | Delete the current line                                  |
+//! | `dw`                      | Delete word forward                                      |
+//! | `dW`                      | Delete WORD forward (whitespace-delimited)               |
+//! | `diw`                     | Delete inner word                                        |
+//! | `diW`                     | Delete inner WORD (whitespace-delimited)                 |
+//! | `cw`                      | Change to the end of the word                            |
+//! | `cW`                      | Change to the end of the WORD (whitespace-delimited)     |
 //! | `D`                       | Delete to the end of the line                            |
 //! | `viw`                     | Select between word.                                     |
 //! | `ciw`                     | Change between word.                                     |
+//! | `ciW`                     | Change between WORD (whitespace-delimited)               |
 //! | `vi` + `", ', (, [ or {`  | Select between delimiter `", ', (, [ or {`               |
+//! | `di` + `", ', (, [ or {`  | Delete between delimiter `", ', (, [ or {`               |
 //! | `ci` + `", ', (, [ or {`  | Change between delimiter `", ', (, [ or {`               |
 //! | `u`                       | Undo the last change                                     |
 //! | `r`                       | Redo the last undone action                              |
