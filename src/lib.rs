@@ -222,6 +222,8 @@
 //! | `w`                       | Move forward to the start of a word                      |
 //! | `e`                       | Move forward to the end of a word                        |
 //! | `b`                       | Move backward to the start of a word                     |
+//! | `f` + `<char>`            | Move to the next occurrence of `<char>` on the line      |
+//! | `t` + `<char>`            | Move just before the next occurrence of `<char>`         |
 //! | `ctrl+d`                  | Jump a half page down                                    |
 //! | `ctrl+u`                  | Jump a half page up                                      |
 //! | `PageDown`                | Jump a full page down                                    |
@@ -247,8 +249,12 @@
 //! | `dW`                      | Delete WORD forward (whitespace-delimited)               |
 //! | `diw`                     | Delete inner word                                        |
 //! | `diW`                     | Delete inner WORD (whitespace-delimited)                 |
+//! | `df` + `<char>`           | Delete up to and including the next `<char>` on the line |
+//! | `dt` + `<char>`           | Delete up to (but not including) the next `<char>`       |
 //! | `cw`                      | Change to the end of the word                            |
 //! | `cW`                      | Change to the end of the WORD (whitespace-delimited)     |
+//! | `cf` + `<char>`           | Change up to and including the next `<char>` on the line |
+//! | `ct` + `<char>`           | Change up to (but not including) the next `<char>`       |
 //! | `D`                       | Delete to the end of the line                            |
 //! | `viw`                     | Select between word.                                     |
 //! | `ciw`                     | Change between word.                                     |

@@ -18,21 +18,21 @@ use motion::{MoveToFirstRow, MoveToLastRow};
 pub use system_editor::OpenSystemEditor;
 
 pub use self::change::{
-    ChangeBigWord, ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection,
-    ChangeWord,
+    ChangeBigWord, ChangeFindForward, ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord,
+    ChangeSelection, ChangeTillForward, ChangeWord,
 };
 pub use self::cpaste::{CopyLine, CopySelection, Paste};
 pub use self::delete::{
-    DeleteBigWordEnd, DeleteBigWordForward, DeleteChar, DeleteCharForward, DeleteLine,
-    DeleteSelection, DeleteToFirstCharOfLine, DeleteWordBackward, DeleteWordEnd, DeleteWordForward,
-    JoinLineWithLineBelow, RemoveChar, ReplaceChar,
+    DeleteBigWordEnd, DeleteBigWordForward, DeleteChar, DeleteCharForward, DeleteFindForward,
+    DeleteLine, DeleteSelection, DeleteTillForward, DeleteToFirstCharOfLine, DeleteWordBackward,
+    DeleteWordEnd, DeleteWordForward, JoinLineWithLineBelow, RemoveChar, ReplaceChar,
 };
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
-    MoveBackward, MoveDown, MoveForward, MoveHalfPageDown, MoveHalfPageUp, MovePageDown,
-    MovePageUp, MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
-    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
-    MoveWordForwardToEndOfWord,
+    FindForward, MoveBackward, MoveDown, MoveForward, MoveHalfPageDown, MoveHalfPageUp,
+    MovePageDown, MovePageUp, MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine,
+    MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward,
+    MoveWordForward, MoveWordForwardToEndOfWord, TillForward,
 };
 use self::search::StartSearch;
 pub use self::search::{
@@ -67,6 +67,8 @@ pub enum Action {
     MovePageUp(MovePageUp),
     MoveParagraphForward(MoveParagraphForward),
     MoveParagraphBackward(MoveParagraphBackward),
+    FindForward(FindForward),
+    TillForward(TillForward),
     InsertChar(InsertChar),
     LineBreak(LineBreak),
     AppendNewline(AppendNewline),
@@ -80,10 +82,14 @@ pub enum Action {
     DeleteToEndOfLine(DeleteToEndOfLine),
     DeleteWordForward(DeleteWordForward),
     DeleteBigWordForward(DeleteBigWordForward),
+    DeleteFindForward(DeleteFindForward),
+    DeleteTillForward(DeleteTillForward),
     DeleteWordEnd(DeleteWordEnd),
     DeleteBigWordEnd(DeleteBigWordEnd),
     ChangeWord(ChangeWord),
     ChangeBigWord(ChangeBigWord),
+    ChangeFindForward(ChangeFindForward),
+    ChangeTillForward(ChangeTillForward),
     DeleteWordBackward(DeleteWordBackward),
     DeleteSelection(DeleteSelection),
     JoinLineWithLineBelow(JoinLineWithLineBelow),
@@ -125,6 +131,13 @@ pub trait Execute {
     /// Whether this action can be replayed by the dot-repeat command.
     fn is_repeatable(&self) -> bool {
         false
+    }
+
+    /// Returns a handle to this action's character argument if it takes one
+    /// (like `f`/`t`). While the inner value is `None`, the action is still
+    /// waiting for the key handler to supply the next keystroke through it.
+    fn char_arg(&mut self) -> Option<&mut Option<char>> {
+        None
     }
 }
 

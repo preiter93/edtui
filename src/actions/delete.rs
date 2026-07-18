@@ -2,7 +2,7 @@ use jagged::index::RowIndex;
 
 use super::Execute;
 use crate::{
-    actions::motion::CharacterClass,
+    actions::motion::{find_char_forward, CharacterClass},
     clipboard::ClipboardTrait,
     helper::{
         is_out_of_bounds, max_col_insert, max_col_normal, skip_whitespace, skip_whitespace_rev,
@@ -473,6 +473,76 @@ impl Execute for DeleteToEndOfLine {
 
     fn is_repeatable(&self) -> bool {
         true
+    }
+}
+
+/// Deletes from the cursor up to and including the next occurrence of a
+/// character on the current line (Vim `df<char>`). Does nothing if the
+/// character is not found.
+///
+/// The target is `None` until the key handler supplies the next keystroke via
+/// [`Execute::char_arg`].
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteFindForward(pub Option<char>);
+
+impl Execute for DeleteFindForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        let Some(target_char) = self.0 else {
+            return;
+        };
+        let Some(target) = find_char_forward(state, target_char) else {
+            return;
+        };
+        state.capture();
+        let Some(row) = state.lines.get_mut(RowIndex::new(state.cursor.row)) else {
+            return;
+        };
+        let deleted = row.drain(state.cursor.col..=target).collect();
+        state.clip.set_text(deleted);
+        state.clamp_column();
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
+
+    fn char_arg(&mut self) -> Option<&mut Option<char>> {
+        Some(&mut self.0)
+    }
+}
+
+/// Deletes from the cursor up to (but not including) the next occurrence of a
+/// character on the current line (Vim `dt<char>`). Does nothing if the
+/// character is not found.
+///
+/// The target is `None` until the key handler supplies the next keystroke via
+/// [`Execute::char_arg`].
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteTillForward(pub Option<char>);
+
+impl Execute for DeleteTillForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        let Some(target_char) = self.0 else {
+            return;
+        };
+        let Some(target) = find_char_forward(state, target_char) else {
+            return;
+        };
+        state.capture();
+        let Some(row) = state.lines.get_mut(RowIndex::new(state.cursor.row)) else {
+            return;
+        };
+        let deleted = row.drain(state.cursor.col..target).collect();
+        state.clip.set_text(deleted);
+        state.clamp_column();
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
+
+    fn char_arg(&mut self) -> Option<&mut Option<char>> {
+        Some(&mut self.0)
     }
 }
 

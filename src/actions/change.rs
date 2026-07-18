@@ -4,7 +4,10 @@
 //! command delegates to the corresponding delete primitive and then switches to
 //! insert mode, mirroring Vim's `c` operator.
 
-use super::delete::{delete_selection, DeleteBigWordEnd, DeleteWordEnd};
+use super::delete::{
+    delete_selection, DeleteBigWordEnd, DeleteFindForward, DeleteTillForward, DeleteWordEnd,
+};
+use super::motion::find_char_forward;
 use super::select::{DeleteInnerBetween, DeleteInnerBigWord, DeleteInnerWord};
 use super::Execute;
 use crate::clipboard::ClipboardTrait;
@@ -55,6 +58,66 @@ impl Execute for ChangeInnerWord {
 
     fn is_repeatable(&self) -> bool {
         true
+    }
+}
+
+/// Changes from the cursor up to and including the next occurrence of a
+/// character on the line: deletes it and enters insert mode (Vim `cf<char>`).
+/// Does nothing if the character is not found.
+///
+/// The target is `None` until the key handler supplies the next keystroke via
+/// [`Execute::char_arg`].
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeFindForward(pub Option<char>);
+
+impl Execute for ChangeFindForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        let Some(target) = self.0 else {
+            return;
+        };
+        if find_char_forward(state, target).is_none() {
+            return;
+        }
+        DeleteFindForward(self.0).execute(state);
+        state.mode = EditorMode::Insert;
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
+
+    fn char_arg(&mut self) -> Option<&mut Option<char>> {
+        Some(&mut self.0)
+    }
+}
+
+/// Changes from the cursor up to (but not including) the next occurrence of a
+/// character on the line: deletes it and enters insert mode (Vim `ct<char>`).
+/// Does nothing if the character is not found.
+///
+/// The target is `None` until the key handler supplies the next keystroke via
+/// [`Execute::char_arg`].
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeTillForward(pub Option<char>);
+
+impl Execute for ChangeTillForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        let Some(target) = self.0 else {
+            return;
+        };
+        if find_char_forward(state, target).is_none() {
+            return;
+        }
+        DeleteTillForward(self.0).execute(state);
+        state.mode = EditorMode::Insert;
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
+
+    fn char_arg(&mut self) -> Option<&mut Option<char>> {
+        Some(&mut self.0)
     }
 }
 
