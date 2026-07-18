@@ -8,7 +8,7 @@ use crate::{
         is_out_of_bounds, max_col_insert, max_col_normal, skip_whitespace, skip_whitespace_rev,
     },
     state::selection::Selection,
-    EditorMode, EditorState, Index2, Lines,
+    EditorState, Index2, Lines,
 };
 
 /// Deletes a character at the current cursor position. Does not
@@ -294,30 +294,6 @@ fn delete_big_word_end(state: &mut EditorState) {
         },
         false,
     );
-}
-
-/// Changes from the cursor to the end of the current word: deletes it and
-/// enters insert mode (Vim `cw`).
-#[derive(Clone, Debug, Copy)]
-pub struct ChangeWord(pub usize);
-
-impl Execute for ChangeWord {
-    fn execute(&mut self, state: &mut EditorState) {
-        DeleteWordEnd(self.0).execute(state);
-        state.mode = EditorMode::Insert;
-    }
-}
-
-/// Changes from the cursor to the end of the current WORD: deletes it and
-/// enters insert mode (Vim `cW`).
-#[derive(Clone, Debug, Copy)]
-pub struct ChangeBigWord(pub usize);
-
-impl Execute for ChangeBigWord {
-    fn execute(&mut self, state: &mut EditorState) {
-        DeleteBigWordEnd(self.0).execute(state);
-        state.mode = EditorMode::Insert;
-    }
 }
 
 /// Deletes from cursor backward to start of previous word (Emacs Alt+Backspace).
@@ -773,28 +749,6 @@ mod tests {
         assert_eq!(state.lines.to_string(), " World");
         assert_eq!(state.cursor, Index2::new(0, 0));
         assert_eq!(state.mode, EditorMode::Normal);
-    }
-
-    #[test]
-    fn test_change_word_enters_insert_mode() {
-        let mut state = EditorState::new(Lines::from("Hello World"));
-        state.cursor = Index2::new(0, 0);
-
-        ChangeWord(1).execute(&mut state);
-        assert_eq!(state.lines.to_string(), " World");
-        assert_eq!(state.cursor, Index2::new(0, 0));
-        assert_eq!(state.mode, EditorMode::Insert);
-    }
-
-    #[test]
-    fn test_change_big_word_enters_insert_mode() {
-        let mut state = EditorState::new(Lines::from("foo.bar baz"));
-        state.cursor = Index2::new(0, 0);
-
-        ChangeBigWord(1).execute(&mut state);
-        // `cW` changes the whole WORD but keeps the trailing whitespace.
-        assert_eq!(state.lines.to_string(), " baz");
-        assert_eq!(state.mode, EditorMode::Insert);
     }
 
     #[test]

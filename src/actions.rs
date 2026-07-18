@@ -1,4 +1,5 @@
 //! Editor actions such as move, insert, delete
+pub mod change;
 pub mod cpaste;
 pub mod delete;
 pub mod insert;
@@ -16,11 +17,15 @@ use motion::{MoveToFirstRow, MoveToLastRow};
 #[cfg(feature = "system-editor")]
 pub use system_editor::OpenSystemEditor;
 
+pub use self::change::{
+    ChangeBigWord, ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection,
+    ChangeWord,
+};
 pub use self::cpaste::{CopyLine, CopySelection, Paste};
 pub use self::delete::{
-    ChangeBigWord, ChangeWord, DeleteBigWordEnd, DeleteBigWordForward, DeleteChar,
-    DeleteCharForward, DeleteLine, DeleteSelection, DeleteToFirstCharOfLine, DeleteWordBackward,
-    DeleteWordEnd, DeleteWordForward, JoinLineWithLineBelow, RemoveChar, ReplaceChar,
+    DeleteBigWordEnd, DeleteBigWordForward, DeleteChar, DeleteCharForward, DeleteLine,
+    DeleteSelection, DeleteToFirstCharOfLine, DeleteWordBackward, DeleteWordEnd, DeleteWordForward,
+    JoinLineWithLineBelow, RemoveChar, ReplaceChar,
 };
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
@@ -35,9 +40,8 @@ pub use self::search::{
     SelectCurrentSearch, StopSearch,
 };
 pub use self::select::{
-    ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, DeleteInnerBetween,
-    DeleteInnerBigWord, DeleteInnerWord, SelectInnerBetween, SelectInnerBigWord, SelectInnerWord,
-    SelectLine,
+    DeleteInnerBetween, DeleteInnerBigWord, DeleteInnerWord, SelectInnerBetween,
+    SelectInnerBigWord, SelectInnerWord, SelectLine,
 };
 
 #[enum_dispatch(Execute)]

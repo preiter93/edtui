@@ -161,18 +161,6 @@ impl Execute for DeleteInnerWord {
     }
 }
 
-/// Changes the inner word under the cursor: deletes it and enters insert mode.
-/// This is the `ciw` primitive.
-#[derive(Clone, Debug, Copy)]
-pub struct ChangeInnerWord;
-
-impl Execute for ChangeInnerWord {
-    fn execute(&mut self, state: &mut EditorState) {
-        DeleteInnerWord.execute(state);
-        state.mode = EditorMode::Insert;
-    }
-}
-
 #[derive(Clone, Debug, Copy)]
 pub struct SelectInnerBigWord;
 
@@ -208,18 +196,6 @@ impl Execute for DeleteInnerBigWord {
     }
 }
 
-/// Changes the inner WORD under the cursor: deletes it and enters insert mode.
-/// This is the `ciW` primitive.
-#[derive(Clone, Debug, Copy)]
-pub struct ChangeInnerBigWord;
-
-impl Execute for ChangeInnerBigWord {
-    fn execute(&mut self, state: &mut EditorState) {
-        DeleteInnerBigWord.execute(state);
-        state.mode = EditorMode::Insert;
-    }
-}
-
 /// Deletes the text between the given delimiters, leaving the editor in
 /// normal mode. This is the `di<delim>` primitive.
 #[derive(Clone, Debug, Copy)]
@@ -247,28 +223,6 @@ impl Execute for DeleteInnerBetween {
     }
 }
 
-/// Changes the text between the given delimiters: deletes the inner content and
-/// enters insert mode. This is the `ci<delim>` primitive.
-#[derive(Clone, Debug, Copy)]
-pub struct ChangeInnerBetween {
-    opening: char,
-    closing: char,
-}
-
-impl ChangeInnerBetween {
-    #[must_use]
-    pub fn new(opening: char, closing: char) -> Self {
-        Self { opening, closing }
-    }
-}
-
-impl Execute for ChangeInnerBetween {
-    fn execute(&mut self, state: &mut EditorState) {
-        DeleteInnerBetween::new(self.opening, self.closing).execute(state);
-        state.mode = EditorMode::Insert;
-    }
-}
-
 #[derive(Clone, Debug, Copy)]
 pub struct SelectLine;
 
@@ -280,18 +234,6 @@ impl Execute for SelectLine {
             let end = Index2::new(row, len_col.saturating_sub(1));
             state.selection = Some(Selection::new(start, end).line_mode());
             state.mode = EditorMode::Visual;
-        }
-    }
-}
-
-#[derive(Clone, Debug, Copy)]
-pub struct ChangeSelection;
-impl Execute for ChangeSelection {
-    fn execute(&mut self, state: &mut EditorState) {
-        if let Some(selection) = state.selection.take() {
-            state.capture();
-            let deleted = delete_selection(state, &selection);
-            state.clip.set_text(deleted.into());
         }
     }
 }
@@ -550,18 +492,6 @@ mod tests {
     }
 
     #[test]
-    fn test_change_inner_between_enters_insert_mode() {
-        let mut state = EditorState::new(Lines::from("\"Hello\" World"));
-        state.cursor = Index2::new(0, 1);
-
-        ChangeInnerBetween::new('"', '"').execute(&mut state);
-
-        assert_eq!(state.lines.to_string(), "\"\" World");
-        assert_eq!(state.cursor, Index2::new(0, 1));
-        assert_eq!(state.mode, EditorMode::Insert);
-    }
-
-    #[test]
     fn test_delete_inner_between_stays_normal_mode() {
         let mut state = EditorState::new(Lines::from("\"Hello\" World"));
         state.cursor = Index2::new(0, 1);
@@ -586,18 +516,6 @@ mod tests {
     }
 
     #[test]
-    fn test_change_inner_word() {
-        let mut state = EditorState::new(Lines::from("Hello World"));
-        state.cursor = Index2::new(0, 1);
-
-        ChangeInnerWord.execute(&mut state);
-
-        assert_eq!(state.lines.to_string(), " World");
-        assert_eq!(state.cursor, Index2::new(0, 0));
-        assert_eq!(state.mode, EditorMode::Insert);
-    }
-
-    #[test]
     fn test_delete_inner_word_stays_normal_mode() {
         let mut state = EditorState::new(Lines::from("Hello World"));
         state.cursor = Index2::new(0, 1);
@@ -610,17 +528,6 @@ mod tests {
     }
 
     #[test]
-    fn test_change_inner_word_with_punctuation() {
-        let mut state = EditorState::new(Lines::from("foo.bar baz"));
-        state.cursor = Index2::new(0, 0);
-
-        ChangeInnerWord.execute(&mut state);
-
-        assert_eq!(state.lines.to_string(), ".bar baz");
-        assert_eq!(state.cursor, Index2::new(0, 0));
-    }
-
-    #[test]
     fn test_select_inner_big_word() {
         let mut state = EditorState::new(Lines::from("foo.bar baz"));
         state.cursor = Index2::new(0, 1);
@@ -629,27 +536,5 @@ mod tests {
 
         let want = Selection::new(Index2::new(0, 0), Index2::new(0, 6));
         assert_eq!(state.selection.unwrap(), want);
-    }
-
-    #[test]
-    fn test_change_inner_big_word() {
-        let mut state = EditorState::new(Lines::from("foo.bar baz"));
-        state.cursor = Index2::new(0, 1);
-
-        ChangeInnerBigWord.execute(&mut state);
-
-        assert_eq!(state.lines.to_string(), " baz");
-        assert_eq!(state.cursor, Index2::new(0, 0));
-    }
-
-    #[test]
-    fn test_change_inner_big_word_on_punctuation() {
-        let mut state = EditorState::new(Lines::from("foo.bar baz"));
-        state.cursor = Index2::new(0, 3);
-
-        ChangeInnerBigWord.execute(&mut state);
-
-        assert_eq!(state.lines.to_string(), " baz");
-        assert_eq!(state.cursor, Index2::new(0, 0));
     }
 }

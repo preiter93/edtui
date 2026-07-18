@@ -3,8 +3,8 @@ pub(crate) mod input;
 
 use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::{
-    ChangeBigWord, ChangeWord, DeleteBigWordForward, DeleteCharForward, DeleteToEndOfLine,
-    DeleteToFirstCharOfLine, DeleteWordBackward, DeleteWordForward,
+    DeleteBigWordForward, DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine,
+    DeleteWordBackward, DeleteWordForward,
 };
 use crate::actions::motion::{
     MoveHalfPageDown, MovePageDown, MovePageUp, MoveToFirstRow, MoveToLastRow,
@@ -13,15 +13,15 @@ use crate::actions::search::StartSearch;
 #[cfg(feature = "system-editor")]
 use crate::actions::OpenSystemEditor;
 use crate::actions::{
-    Action, AppendCharToSearch, AppendNewline, Chainable, ChangeInnerBetween, ChangeInnerBigWord,
-    ChangeInnerWord, ChangeSelection, CopyLine, CopySelection, DeleteChar, DeleteInnerBetween,
-    DeleteInnerBigWord, DeleteInnerWord, DeleteLine, DeleteSelection, Execute, FindFirst, FindNext,
-    FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward,
-    MoveDown, MoveForward, MoveHalfPageUp, MoveParagraphBackward, MoveParagraphForward,
-    MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
-    MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar,
-    RemoveCharFromSearch, SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
-    StopSearch, SwitchMode, Undo,
+    Action, AppendCharToSearch, AppendNewline, Chainable, ChangeBigWord, ChangeInnerBetween,
+    ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, ChangeWord, CopyLine, CopySelection,
+    DeleteChar, DeleteInnerBetween, DeleteInnerBigWord, DeleteInnerWord, DeleteLine,
+    DeleteSelection, Execute, FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline,
+    JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp,
+    MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
+    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
+    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
+    SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};
