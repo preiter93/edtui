@@ -1,12 +1,15 @@
 Unreleased
 ==========
 
+Released
+--------
+
+0.11.6 - 2026-07-18
+===================
+
 - fix: count hyphen as punctuation
 - feat: add find/till commands (`f`|`t`|`df`|`dt`|`cf`|`ct`|`vf`|`vt`)
 - feat: add PasteBefore command (`P`)
-
-Released
---------
 
 0.11.5 - 2026-07-18
 ===================

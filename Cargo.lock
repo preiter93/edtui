@@ -417,7 +417,7 @@ dependencies = [
 
 [[package]]
 name = "edtui"
-version = "0.11.5"
+version = "0.11.6"
 dependencies = [
  "arbitrary",
  "arboard",
