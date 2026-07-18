@@ -261,6 +261,7 @@ falling back to a platform-specific default if neither is set.
 | `y`                       | Copy the selected text in visual mode                    |
 | `yy`                      | Copy the current line in normal mode                     |
 | `p`                       | Paste the copied text                                    |
+| `.`                       | Repeat the last change                                   |
 | `Home`                    | Move cursor to start of line                             |
 | `End`                     | Move cursor to end of line                               |
 | `ctrl+e`                  | Open in system editor (requires `system-editor` feature) |

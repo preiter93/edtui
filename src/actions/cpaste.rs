@@ -44,6 +44,10 @@ impl Execute for Paste {
 
         append_str(&mut state.lines, &mut state.cursor, s);
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -65,6 +69,10 @@ impl Execute for PasteOverSelection {
             };
             insert_str(&mut state.lines, &mut state.cursor, &text);
         }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 

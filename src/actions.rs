@@ -100,6 +100,7 @@ pub enum Action {
     SelectLine(SelectLine),
     Undo(Undo),
     Redo(Redo),
+    RepeatLastChange(RepeatLastChange),
     Paste(Paste),
     PasteOverSelection(PasteOverSelection),
     CopySelection(CopySelection),
@@ -120,6 +121,11 @@ pub enum Action {
 #[enum_dispatch]
 pub trait Execute {
     fn execute(&mut self, state: &mut EditorState);
+
+    /// Whether this action can be replayed by the dot-repeat command.
+    fn is_repeatable(&self) -> bool {
+        false
+    }
 }
 
 pub trait Chainable {
@@ -137,6 +143,8 @@ pub struct SwitchMode(pub EditorMode);
 
 impl Execute for SwitchMode {
     fn execute(&mut self, state: &mut EditorState) {
+        let from_insert = state.mode == EditorMode::Insert;
+
         state.clamp_column();
         match self.0 {
             EditorMode::Normal => {
@@ -153,6 +161,23 @@ impl Execute for SwitchMode {
             EditorMode::Search => {}
         }
         state.mode = self.0;
+
+        if self.0 == EditorMode::Normal {
+            // When leaving insert mode, move the cursor one column left so it
+            // rests on the last typed character rather than the empty slot
+            // after it.
+            if from_insert && state.cursor.col > 0 {
+                state.cursor.col -= 1;
+            }
+
+            // Re-clamp so the cursor never lingers past the end of the line.
+            state.clamp_column();
+        }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        // Entering insert mode begins a repeatable insert session (`.`).
+        self.0 == EditorMode::Insert
     }
 }
 
@@ -162,6 +187,26 @@ pub struct Undo;
 impl Execute for Undo {
     fn execute(&mut self, state: &mut EditorState) {
         state.undo();
+    }
+}
+
+/// Repeats the last buffer-changing command (dot-repeat).
+#[derive(Clone, Debug)]
+pub struct RepeatLastChange;
+
+impl Execute for RepeatLastChange {
+    fn execute(&mut self, state: &mut EditorState) {
+        let Some(mut action) = state.last_change.clone() else {
+            return;
+        };
+        action.execute(state);
+
+        if let Some(text) = state.last_insert.clone() {
+            for c in text.chars() {
+                InsertChar(c).execute(state);
+            }
+            SwitchMode(EditorMode::Normal).execute(state);
+        }
     }
 }
 
@@ -196,6 +241,10 @@ impl Execute for Composed {
         for action in &mut self.0 {
             action.execute(state);
         }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        self.0.iter().any(Execute::is_repeatable)
     }
 }
 

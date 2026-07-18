@@ -38,6 +38,10 @@ impl Execute for RemoveChar {
             );
         }
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Replaces the character under the cursor with a given character.
@@ -56,6 +60,10 @@ impl Execute for ReplaceChar {
             *ch = self.0;
         };
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Deletes a character to the left of the current cursor. Deletes
@@ -70,6 +78,10 @@ impl Execute for DeleteChar {
         for _ in 0..self.0 {
             delete_char(&mut state.lines, &mut state.cursor);
         }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 
@@ -118,6 +130,10 @@ impl Execute for DeleteCharForward {
             delete_char_forward(&mut state.lines, &mut state.cursor);
         }
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 fn delete_char_forward(lines: &mut Lines, index: &mut Index2) {
@@ -153,6 +169,10 @@ impl Execute for DeleteWordForward {
         for _ in 0..self.0 {
             delete_word_forward(state);
         }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 
@@ -225,6 +245,10 @@ impl Execute for DeleteBigWordForward {
         for _ in 0..self.0 {
             delete_big_word_forward(state);
         }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 
@@ -310,6 +334,10 @@ impl Execute for DeleteWordBackward {
             delete_word_backward(state);
         }
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 fn delete_word_backward(state: &mut EditorState) {
@@ -384,6 +412,10 @@ impl Execute for DeleteLine {
             state.cursor.row = state.cursor.row.min(state.lines.len().saturating_sub(1));
         }
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Deletes from the current cursor position to the first non-whitespace character of the line
@@ -415,6 +447,10 @@ impl Execute for DeleteToFirstCharOfLine {
 
         state.cursor.col = anchor;
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Deletes from the current cursor position to the end of the line
@@ -434,6 +470,10 @@ impl Execute for DeleteToEndOfLine {
         state.cursor.col = state.cursor.col.saturating_sub(1);
         state.clip.set_text(deleted_chars.collect());
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Deletes the current selection.
@@ -448,6 +488,10 @@ impl Execute for DeleteSelection {
             state.clip.set_text(drained.into());
         }
         state.selection = None;
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 
@@ -468,6 +512,10 @@ impl Execute for JoinLineWithLineBelow {
         }
         state.capture();
         state.lines.join_lines(state.cursor.row);
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 

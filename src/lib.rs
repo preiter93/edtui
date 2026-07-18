@@ -256,6 +256,7 @@
 //! | `vi` + `", ', (, [ or {`  | Select between delimiter `", ', (, [ or {`               |
 //! | `di` + `", ', (, [ or {`  | Delete between delimiter `", ', (, [ or {`               |
 //! | `ci` + `", ', (, [ or {`  | Change between delimiter `", ', (, [ or {`               |
+//! | `.`                       | Repeat the last change                                   |
 //! | `u`                       | Undo the last change                                     |
 //! | `r`                       | Redo the last undone action                              |
 //! | `y`                       | Copy the selected text in visual mode                    |
