@@ -18,8 +18,9 @@ pub use system_editor::OpenSystemEditor;
 
 pub use self::cpaste::{CopyLine, CopySelection, Paste};
 pub use self::delete::{
-    DeleteChar, DeleteCharForward, DeleteLine, DeleteSelection, DeleteToFirstCharOfLine,
-    DeleteWordBackward, DeleteWordForward, JoinLineWithLineBelow, RemoveChar, ReplaceChar,
+    DeleteBigWordForward, DeleteChar, DeleteCharForward, DeleteLine, DeleteSelection,
+    DeleteToFirstCharOfLine, DeleteWordBackward, DeleteWordForward, JoinLineWithLineBelow,
+    RemoveChar, ReplaceChar,
 };
 pub use self::insert::{AppendNewline, InsertChar, InsertNewline, LineBreak};
 pub use self::motion::{
@@ -34,8 +35,8 @@ pub use self::search::{
     SelectCurrentSearch, StopSearch,
 };
 pub use self::select::{
-    ChangeInnerBetween, ChangeInnerWord, ChangeSelection, SelectInnerBetween, SelectInnerWord,
-    SelectLine,
+    ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, SelectInnerBetween,
+    SelectInnerBigWord, SelectInnerWord, SelectLine,
 };
 
 #[enum_dispatch(Execute)]
@@ -73,6 +74,7 @@ pub enum Action {
     DeleteToFirstCharOfLine(DeleteToFirstCharOfLine),
     DeleteToEndOfLine(DeleteToEndOfLine),
     DeleteWordForward(DeleteWordForward),
+    DeleteBigWordForward(DeleteBigWordForward),
     DeleteWordBackward(DeleteWordBackward),
     DeleteSelection(DeleteSelection),
     JoinLineWithLineBelow(JoinLineWithLineBelow),
@@ -80,6 +82,8 @@ pub enum Action {
     SelectInnerWord(SelectInnerWord),
     ChangeInnerBetween(ChangeInnerBetween),
     ChangeInnerWord(ChangeInnerWord),
+    SelectInnerBigWord(SelectInnerBigWord),
+    ChangeInnerBigWord(ChangeInnerBigWord),
     ChangeSelection(ChangeSelection),
     SelectLine(SelectLine),
     Undo(Undo),
