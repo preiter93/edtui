@@ -464,6 +464,75 @@ impl Execute for MoveParagraphBackward {
     }
 }
 
+/// Moves the cursor to the next occurrence of a character to the right on the
+/// current line (Vim `f`). Does nothing if the character is not found.
+///
+/// The target is `None` until the key handler supplies the next keystroke via
+/// [`Execute::char_arg`].
+#[derive(Clone, Debug, Copy)]
+pub struct FindForward(pub Option<char>);
+
+impl Execute for FindForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        let Some(target) = self.0 else {
+            return;
+        };
+        if let Some(col) = find_char_forward(state, target) {
+            state.cursor.col = col;
+            if state.mode == EditorMode::Visual {
+                set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+            }
+        }
+    }
+
+    fn char_arg(&mut self) -> Option<&mut Option<char>> {
+        Some(&mut self.0)
+    }
+}
+
+/// Moves the cursor to just before the next occurrence of a character to the
+/// right on the current line (Vim `t`). Does nothing if the character is not
+/// found.
+///
+/// The target is `None` until the key handler supplies the next keystroke via
+/// [`Execute::char_arg`].
+#[derive(Clone, Debug, Copy)]
+pub struct TillForward(pub Option<char>);
+
+impl Execute for TillForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        let Some(target) = self.0 else {
+            return;
+        };
+        if let Some(col) = find_char_forward(state, target) {
+            state.cursor.col = col.saturating_sub(1);
+            if state.mode == EditorMode::Visual {
+                set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+            }
+        }
+    }
+
+    fn char_arg(&mut self) -> Option<&mut Option<char>> {
+        Some(&mut self.0)
+    }
+}
+
+/// Returns the column of the next occurrence of `target` to the right of the
+/// cursor on the current line, if any.
+pub(crate) fn find_char_forward(state: &EditorState, target: char) -> Option<usize> {
+    let row = state.cursor.row;
+    let start = Index2::new(row, state.cursor.col + 1);
+    for (ch, index) in state.lines.iter().from(start) {
+        if index.row != row {
+            break;
+        }
+        if ch == Some(&target) {
+            return Some(index.col);
+        }
+    }
+    None
+}
+
 #[derive(Debug, Clone, Eq)]
 pub(crate) enum CharacterClass {
     Unknown,

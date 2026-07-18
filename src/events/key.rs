@@ -13,16 +13,17 @@ use crate::actions::search::StartSearch;
 #[cfg(feature = "system-editor")]
 use crate::actions::OpenSystemEditor;
 use crate::actions::{
-    Action, AppendCharToSearch, AppendNewline, Chainable, ChangeBigWord, ChangeInnerBetween,
-    ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, ChangeWord, CopyLine, CopySelection,
-    DeleteChar, DeleteInnerBetween, DeleteInnerBigWord, DeleteInnerWord, DeleteLine,
-    DeleteSelection, Execute, FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline,
+    Action, AppendCharToSearch, AppendNewline, Chainable, ChangeBigWord, ChangeFindForward,
+    ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, ChangeTillForward,
+    ChangeWord, CopyLine, CopySelection, DeleteChar, DeleteFindForward, DeleteInnerBetween,
+    DeleteInnerBigWord, DeleteInnerWord, DeleteLine, DeleteSelection, DeleteTillForward, Execute,
+    FindFirst, FindForward, FindNext, FindPrevious, InsertChar, InsertNewline,
     JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp,
     MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
     MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
     MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, RepeatLastChange,
     SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode,
-    Undo,
+    TillForward, Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};
@@ -34,6 +35,9 @@ pub struct KeyEventHandler {
     lookup: Vec<KeyInput>,
     register: HashMap<KeyEventRegister, Action>,
     capture_on_insert: bool,
+    /// An action awaiting a character argument (e.g. `f`/`t`/`df`/`dt`). The
+    /// next keystroke is fed to it via [`Execute::char_arg`].
+    pending_char: Option<Action>,
 }
 
 impl Default for KeyEventHandler {
@@ -50,6 +54,7 @@ impl KeyEventHandler {
             lookup: Vec::new(),
             register,
             capture_on_insert,
+            pending_char: None,
         }
     }
 
@@ -61,6 +66,7 @@ impl KeyEventHandler {
             lookup: Vec::new(),
             register,
             capture_on_insert: false,
+            pending_char: None,
         }
     }
 
@@ -72,6 +78,7 @@ impl KeyEventHandler {
             lookup: Vec::new(),
             register,
             capture_on_insert: true,
+            pending_char: None,
         }
     }
 
@@ -286,6 +293,23 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::v(vec![KeyInput::new('w')]),
             MoveWordForward(1).into(),
+        ),
+        // Find/till the next character on the line (target read from next key)
+        (
+            KeyEventRegister::n(vec![KeyInput::new('f')]),
+            FindForward(None).into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::new('f')]),
+            FindForward(None).into(),
+        ),
+        (
+            KeyEventRegister::n(vec![KeyInput::new('t')]),
+            TillForward(None).into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::new('t')]),
+            TillForward(None).into(),
         ),
         (
             KeyEventRegister::n(vec![KeyInput::new('e')]),
@@ -506,6 +530,15 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::n(vec![KeyInput::new('d'), KeyInput::shift('W')]),
             DeleteBigWordForward(1).into(),
         ),
+        // Delete find/till the next character on the line (target read from next key)
+        (
+            KeyEventRegister::n(vec![KeyInput::new('d'), KeyInput::new('f')]),
+            DeleteFindForward(None).into(),
+        ),
+        (
+            KeyEventRegister::n(vec![KeyInput::new('d'), KeyInput::new('t')]),
+            DeleteTillForward(None).into(),
+        ),
         // Delete inner word
         (
             KeyEventRegister::n(vec![
@@ -585,6 +618,15 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::n(vec![KeyInput::new('c'), KeyInput::shift('W')]),
             ChangeBigWord(1).into(),
+        ),
+        // Change find/till the next character on the line (target read from next key)
+        (
+            KeyEventRegister::n(vec![KeyInput::new('c'), KeyInput::new('f')]),
+            ChangeFindForward(None).into(),
+        ),
+        (
+            KeyEventRegister::n(vec![KeyInput::new('c'), KeyInput::new('t')]),
+            ChangeTillForward(None).into(),
         ),
         // Change inner word
         (
@@ -1082,9 +1124,25 @@ impl KeyEventHandler {
             }
         }
 
-        // Else lookup an action from the register
-        if let Some(action) = self.get(key_input, mode) {
-            state.execute_recorded(action);
+        // An action from a previous key is waiting for input.
+        if let Some(mut action) = self.pending_char.take() {
+            if let input::KeyCode::Char(c) = key_input.key {
+                if let Some(slot) = action.char_arg() {
+                    *slot = Some(c);
+                }
+                state.execute_recorded(action);
+            }
+            return;
+        }
+
+        // Else lookup an action from the register. Actions that still need a
+        // character argument are held back until the next keystroke.
+        if let Some(mut action) = self.get(key_input, mode) {
+            if action.char_arg().is_some_and(|slot| slot.is_none()) {
+                self.pending_char = Some(action);
+            } else {
+                state.execute_recorded(action);
+            }
         }
     }
 }
@@ -1319,6 +1377,205 @@ mod tests {
 
         handler.on_event(KeyInput::new('.'), &mut state);
         assert_eq!(state.lines.to_string(), "c\nd");
+    }
+
+    #[test]
+    fn test_find_forward_moves_onto_char() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `fo` moves onto the next `o`.
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 4));
+
+        // Repeating `fo` finds the following `o`, not the current one.
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 7));
+    }
+
+    #[test]
+    fn test_till_forward_moves_before_char() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `to` moves just before the next `o`.
+        handler.on_event(KeyInput::new('t'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 3));
+    }
+
+    #[test]
+    fn test_find_forward_missing_char_is_noop() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // No `z` to the right, so the cursor does not move.
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('z'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_find_forward_extends_visual_selection() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // In visual mode, `fo` extends the selection onto the next `o`.
+        handler.on_event(KeyInput::new('v'), &mut state);
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 4));
+        assert!(state.selection.is_some());
+    }
+
+    #[test]
+    fn test_delete_find_forward() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `dfo` deletes up to and including the first `o`.
+        handler.on_event(KeyInput::new('d'), &mut state);
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.lines.to_string(), " world");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_delete_till_forward() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `dto` deletes up to (but not including) the first `o`.
+        handler.on_event(KeyInput::new('d'), &mut state);
+        handler.on_event(KeyInput::new('t'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.lines.to_string(), "o world");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_delete_find_forward_missing_char_is_noop() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // No `z` to the right, so nothing is deleted.
+        handler.on_event(KeyInput::new('d'), &mut state);
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('z'), &mut state);
+        assert_eq!(state.lines.to_string(), "hello world");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+    }
+
+    #[test]
+    fn test_dot_repeats_delete_find_forward() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("a.b.c."));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `df.` deletes up to and including the first `.`; `.` repeats it.
+        handler.on_event(KeyInput::new('d'), &mut state);
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "b.c.");
+
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "c.");
+    }
+
+    #[test]
+    fn test_change_find_forward() {
+        use crate::{EditorMode, EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `cfo` deletes up to and including the first `o` and enters insert.
+        handler.on_event(KeyInput::new('c'), &mut state);
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.mode, EditorMode::Insert);
+        handler.on_event(KeyInput::new('X'), &mut state);
+        handler.on_event(KeyInput::new(KeyCode::Esc), &mut state);
+        assert_eq!(state.lines.to_string(), "X world");
+        assert_eq!(state.mode, EditorMode::Normal);
+    }
+
+    #[test]
+    fn test_change_till_forward() {
+        use crate::{EditorMode, EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `cto` deletes up to (but not including) the first `o` and enters insert.
+        handler.on_event(KeyInput::new('c'), &mut state);
+        handler.on_event(KeyInput::new('t'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.mode, EditorMode::Insert);
+        handler.on_event(KeyInput::new('X'), &mut state);
+        handler.on_event(KeyInput::new(KeyCode::Esc), &mut state);
+        assert_eq!(state.lines.to_string(), "Xo world");
+        assert_eq!(state.mode, EditorMode::Normal);
+    }
+
+    #[test]
+    fn test_change_find_forward_missing_char_is_noop() {
+        use crate::{EditorMode, EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // No `z` to the right, so nothing changes and insert is not entered.
+        handler.on_event(KeyInput::new('c'), &mut state);
+        handler.on_event(KeyInput::new('f'), &mut state);
+        handler.on_event(KeyInput::new('z'), &mut state);
+        assert_eq!(state.lines.to_string(), "hello world");
+        assert_eq!(state.mode, EditorMode::Normal);
+    }
+
+    #[test]
+    fn test_visual_till_forward() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello world"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `vto` selects up to (but not including) the first `o`.
+        handler.on_event(KeyInput::new('v'), &mut state);
+        handler.on_event(KeyInput::new('t'), &mut state);
+        handler.on_event(KeyInput::new('o'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 3));
+        assert!(state.selection.is_some());
     }
 
     #[test]
