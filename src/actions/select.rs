@@ -34,7 +34,6 @@ impl Execute for SelectInnerBetween {
             |(_, _)| false,
         ) {
             state.selection = Some(selection);
-            state.mode = EditorMode::Visual;
         }
     }
 }
@@ -145,10 +144,12 @@ fn select_between(
     }
 }
 
+/// Deletes the inner word under the cursor, leaving the editor in normal mode.
+/// This is the `diw` primitive.
 #[derive(Clone, Debug, Copy)]
-pub struct ChangeInnerWord;
+pub struct DeleteInnerWord;
 
-impl Execute for ChangeInnerWord {
+impl Execute for DeleteInnerWord {
     fn execute(&mut self, state: &mut EditorState) {
         SelectInnerWord.execute(state);
         if let Some(selection) = state.selection.take() {
@@ -156,6 +157,19 @@ impl Execute for ChangeInnerWord {
             let deleted = delete_selection(state, &selection);
             state.clip.set_text(deleted.into());
         }
+        state.mode = EditorMode::Normal;
+    }
+}
+
+/// Changes the inner word under the cursor: deletes it and enters insert mode.
+/// This is the `ciw` primitive.
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeInnerWord;
+
+impl Execute for ChangeInnerWord {
+    fn execute(&mut self, state: &mut EditorState) {
+        DeleteInnerWord.execute(state);
+        state.mode = EditorMode::Insert;
     }
 }
 
@@ -177,10 +191,12 @@ impl Execute for SelectInnerBigWord {
     }
 }
 
+/// Deletes the inner WORD under the cursor, leaving the editor in normal mode.
+/// This is the `diW` primitive.
 #[derive(Clone, Debug, Copy)]
-pub struct ChangeInnerBigWord;
+pub struct DeleteInnerBigWord;
 
-impl Execute for ChangeInnerBigWord {
+impl Execute for DeleteInnerBigWord {
     fn execute(&mut self, state: &mut EditorState) {
         SelectInnerBigWord.execute(state);
         if let Some(selection) = state.selection.take() {
@@ -188,9 +204,51 @@ impl Execute for ChangeInnerBigWord {
             let deleted = delete_selection(state, &selection);
             state.clip.set_text(deleted.into());
         }
+        state.mode = EditorMode::Normal;
     }
 }
 
+/// Changes the inner WORD under the cursor: deletes it and enters insert mode.
+/// This is the `ciW` primitive.
+#[derive(Clone, Debug, Copy)]
+pub struct ChangeInnerBigWord;
+
+impl Execute for ChangeInnerBigWord {
+    fn execute(&mut self, state: &mut EditorState) {
+        DeleteInnerBigWord.execute(state);
+        state.mode = EditorMode::Insert;
+    }
+}
+
+/// Deletes the text between the given delimiters, leaving the editor in
+/// normal mode. This is the `di<delim>` primitive.
+#[derive(Clone, Debug, Copy)]
+pub struct DeleteInnerBetween {
+    opening: char,
+    closing: char,
+}
+
+impl DeleteInnerBetween {
+    #[must_use]
+    pub fn new(opening: char, closing: char) -> Self {
+        Self { opening, closing }
+    }
+}
+
+impl Execute for DeleteInnerBetween {
+    fn execute(&mut self, state: &mut EditorState) {
+        SelectInnerBetween::new(self.opening, self.closing).execute(state);
+        if let Some(selection) = state.selection.take() {
+            state.capture();
+            let deleted = delete_selection(state, &selection);
+            state.clip.set_text(deleted.into());
+        }
+        state.mode = EditorMode::Normal;
+    }
+}
+
+/// Changes the text between the given delimiters: deletes the inner content and
+/// enters insert mode. This is the `ci<delim>` primitive.
 #[derive(Clone, Debug, Copy)]
 pub struct ChangeInnerBetween {
     opening: char,
@@ -206,12 +264,8 @@ impl ChangeInnerBetween {
 
 impl Execute for ChangeInnerBetween {
     fn execute(&mut self, state: &mut EditorState) {
-        SelectInnerBetween::new(self.opening, self.closing).execute(state);
-        if let Some(selection) = state.selection.take() {
-            state.capture();
-            let deleted = delete_selection(state, &selection);
-            state.clip.set_text(deleted.into());
-        }
+        DeleteInnerBetween::new(self.opening, self.closing).execute(state);
+        state.mode = EditorMode::Insert;
     }
 }
 
@@ -496,6 +550,30 @@ mod tests {
     }
 
     #[test]
+    fn test_change_inner_between_enters_insert_mode() {
+        let mut state = EditorState::new(Lines::from("\"Hello\" World"));
+        state.cursor = Index2::new(0, 1);
+
+        ChangeInnerBetween::new('"', '"').execute(&mut state);
+
+        assert_eq!(state.lines.to_string(), "\"\" World");
+        assert_eq!(state.cursor, Index2::new(0, 1));
+        assert_eq!(state.mode, EditorMode::Insert);
+    }
+
+    #[test]
+    fn test_delete_inner_between_stays_normal_mode() {
+        let mut state = EditorState::new(Lines::from("\"Hello\" World"));
+        state.cursor = Index2::new(0, 1);
+
+        DeleteInnerBetween::new('"', '"').execute(&mut state);
+
+        assert_eq!(state.lines.to_string(), "\"\" World");
+        assert_eq!(state.cursor, Index2::new(0, 1));
+        assert_eq!(state.mode, EditorMode::Normal);
+    }
+
+    #[test]
     fn test_select_inner_word() {
         let lines = Lines::from("Hello World");
         let mut state = EditorState::new(lines);
@@ -516,6 +594,19 @@ mod tests {
 
         assert_eq!(state.lines.to_string(), " World");
         assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.mode, EditorMode::Insert);
+    }
+
+    #[test]
+    fn test_delete_inner_word_stays_normal_mode() {
+        let mut state = EditorState::new(Lines::from("Hello World"));
+        state.cursor = Index2::new(0, 1);
+
+        DeleteInnerWord.execute(&mut state);
+
+        assert_eq!(state.lines.to_string(), " World");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+        assert_eq!(state.mode, EditorMode::Normal);
     }
 
     #[test]

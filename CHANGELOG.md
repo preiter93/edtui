@@ -1,6 +1,10 @@
 Released
 --------
 
+- feat: add bindings for delete word and delete big word @acerv
+- feat: add bindings for change word
+- fix: make change-inner-delimiter commands end in insert mode
+
 0.11.3 - 2026-04-29
 ===================
 - feat: Implement { and } vi paragraphs motion @acerv

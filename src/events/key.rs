@@ -14,13 +14,14 @@ use crate::actions::search::StartSearch;
 use crate::actions::OpenSystemEditor;
 use crate::actions::{
     Action, AppendCharToSearch, AppendNewline, Chainable, ChangeInnerBetween, ChangeInnerBigWord,
-    ChangeInnerWord, ChangeSelection, CopyLine, CopySelection, DeleteChar, DeleteLine,
-    DeleteSelection, Execute, FindFirst, FindNext, FindPrevious, InsertChar, InsertNewline,
-    JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp,
-    MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
-    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
-    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
-    SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, Undo,
+    ChangeInnerWord, ChangeSelection, CopyLine, CopySelection, DeleteChar, DeleteInnerBetween,
+    DeleteInnerBigWord, DeleteInnerWord, DeleteLine, DeleteSelection, Execute, FindFirst, FindNext,
+    FindPrevious, InsertChar, InsertNewline, JoinLineWithLineBelow, LineBreak, MoveBackward,
+    MoveDown, MoveForward, MoveHalfPageUp, MoveParagraphBackward, MoveParagraphForward,
+    MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine, MoveUp,
+    MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar,
+    RemoveCharFromSearch, SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
+    StopSearch, SwitchMode, Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};
@@ -511,7 +512,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('w'),
             ]),
-            ChangeInnerWord.into(),
+            DeleteInnerWord.into(),
         ),
         // Delete inner big WORD
         (
@@ -520,7 +521,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::shift('W'),
             ]),
-            ChangeInnerBigWord.into(),
+            DeleteInnerBigWord.into(),
         ),
         // Delete from the cursor to the end of the line
         (
@@ -574,14 +575,23 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::v(vec![KeyInput::new('i'), KeyInput::new(']')]),
             SelectInnerBetween::new('[', ']').into(),
         ),
-        // Change inner word between delimiters
+        // Change inner word
         (
             KeyEventRegister::n(vec![
                 KeyInput::new('c'),
                 KeyInput::new('i'),
                 KeyInput::new('w'),
             ]),
-            SwitchMode(EditorMode::Insert).chain(ChangeInnerWord).into(),
+            ChangeInnerWord.into(),
+        ),
+        // Change inner big WORD
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('c'),
+                KeyInput::new('i'),
+                KeyInput::shift('W'),
+            ]),
+            ChangeInnerBigWord.into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -589,9 +599,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('"'),
             ]),
-            SwitchMode(EditorMode::Insert)
-                .chain(ChangeInnerBetween::new('"', '"'))
-                .into(),
+            ChangeInnerBetween::new('"', '"').into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -599,9 +607,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('\''),
             ]),
-            SwitchMode(EditorMode::Insert)
-                .chain(ChangeInnerBetween::new('\'', '\''))
-                .into(),
+            ChangeInnerBetween::new('\'', '\'').into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -609,9 +615,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('('),
             ]),
-            SwitchMode(EditorMode::Insert)
-                .chain(ChangeInnerBetween::new('(', ')'))
-                .into(),
+            ChangeInnerBetween::new('(', ')').into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -619,9 +623,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new(')'),
             ]),
-            SwitchMode(EditorMode::Insert)
-                .chain(ChangeInnerBetween::new('(', ')'))
-                .into(),
+            ChangeInnerBetween::new('(', ')').into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -629,9 +631,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('{'),
             ]),
-            SwitchMode(EditorMode::Insert)
-                .chain(ChangeInnerBetween::new('{', '}'))
-                .into(),
+            ChangeInnerBetween::new('{', '}').into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -639,9 +639,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('}'),
             ]),
-            SwitchMode(EditorMode::Insert)
-                .chain(ChangeInnerBetween::new('{', '}'))
-                .into(),
+            ChangeInnerBetween::new('{', '}').into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -649,9 +647,7 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new('['),
             ]),
-            SwitchMode(EditorMode::Insert)
-                .chain(ChangeInnerBetween::new('[', ']'))
-                .into(),
+            ChangeInnerBetween::new('[', ']').into(),
         ),
         (
             KeyEventRegister::n(vec![
@@ -659,9 +655,72 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
                 KeyInput::new('i'),
                 KeyInput::new(']'),
             ]),
-            SwitchMode(EditorMode::Insert)
-                .chain(ChangeInnerBetween::new('[', ']'))
-                .into(),
+            ChangeInnerBetween::new('[', ']').into(),
+        ),
+        // Delete inner text between delimiters
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new('"'),
+            ]),
+            DeleteInnerBetween::new('"', '"').into(),
+        ),
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new('\''),
+            ]),
+            DeleteInnerBetween::new('\'', '\'').into(),
+        ),
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new('('),
+            ]),
+            DeleteInnerBetween::new('(', ')').into(),
+        ),
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new(')'),
+            ]),
+            DeleteInnerBetween::new('(', ')').into(),
+        ),
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new('{'),
+            ]),
+            DeleteInnerBetween::new('{', '}').into(),
+        ),
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new('}'),
+            ]),
+            DeleteInnerBetween::new('{', '}').into(),
+        ),
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new('['),
+            ]),
+            DeleteInnerBetween::new('[', ']').into(),
+        ),
+        (
+            KeyEventRegister::n(vec![
+                KeyInput::new('d'),
+                KeyInput::new('i'),
+                KeyInput::new(']'),
+            ]),
+            DeleteInnerBetween::new('[', ']').into(),
         ),
         // Change selection
         (
