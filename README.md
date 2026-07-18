@@ -11,21 +11,16 @@
 It is designed to provide a user experience inspired by Vim. Edtui is developed to be used as an
 editor in ratatui apps. It is not supposed to be a stand-alone code editor.
 
-Create a new `EditorState` and render it using `EditorView`.
-You can customize the theme, enable line wrapping, syntax highlight the text or set the tab
-width:
+Create a new `EditorState` and render it using `EditorView`:
 ```rust
-use edtui::{EditorState, EditorTheme, EditorView};
+use edtui::{EditorState, EditorView};
 use ratatui::widgets::Widget;
 
 let mut state = EditorState::default();
-EditorView::new(&mut state)
-        .theme(EditorTheme::default())
-        .wrap(true)
-        .syntax_highlighter(None)
-        .tab_width(2)
-        .render(area, buf);
+EditorView::new(&mut state).render(area, buf);
 ```
+
+The view is configured through builder methods, see [Customization](#customization).
 
 Handle events (Vim mode by default):
 ```rust
@@ -54,6 +49,19 @@ key_handler.insert(
 let event_handler = EditorEventHandler::new(key_handler);
 ```
 
+### Customization
+
+`EditorView` is configured through builder methods:
+
+| Method                                           | Description                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| `.theme(EditorTheme)`                            | Sets the editor theme (see [Theming](#theming)).             |
+| `.wrap(bool)`                                    | Enables line wrapping.                                       |
+| `.tab_width(usize)`                              | Number of spaces used to render a tab.                       |
+| `.line_numbers(LineNumbers)`                     | Shows absolute or relative line numbers.                     |
+| `.single_line(bool)`                             | Restricts the editor to a single line.                       |
+| `.syntax_highlighter(Option<SyntaxHighlighter>)` | Enables syntax highlighting (`syntax-highlighting` feature). |
+
 ### Demo
 
 ![](resources/app.gif)
@@ -70,20 +78,28 @@ let event_handler = EditorEventHandler::new(key_handler);
 
 ### Theming
 
-Customize the editor `EditorTheme`:
+Customize the editor with `EditorTheme`:
 
 ```rust
-use edtui::{EditorTheme, EditorStatusLine};
+use edtui::EditorTheme;
 use ratatui::style::{Style, Color};
-use ratatui::widgets::Block;
 
 let theme = EditorTheme::default()
-    .block(Block::default())
-    .base(Style::default().bg(Color::Black).fg(Color::White))
-    .cursor_style(Style::default().bg(Color::White).fg(Color::Black))
-    .selection_style(Style::default().bg(Color::Yellow).fg(Color::Black))
-    .hide_status_line(); // or use `.status_line(..)` for styling the status line
+    .base(Style::default().bg(Color::Black).fg(Color::White));
 ```
+
+The following builder methods are available:
+
+| Method                           | Description                      |
+| -------------------------------- | -------------------------------- |
+| `.base(Style)`                   | Base text style.                 |
+| `.block(Block)`                  | Surrounding block / border.      |
+| `.cursor_style(Style)`           | Cursor style.                    |
+| `.hide_cursor()`                 | Hides the cursor.                |
+| `.selection_style(Style)`        | Style of the selected text.      |
+| `.line_numbers_style(Style)`     | Style of the line numbers.       |
+| `.status_line(EditorStatusLine)` | Sets and styles the status line. |
+| `.hide_status_line()`            | Hides the status line.           |
 
 ### Line Numbers
 
@@ -312,9 +328,6 @@ Note that Emacs Mode is less feature complete and less tested than vim mode.
 | `Ctrl+s`        | Search mode: Go to next match                            |
 | `Ctrl+r`        | Search mode: Go to previous match                        |
 | `Enter`         | Search mode: Select current match                        |
-
-#### Roadmap
-- [ ] Support termwiz and termion
 
 [Crate Badge]: https://img.shields.io/crates/v/edtui?logo=rust&style=flat-square&logoColor=E05D44&color=E05D44
 [License Badge]: https://img.shields.io/crates/l/edtui?style=flat-square&color=1370D3

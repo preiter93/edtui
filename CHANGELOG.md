@@ -1,9 +1,12 @@
 Released
 --------
 
+0.11.4 - 2026-07-18
+===================
 - feat: add bindings for delete word and delete big word @acerv
 - feat: add bindings for change word
 - fix: make change-inner-delimiter commands end in insert mode
+- doc: simplify examples in readme and add a table with modifications
 
 0.11.3 - 2026-04-29
 ===================
