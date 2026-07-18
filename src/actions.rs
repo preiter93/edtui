@@ -21,7 +21,7 @@ pub use self::change::{
     ChangeBigWord, ChangeFindForward, ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord,
     ChangeSelection, ChangeTillForward, ChangeWord,
 };
-pub use self::cpaste::{CopyLine, CopySelection, Paste};
+pub use self::cpaste::{CopyLine, CopySelection, Paste, PasteBefore};
 pub use self::delete::{
     DeleteBigWordEnd, DeleteBigWordForward, DeleteChar, DeleteCharForward, DeleteFindForward,
     DeleteLine, DeleteSelection, DeleteTillForward, DeleteToFirstCharOfLine, DeleteWordBackward,
@@ -108,6 +108,7 @@ pub enum Action {
     Redo(Redo),
     RepeatLastChange(RepeatLastChange),
     Paste(Paste),
+    PasteBefore(PasteBefore),
     PasteOverSelection(PasteOverSelection),
     CopySelection(CopySelection),
     CopyLine(CopyLine),
