@@ -20,8 +20,9 @@ use crate::actions::{
     JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp,
     MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
     MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
-    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, SelectCurrentSearch,
-    SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, Undo,
+    MoveWordForwardToEndOfWord, Paste, Redo, RemoveChar, RemoveCharFromSearch, RepeatLastChange,
+    SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode,
+    Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};
@@ -750,6 +751,11 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (KeyEventRegister::n(vec![KeyInput::new('u')]), Undo.into()),
         // Redo
         (KeyEventRegister::n(vec![KeyInput::ctrl('r')]), Redo.into()),
+        // Repeat the last change
+        (
+            KeyEventRegister::n(vec![KeyInput::new('.')]),
+            RepeatLastChange.into(),
+        ),
         // Copy
         (
             KeyEventRegister::v(vec![KeyInput::new('y')]),
@@ -1077,8 +1083,8 @@ impl KeyEventHandler {
         }
 
         // Else lookup an action from the register
-        if let Some(mut action) = self.get(key_input, mode) {
-            action.execute(state);
+        if let Some(action) = self.get(key_input, mode) {
+            state.execute_recorded(action);
         }
     }
 }
@@ -1158,6 +1164,161 @@ mod tests {
         }
 
         assert_eq!(state.lines.to_string(), String::from("Hello World!\nHi!"));
+    }
+
+    #[test]
+    fn test_dot_repeats_last_change() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("aaaa"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `x` deletes one character, `.` repeats it twice more.
+        handler.on_event(KeyInput::new('x'), &mut state);
+        handler.on_event(KeyInput::new('.'), &mut state);
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "a");
+    }
+
+    #[test]
+    fn test_dot_repeats_multikey_change() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("one two three"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `dw` deletes a word forward; `.` repeats the whole multi-key command.
+        handler.on_event(KeyInput::new('d'), &mut state);
+        handler.on_event(KeyInput::new('w'), &mut state);
+        assert_eq!(state.lines.to_string(), "two three");
+
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "three");
+    }
+
+    #[test]
+    fn test_dot_is_noop_without_prior_change() {
+        use crate::{EditorState, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello"));
+        let mut handler = KeyEventHandler::default();
+
+        // Motions are not changes, so `.` has nothing to repeat.
+        handler.on_event(KeyInput::new('l'), &mut state);
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "hello");
+    }
+
+    #[test]
+    fn test_dot_repeats_change_inner_word() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("foo bar baz"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `ciw` changes the inner word, then we type replacement text and Esc.
+        handler.on_event(KeyInput::new('c'), &mut state);
+        handler.on_event(KeyInput::new('i'), &mut state);
+        handler.on_event(KeyInput::new('w'), &mut state);
+        handler.on_event(KeyInput::new('x'), &mut state);
+        handler.on_event(KeyInput::new('y'), &mut state);
+        handler.on_event(KeyInput::new(KeyCode::Esc), &mut state);
+        assert_eq!(state.lines.to_string(), "xy bar baz");
+        assert_eq!(state.mode, EditorMode::Normal);
+        // Cursor rests on the last inserted character (Vim-style), not after it.
+        assert_eq!(state.cursor, Index2::new(0, 1));
+
+        // Move onto the next word and repeat the whole change with `.`.
+        handler.on_event(KeyInput::new('w'), &mut state);
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "xy xy baz");
+        assert_eq!(state.mode, EditorMode::Normal);
+        // Mid-line too, the cursor lands on the last inserted character (the
+        // second `y`), not on the trailing space after the word.
+        assert_eq!(state.cursor, Index2::new(0, 4));
+    }
+
+    #[test]
+    fn test_dot_repeats_insert_session() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("ab"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `i` opens an insert session; type `X` and leave with Esc.
+        handler.on_event(KeyInput::new('i'), &mut state);
+        handler.on_event(KeyInput::new('X'), &mut state);
+        handler.on_event(KeyInput::new(KeyCode::Esc), &mut state);
+        assert_eq!(state.lines.to_string(), "Xab");
+        assert_eq!(state.mode, EditorMode::Normal);
+
+        // `.` replays the whole insert session at the cursor.
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "XXab");
+        assert_eq!(state.mode, EditorMode::Normal);
+    }
+
+    #[test]
+    fn test_dot_repeats_change_word() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("one two three"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `cw` changes the word under the cursor; type `X` and leave insert.
+        handler.on_event(KeyInput::new('c'), &mut state);
+        handler.on_event(KeyInput::new('w'), &mut state);
+        handler.on_event(KeyInput::new('X'), &mut state);
+        handler.on_event(KeyInput::new(KeyCode::Esc), &mut state);
+        assert_eq!(state.lines.to_string(), "X two three");
+
+        // Put the cursor on the next word and repeat the change with `.`.
+        state.cursor = Index2::new(0, 2);
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "X X three");
+        assert_eq!(state.mode, EditorMode::Normal);
+    }
+
+    #[test]
+    fn test_dot_repeats_open_line() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("a\nb"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `o` opens a line below and enters insert; type `X` and leave.
+        handler.on_event(KeyInput::new('o'), &mut state);
+        handler.on_event(KeyInput::new('X'), &mut state);
+        handler.on_event(KeyInput::new(KeyCode::Esc), &mut state);
+        assert_eq!(state.lines.to_string(), "a\nX\nb");
+
+        // `.` opens another line below the current one and replays the text.
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "a\nX\nX\nb");
+        assert_eq!(state.mode, EditorMode::Normal);
+    }
+
+    #[test]
+    fn test_dot_repeats_delete_line() {
+        use crate::{EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("a\nb\nc\nd"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `dd` deletes the current line; `.` repeats it.
+        handler.on_event(KeyInput::new('d'), &mut state);
+        handler.on_event(KeyInput::new('d'), &mut state);
+        assert_eq!(state.lines.to_string(), "b\nc\nd");
+
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "c\nd");
     }
 
     #[test]

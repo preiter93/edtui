@@ -10,7 +10,7 @@ use self::highlight::Highlight;
 use self::search::SearchState;
 use self::view::ViewState;
 use self::{mode::EditorMode, selection::Selection, undo::Stack};
-use crate::actions::Execute;
+use crate::actions::{Action, Execute};
 use crate::clipboard::{Clipboard, ClipboardTrait};
 use crate::helper::max_col;
 use crate::{Index2, Lines};
@@ -49,6 +49,15 @@ pub struct EditorState {
     /// Clipboard for yank and paste operations.
     pub(crate) clip: Clipboard,
 
+    /// The last buffer-changing command thath can be replayed by dot-repeat.
+    pub(crate) last_change: Option<Action>,
+
+    /// Text typed during the last change's insert (e.g. `ciw`).
+    pub(crate) last_insert: Option<String>,
+
+    /// Text typed in the current insert session.
+    pub(crate) insert_recording: Option<String>,
+
     /// Flag indicating a system editor was requested.
     #[cfg(feature = "system-editor")]
     pub(crate) system_edit_requested: bool,
@@ -84,6 +93,9 @@ impl EditorState {
             undo: Stack::new(),
             redo: Stack::new(),
             clip: Clipboard::default(),
+            last_change: None,
+            last_insert: None,
+            insert_recording: None,
             #[cfg(feature = "system-editor")]
             system_edit_requested: false,
         }
@@ -101,6 +113,28 @@ impl EditorState {
     /// ```
     pub fn execute(&mut self, mut action: impl Execute) {
         action.execute(self);
+    }
+
+    /// Executes an action, recording it for the dot-repeat command.
+    pub(crate) fn execute_recorded(&mut self, mut action: Action) {
+        let mode_before = self.mode;
+        action.execute(self);
+
+        // Inside an insert session, keep capturing until it ends.
+        if mode_before == EditorMode::Insert {
+            if self.mode != EditorMode::Insert {
+                self.last_insert = self.insert_recording.take();
+            }
+            return;
+        }
+
+        // Remember repeatable changes started from normal mode.
+        if mode_before == EditorMode::Normal && action.is_repeatable() {
+            self.last_change = Some(action);
+            self.last_insert = None;
+            // If the change opened insert mode, start capturing typed text.
+            self.insert_recording = (self.mode == EditorMode::Insert).then(String::new);
+        }
     }
 
     /// Set a custom clipboard.

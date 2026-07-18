@@ -5,7 +5,7 @@ Set Padding 2
 Set BorderRadius 10
 Set FontSize 32
 Set Width 2400
-Set Height 1100
+Set Height 1150
 Set PlaybackSpeed 1.0
 
 Hide
@@ -55,6 +55,20 @@ Type "p"
 Sleep 1.5s
 Type "j0j"
 Sleep 0.5s
+
+# Repeat the last change with the dot command
+Type "wwww"
+Sleep 0.3s
+Type "ciwbar"
+Sleep 0.3s
+Escape
+Sleep 0.5s
+Type "w."
+Sleep 0.5s
+Type "w."
+Sleep 1.2s
+Type "j0j"
+Sleep 0.2s
 
 # Search
 Type "/"

@@ -20,6 +20,10 @@ impl Execute for ChangeWord {
         DeleteWordEnd(self.0).execute(state);
         state.mode = EditorMode::Insert;
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Changes from the cursor to the end of the current WORD: deletes it and
@@ -31,6 +35,10 @@ impl Execute for ChangeBigWord {
     fn execute(&mut self, state: &mut EditorState) {
         DeleteBigWordEnd(self.0).execute(state);
         state.mode = EditorMode::Insert;
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 
@@ -44,6 +52,10 @@ impl Execute for ChangeInnerWord {
         DeleteInnerWord.execute(state);
         state.mode = EditorMode::Insert;
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Changes the inner WORD under the cursor: deletes it and enters insert mode.
@@ -55,6 +67,10 @@ impl Execute for ChangeInnerBigWord {
     fn execute(&mut self, state: &mut EditorState) {
         DeleteInnerBigWord.execute(state);
         state.mode = EditorMode::Insert;
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 
@@ -78,6 +94,10 @@ impl Execute for ChangeInnerBetween {
         DeleteInnerBetween::new(self.opening, self.closing).execute(state);
         state.mode = EditorMode::Insert;
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Changes the current selection: deletes it and enters insert mode.
@@ -91,6 +111,10 @@ impl Execute for ChangeSelection {
             let deleted = delete_selection(state, &selection);
             state.clip.set_text(deleted.into());
         }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 

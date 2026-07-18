@@ -19,6 +19,15 @@ impl Execute for InsertChar {
             return;
         }
         insert_char(&mut state.lines, &mut state.cursor, self.0, false);
+
+        // Capture insert session for the dot-repeat command
+        if let Some(buffer) = &mut state.insert_recording {
+            buffer.push(self.0);
+        }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 
@@ -39,6 +48,10 @@ impl Execute for LineBreak {
         for _ in 0..self.0 {
             line_break(&mut state.lines, &mut state.cursor);
         }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 
@@ -66,6 +79,10 @@ impl Execute for AppendNewline {
             }
         }
     }
+
+    fn is_repeatable(&self) -> bool {
+        true
+    }
 }
 
 /// Appends a newline at the current cursor position.
@@ -83,6 +100,10 @@ impl Execute for InsertNewline {
         for _ in 0..self.0 {
             state.lines.insert(RowIndex::new(state.cursor.row), vec![]);
         }
+    }
+
+    fn is_repeatable(&self) -> bool {
+        true
     }
 }
 

@@ -31,6 +31,8 @@ Select text (v), including selection between \"quotes\" (viw/vi\").
 
 Copy and paste text:
 
+Repeat edits with '.': foo foo foo
+
 Built-in search using the '/' command.
 
 Supports syntax highlighting:

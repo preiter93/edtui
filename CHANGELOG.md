@@ -1,3 +1,7 @@
+Unreleased
+==========
+- feat: add `.` command to repeat the last change (dot-repeat)
+
 Released
 --------
 
