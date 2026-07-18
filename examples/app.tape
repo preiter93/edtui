@@ -6,7 +6,7 @@ Set BorderRadius 10
 Set FontSize 32
 Set Width 2400
 Set Height 1100
-Set PlaybackSpeed 0.4
+Set PlaybackSpeed 1.0
 
 Hide
 Type "cargo run --example app"
@@ -48,8 +48,9 @@ Type "j0j"
 Sleep 0.2s
 
 # Copy paste
-Type "$"
 Sleep 0.5s
+Type "A "
+Escape
 Type "p"
 Sleep 1.5s
 Type "j0j"
@@ -67,9 +68,9 @@ Type "j0j"
 Sleep 0.2s
 
 # Syntax highlighting
-Sleep 1.5s
+Sleep 0.5s
 Type "jjwww"
-Type@0.5s "%%%%%"
+Type@0.5s "%%%"
 Sleep 1.0s
 
 # Contribution
