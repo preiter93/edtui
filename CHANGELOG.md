@@ -1,9 +1,15 @@
 Unreleased
 ==========
-- feat: add `.` command to repeat the last change (dot-repeat)
+
+- fix: count hyphen as punctuation
 
 Released
 --------
+
+0.11.5 - 2026-07-18
+===================
+
+- feat: add `.` command to repeat the last change (dot-repeat)
 
 0.11.4 - 2026-07-18
 ===================

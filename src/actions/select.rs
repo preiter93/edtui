@@ -528,6 +528,32 @@ mod tests {
     }
 
     #[test]
+    fn test_select_inner_word_includes_underscores() {
+        // Underscore is a word character, so `viw` on the `B` of `BY` selects
+        // the whole identifier (matching Vim/nvim).
+        let mut state = EditorState::new(Lines::from("ORDER_BY_FIELD"));
+        state.cursor = Index2::new(0, 6);
+
+        SelectInnerWord.execute(&mut state);
+
+        let want = Selection::new(Index2::new(0, 0), Index2::new(0, 13));
+        assert_eq!(state.selection.unwrap(), want);
+    }
+
+    #[test]
+    fn test_select_inner_word_stops_at_hyphen() {
+        // A hyphen is punctuation, so `viw` on the `B` of `BY` selects only
+        // `BY` (matching Vim/nvim).
+        let mut state = EditorState::new(Lines::from("ORDER-BY"));
+        state.cursor = Index2::new(0, 6);
+
+        SelectInnerWord.execute(&mut state);
+
+        let want = Selection::new(Index2::new(0, 6), Index2::new(0, 7));
+        assert_eq!(state.selection.unwrap(), want);
+    }
+
+    #[test]
     fn test_select_inner_big_word() {
         let mut state = EditorState::new(Lines::from("foo.bar baz"));
         state.cursor = Index2::new(0, 1);

@@ -474,7 +474,8 @@ pub(crate) enum CharacterClass {
 
 impl From<&char> for CharacterClass {
     fn from(value: &char) -> Self {
-        if value.is_ascii_alphanumeric() {
+        // Underscore counts as a word character (matching Vim's `iskeyword`),
+        if value.is_ascii_alphanumeric() || *value == '_' {
             return Self::Alphanumeric;
         }
         if value.is_ascii_punctuation() {
