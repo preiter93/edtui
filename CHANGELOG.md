@@ -4,6 +4,11 @@ Unreleased
 Released
 --------
 
+0.11.7 - 2026-08-16
+===================
+
+- feat: Support Ctrl-h to delete previous character in Vim Insert Mode @TruSloth
+
 0.11.6 - 2026-07-18
 ===================
 
