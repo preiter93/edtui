@@ -277,20 +277,20 @@ falling back to a platform-specific default if neither is set.
 
 ##### Insert Mode:
 
-| Keybinding  | Description                             |
-|-------------|-----------------------------------------|
-| `Esc`       | Return to Normal mode                   |
-| `Backspace` | Delete the previous character           |
-| `Delete`    | Delete the character after the cursor   |
-| `Enter`     | Insert line break                       |
-| `Arrows`    | Navigation                              |
-| `Home`      | Move cursor to start of line            |
-| `End`       | Move cursor to end of line              |
-| `Ctrl+Left` | Move backward to the start of a word    |
-| `Ctrl+Right`| Move forward to the start of a word     |
-| `PageDown`  | Jump a full page down                   |
-| `PageUp`    | Jump a full page up                     |
-| `ctrl+u`    | Delete until first character            |
+| Keybinding            | Description                             |
+|-----------------------|-----------------------------------------|
+| `Esc`                 | Return to Normal mode                   |
+| `Backspace`/`Ctrl-h`  | Delete the previous character           |
+| `Delete`              | Delete the character after the cursor   |
+| `Enter`               | Insert line break                       |
+| `Arrows`              | Navigation                              |
+| `Home`                | Move cursor to start of line            |
+| `End`                 | Move cursor to end of line              |
+| `Ctrl+Left`           | Move backward to the start of a word    |
+| `Ctrl+Right`          | Move forward to the start of a word     |
+| `PageDown`            | Jump a full page down                   |
+| `PageUp`              | Jump a full page up                     |
+| `ctrl+u`              | Delete until first character            |
 
 #### Emacs Mode
 

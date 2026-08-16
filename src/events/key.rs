@@ -510,6 +510,11 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::i(vec![KeyInput::new(KeyCode::Backspace)]),
             DeleteChar(1).into(),
         ),
+        // Delete the previous character
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('h')]),
+            DeleteChar(1).into(),
+        ),
         // Delete the next character
         (
             KeyEventRegister::i(vec![KeyInput::new(KeyCode::Delete)]),
