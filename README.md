@@ -266,7 +266,8 @@ falling back to a platform-specific default if neither is set.
 | `ci` + `", ', (, [ or {`  | Change between delimiter `", ', (, [ or {`               |
 | `.`                       | Repeat the last change                                   |
 | `u`                       | Undo the last change                                     |
-| `r`                       | Redo the last undone action                              |
+| `ctrl+r`                  | Redo the last undone action                              |
+| `r` + `<char>`            | Replace the character under the cursor with `<char>`     |
 | `y`                       | Copy the selected text in visual mode                    |
 | `yy`                      | Copy the current line in normal mode                     |
 | `p`                       | Paste the copied text after the cursor                   |

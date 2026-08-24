@@ -2,13 +2,13 @@ use jagged::index::RowIndex;
 
 use super::Execute;
 use crate::{
-    actions::motion::{find_char_forward, CharacterClass},
+    EditorState, Index2, Lines,
+    actions::motion::{CharacterClass, find_char_forward},
     clipboard::ClipboardTrait,
     helper::{
         is_out_of_bounds, max_col_insert, max_col_normal, skip_whitespace, skip_whitespace_rev,
     },
     state::selection::Selection,
-    EditorState, Index2, Lines,
 };
 
 /// Deletes a character at the current cursor position. Does not
@@ -46,23 +46,34 @@ impl Execute for RemoveChar {
 
 /// Replaces the character under the cursor with a given character.
 /// Intended to be called in normal mode.
+///
+/// The character is read from the next keystroke via [`Execute::char_arg`], the
+/// same way `f`/`t` capture their target, so the action is bound as
+/// `ReplaceChar(None)` and filled in by the key handler.
 #[derive(Clone, Debug, Copy)]
-pub struct ReplaceChar(pub char);
+pub struct ReplaceChar(pub Option<char>);
 
 impl Execute for ReplaceChar {
     fn execute(&mut self, state: &mut EditorState) {
+        let Some(replacement) = self.0 else {
+            return;
+        };
         let index = state.cursor;
         if is_out_of_bounds(&state.lines, &index) {
             return;
         }
         state.capture();
         if let Some(ch) = state.lines.get_mut(index) {
-            *ch = self.0;
+            *ch = replacement;
         };
     }
 
     fn is_repeatable(&self) -> bool {
         true
+    }
+
+    fn char_arg(&mut self) -> Option<&mut Option<char>> {
+        Some(&mut self.0)
     }
 }
 
@@ -591,10 +602,10 @@ impl Execute for JoinLineWithLineBelow {
 
 #[cfg(test)]
 mod tests {
-    use crate::state::selection::Selection;
     use crate::EditorMode;
     use crate::Index2;
     use crate::Lines;
+    use crate::state::selection::Selection;
 
     use super::*;
     fn test_state() -> EditorState {
@@ -621,20 +632,25 @@ mod tests {
         let mut state = test_state();
 
         state.cursor = Index2::new(0, 4);
-        ReplaceChar('x').execute(&mut state);
+        ReplaceChar(Some('x')).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(0, 4));
         assert_eq!(state.lines, Lines::from("Hellx World!\n\n123."));
 
         // do nothing on empty line
         state.cursor = Index2::new(1, 0);
-        ReplaceChar('x').execute(&mut state);
+        ReplaceChar(Some('x')).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(1, 0));
         assert_eq!(state.lines, Lines::from("Hellx World!\n\n123."));
 
         // do nothing if out of bounds
         state.cursor = Index2::new(99, 0);
-        ReplaceChar('x').execute(&mut state);
+        ReplaceChar(Some('x')).execute(&mut state);
         assert_eq!(state.cursor, Index2::new(99, 0));
+        assert_eq!(state.lines, Lines::from("Hellx World!\n\n123."));
+
+        // no-op when no replacement char has been supplied yet
+        state.cursor = Index2::new(0, 0);
+        ReplaceChar(None).execute(&mut state);
         assert_eq!(state.lines, Lines::from("Hellx World!\n\n123."));
     }
 

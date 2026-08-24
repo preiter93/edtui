@@ -1,6 +1,8 @@
 pub(crate) mod deprecated;
 pub(crate) mod input;
 
+#[cfg(feature = "system-editor")]
+use crate::actions::OpenSystemEditor;
 use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::{
     DeleteBigWordForward, DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine,
@@ -10,8 +12,6 @@ use crate::actions::motion::{
     MoveHalfPageDown, MovePageDown, MovePageUp, MoveToFirstRow, MoveToLastRow,
 };
 use crate::actions::search::StartSearch;
-#[cfg(feature = "system-editor")]
-use crate::actions::OpenSystemEditor;
 use crate::actions::{
     Action, AppendCharToSearch, AppendNewline, Chainable, ChangeBigWord, ChangeFindForward,
     ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, ChangeTillForward,
@@ -22,8 +22,8 @@ use crate::actions::{
     MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
     MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
     MoveWordForwardToEndOfWord, Paste, PasteBefore, Redo, RemoveChar, RemoveCharFromSearch,
-    RepeatLastChange, SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
-    StopSearch, SwitchMode, TillForward, Undo,
+    RepeatLastChange, ReplaceChar, SelectCurrentSearch, SelectInnerBetween, SelectInnerWord,
+    SelectLine, StopSearch, SwitchMode, TillForward, Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};
@@ -504,6 +504,11 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::n(vec![KeyInput::new(KeyCode::Delete)]),
             RemoveChar(1).into(),
+        ),
+        // Replace the character under the cursor with the next typed character
+        (
+            KeyEventRegister::n(vec![KeyInput::new('r')]),
+            ReplaceChar(None).into(),
         ),
         // Delete the previous character
         (
@@ -1405,6 +1410,32 @@ mod tests {
         handler.on_event(KeyInput::new('f'), &mut state);
         handler.on_event(KeyInput::new('o'), &mut state);
         assert_eq!(state.cursor, Index2::new(0, 7));
+    }
+
+    #[test]
+    fn test_replace_char_keybinding() {
+        use crate::{EditorMode, EditorState, Index2, Lines};
+
+        let mut state = EditorState::new(Lines::from("hello"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // `rx` replaces the char under the cursor without moving it.
+        handler.on_event(KeyInput::new('r'), &mut state);
+        handler.on_event(KeyInput::new('x'), &mut state);
+        assert_eq!(state.lines.to_string(), "xello");
+        assert_eq!(state.cursor, Index2::new(0, 0));
+
+        // A non-char key after `r` cancels the pending replacement (no-op).
+        handler.on_event(KeyInput::new('r'), &mut state);
+        handler.on_event(KeyInput::new(KeyCode::Esc), &mut state);
+        assert_eq!(state.lines.to_string(), "xello");
+
+        // `.` repeats the last replacement at the new cursor position.
+        state.cursor = Index2::new(0, 1);
+        handler.on_event(KeyInput::new('.'), &mut state);
+        assert_eq!(state.lines.to_string(), "xxllo");
+        let _ = EditorMode::Normal;
     }
 
     #[test]
