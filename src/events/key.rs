@@ -1,6 +1,8 @@
 pub(crate) mod deprecated;
 pub(crate) mod input;
 
+#[cfg(feature = "system-editor")]
+use crate::actions::OpenSystemEditor;
 use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::{
     DeleteBigWordForward, DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine,
@@ -10,20 +12,18 @@ use crate::actions::motion::{
     MoveHalfPageDown, MovePageDown, MovePageUp, MoveToFirstRow, MoveToLastRow,
 };
 use crate::actions::search::StartSearch;
-#[cfg(feature = "system-editor")]
-use crate::actions::OpenSystemEditor;
 use crate::actions::{
     Action, AppendCharToSearch, AppendNewline, Chainable, ChangeBigWord, ChangeFindForward,
     ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, ChangeTillForward,
     ChangeWord, CopyLine, CopySelection, DeleteChar, DeleteFindForward, DeleteInnerBetween,
     DeleteInnerBigWord, DeleteInnerWord, DeleteLine, DeleteSelection, DeleteTillForward, Execute,
     FindFirst, FindForward, FindNext, FindPrevious, InsertChar, InsertNewline,
-    JoinLineWithLineBelow, LineBreak, MoveBackward, MoveDown, MoveForward, MoveHalfPageUp,
-    MoveParagraphBackward, MoveParagraphForward, MoveToEndOfLine, MoveToFirst,
-    MoveToMatchinBracket, MoveToStartOfLine, MoveUp, MoveWordBackward, MoveWordForward,
-    MoveWordForwardToEndOfWord, Paste, PasteBefore, Redo, RemoveChar, RemoveCharFromSearch,
-    RepeatLastChange, SelectCurrentSearch, SelectInnerBetween, SelectInnerWord, SelectLine,
-    StopSearch, SwitchMode, TillForward, Undo,
+    JoinLineWithLineBelow, LineBreak, MoveBackward, MoveBigWordBackward, MoveBigWordForward,
+    MoveBigWordForwardToEndOfWord, MoveDown, MoveForward, MoveHalfPageUp, MoveParagraphBackward,
+    MoveParagraphForward, MoveToEndOfLine, MoveToFirst, MoveToMatchinBracket, MoveToStartOfLine,
+    MoveUp, MoveWordBackward, MoveWordForward, MoveWordForwardToEndOfWord, Paste, PasteBefore,
+    Redo, RemoveChar, RemoveCharFromSearch, RepeatLastChange, SelectCurrentSearch,
+    SelectInnerBetween, SelectInnerWord, SelectLine, StopSearch, SwitchMode, TillForward, Undo,
 };
 use crate::events::KeyInput;
 use crate::{EditorMode, EditorState};
@@ -326,6 +326,31 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::v(vec![KeyInput::new('b')]),
             MoveWordBackward(1).into(),
+        ),
+        // Move by WORD (whitespace-delimited): W / B / E
+        (
+            KeyEventRegister::n(vec![KeyInput::shift('W')]),
+            MoveBigWordForward(1).into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::shift('W')]),
+            MoveBigWordForward(1).into(),
+        ),
+        (
+            KeyEventRegister::n(vec![KeyInput::shift('B')]),
+            MoveBigWordBackward(1).into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::shift('B')]),
+            MoveBigWordBackward(1).into(),
+        ),
+        (
+            KeyEventRegister::n(vec![KeyInput::shift('E')]),
+            MoveBigWordForwardToEndOfWord(1).into(),
+        ),
+        (
+            KeyEventRegister::v(vec![KeyInput::shift('E')]),
+            MoveBigWordForwardToEndOfWord(1).into(),
         ),
         // Move cursor to start/first/last position
         (
@@ -1405,6 +1430,34 @@ mod tests {
         handler.on_event(KeyInput::new('f'), &mut state);
         handler.on_event(KeyInput::new('o'), &mut state);
         assert_eq!(state.cursor, Index2::new(0, 7));
+    }
+
+    #[test]
+    fn test_big_word_motions() {
+        use crate::{EditorState, Index2, Lines};
+
+        // WORDs are whitespace-delimited: "foo.bar" | "baz" | "qux".
+        let mut state = EditorState::new(Lines::from("foo.bar baz qux"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+
+        // W jumps over the punctuation to the next WORD.
+        handler.on_event(KeyInput::shift('W'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 8)); // start of "baz"
+        handler.on_event(KeyInput::shift('W'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 12)); // start of "qux"
+
+        // B goes back by WORD.
+        handler.on_event(KeyInput::shift('B'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 8));
+        handler.on_event(KeyInput::shift('B'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0)); // "foo.bar" is one WORD
+
+        // E goes to the end of the WORD (past the punctuation).
+        handler.on_event(KeyInput::shift('E'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 6)); // 'r' at end of "foo.bar"
+        handler.on_event(KeyInput::shift('E'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 10)); // 'z' at end of "baz"
     }
 
     #[test]

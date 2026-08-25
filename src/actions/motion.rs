@@ -8,8 +8,8 @@ use jagged::Index2;
 
 use super::Execute;
 use crate::{
-    helper::{max_col, max_col_normal, skip_whitespace, skip_whitespace_rev},
     EditorMode, EditorState,
+    helper::{max_col, max_col_normal, skip_whitespace, skip_whitespace_rev},
 };
 
 #[derive(Clone, Debug, Copy)]
@@ -234,6 +234,159 @@ fn move_word_backward(state: &mut EditorState) {
         }
         // Break loop if characters don't belong to the same class
         if CharacterClass::from(next_char) != start_char_class {
+            break;
+        }
+        start_index = i;
+    }
+
+    state.cursor = start_index;
+}
+
+/// Coarse character class for WORD (big-word) motions: a WORD is any run of
+/// non-whitespace, so every non-whitespace class collapses into one bucket.
+fn big_word_class<T>(value: T) -> CharacterClass
+where
+    CharacterClass: From<T>,
+{
+    match CharacterClass::from(value) {
+        CharacterClass::Whitespace => CharacterClass::Whitespace,
+        _ => CharacterClass::Alphanumeric,
+    }
+}
+
+/// Move forward to the start of the next WORD (whitespace-delimited). Vim `W`.
+#[derive(Clone, Debug, Copy)]
+pub struct MoveBigWordForward(pub usize);
+
+impl Execute for MoveBigWordForward {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+        state.clamp_column();
+        for _ in 0..self.0 {
+            move_big_word_forward(state);
+        }
+        if state.mode == EditorMode::Visual {
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+        }
+    }
+}
+
+fn move_big_word_forward(state: &mut EditorState) {
+    let start_char_class = big_word_class(state.lines.get(state.cursor));
+
+    let start_index = match (
+        state.lines.is_last_col(state.cursor),
+        state.lines.is_last_row(state.cursor),
+    ) {
+        (true, true) => return,
+        (true, false) => {
+            state.cursor = Index2::new(state.cursor.row.saturating_add(1), 0);
+            return;
+        }
+        _ => Index2::new(state.cursor.row, state.cursor.col.saturating_add(1)),
+    };
+
+    for (next_char, index) in state.lines.iter().from(start_index) {
+        if big_word_class(next_char) != start_char_class {
+            state.cursor = index;
+            skip_whitespace(&state.lines, &mut state.cursor);
+            return;
+        }
+    }
+
+    let max_col = max_col(&state.lines, &state.cursor, state.mode);
+    state.cursor = Index2::new(state.cursor.row, max_col);
+}
+
+/// Move forward to the end of the current/next WORD. Vim `E`.
+#[derive(Clone, Debug, Copy)]
+pub struct MoveBigWordForwardToEndOfWord(pub usize);
+
+impl Execute for MoveBigWordForwardToEndOfWord {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+        state.clamp_column();
+        for _ in 0..self.0 {
+            move_big_word_forward_to_end_of_word(state);
+        }
+        if state.mode == EditorMode::Visual {
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+        }
+    }
+}
+
+fn move_big_word_forward_to_end_of_word(state: &mut EditorState) {
+    let mut start_index = match (
+        state.lines.is_last_col(state.cursor),
+        state.lines.is_last_row(state.cursor),
+    ) {
+        (true, true) => return,
+        (true, false) => Index2::new(state.cursor.row.saturating_add(1), 0),
+        _ => Index2::new(state.cursor.row, state.cursor.col.saturating_add(1)),
+    };
+    skip_empty_lines(&state.lines, &mut start_index.row);
+    skip_whitespace(&state.lines, &mut start_index);
+    let start_char_class = big_word_class(state.lines.get(start_index));
+
+    for (next_char, index) in state.lines.iter().from(start_index) {
+        if big_word_class(next_char) != start_char_class {
+            break;
+        }
+        state.cursor = index;
+        if state.lines.is_last_col(index) {
+            break;
+        }
+    }
+}
+
+/// Move backward to the start of the previous WORD. Vim `B`.
+#[derive(Clone, Debug, Copy)]
+pub struct MoveBigWordBackward(pub usize);
+
+impl Execute for MoveBigWordBackward {
+    fn execute(&mut self, state: &mut EditorState) {
+        if state.lines.is_empty() {
+            return;
+        }
+        let max_col = max_col(&state.lines, &state.cursor, state.mode);
+        if state.cursor.col > max_col {
+            state.cursor.col = max_col;
+        }
+        for _ in 0..self.0 {
+            move_big_word_backward(state);
+        }
+        if state.mode == EditorMode::Visual {
+            set_selection_with_lines(&mut state.selection, state.cursor, &state.lines);
+        }
+    }
+}
+
+fn move_big_word_backward(state: &mut EditorState) {
+    let mut start_index = state.cursor;
+    if start_index.row == 0 && start_index.col == 0 {
+        return;
+    }
+
+    if start_index.col == 0 {
+        state.cursor.row = start_index.row.saturating_sub(1);
+        state.cursor.col = state.lines.last_col_index(state.cursor.row);
+        return;
+    }
+
+    start_index.col = start_index.col.saturating_sub(1);
+    skip_whitespace_rev(&state.lines, &mut start_index);
+    let start_char_class = big_word_class(state.lines.get(start_index));
+
+    for (next_char, i) in state.lines.iter().from(start_index).rev() {
+        if i.col == 0 {
+            start_index = i;
+            break;
+        }
+        if big_word_class(next_char) != start_char_class {
             break;
         }
         start_index = i;

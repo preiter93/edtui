@@ -224,6 +224,9 @@ falling back to a platform-specific default if neither is set.
 | `w`                       | Move forward to the start of a word                      |
 | `e`                       | Move forward to the end of a word                        |
 | `b`                       | Move backward to the start of a word                     |
+| `W`                       | Move forward to the start of a WORD (whitespace-delimited) |
+| `E`                       | Move forward to the end of a WORD (whitespace-delimited)  |
+| `B`                       | Move backward to the start of a WORD (whitespace-delimited) |
 | `f` + `<char>`            | Move to the next occurrence of `<char>` on the line      |
 | `t` + `<char>`            | Move just before the next occurrence of `<char>`         |
 | `ctrl+d`                  | Jump a half page down                                    |
