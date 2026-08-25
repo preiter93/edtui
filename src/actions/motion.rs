@@ -8,14 +8,18 @@ use jagged::Index2;
 
 use super::Execute;
 use crate::{
-    helper::{max_col, max_col_normal, skip_whitespace, skip_whitespace_rev},
     EditorMode, EditorState,
+    helper::{max_col, max_col_normal, skip_whitespace, skip_whitespace_rev},
 };
 
 #[derive(Clone, Debug, Copy)]
 pub struct MoveForward(pub usize);
 
 impl Execute for MoveForward {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
             if state.cursor.col >= max_col(&state.lines, &state.cursor, state.mode) {
@@ -33,6 +37,10 @@ impl Execute for MoveForward {
 pub struct MoveBackward(pub usize);
 
 impl Execute for MoveBackward {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
             if state.cursor.col == 0 {
@@ -54,6 +62,10 @@ impl Execute for MoveBackward {
 pub struct MoveUp(pub usize);
 
 impl Execute for MoveUp {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
             if state.cursor.row == 0 {
@@ -71,6 +83,10 @@ impl Execute for MoveUp {
 pub struct MoveDown(pub usize);
 
 impl Execute for MoveDown {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         for _ in 0..self.0 {
             if state.cursor.row >= state.lines.len().saturating_sub(1) {
@@ -91,6 +107,10 @@ impl Execute for MoveDown {
 pub struct MoveWordForward(pub usize);
 
 impl Execute for MoveWordForward {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.lines.is_empty() {
             return;
@@ -139,6 +159,10 @@ fn move_word_forward(state: &mut EditorState) {
 #[derive(Clone, Debug, Copy)]
 pub struct MoveWordForwardToEndOfWord(pub usize);
 impl Execute for MoveWordForwardToEndOfWord {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.lines.is_empty() {
             return;
@@ -190,6 +214,10 @@ fn move_word_forward_to_end_of_word(state: &mut EditorState) {
 pub struct MoveWordBackward(pub usize);
 
 impl Execute for MoveWordBackward {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.lines.is_empty() {
             return;

@@ -134,6 +134,10 @@ pub trait Execute {
         false
     }
 
+    /// Apply a numeric count prefix (e.g. the `3` in `3j`). Actions that carry a
+    /// repeat count override this; the default ignores it.
+    fn set_count(&mut self, _count: usize) {}
+
     /// Returns a handle to this action's character argument if it takes one
     /// (like `f`/`t`). While the inner value is `None`, the action is still
     /// waiting for the key handler to supply the next keystroke through it.
@@ -264,8 +268,8 @@ impl Execute for Composed {
 
 #[cfg(test)]
 mod tests {
-    use crate::clipboard::InternalClipboard;
     use crate::Lines;
+    use crate::clipboard::InternalClipboard;
 
     use super::*;
     fn test_state() -> EditorState {

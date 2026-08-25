@@ -1,6 +1,8 @@
 pub(crate) mod deprecated;
 pub(crate) mod input;
 
+#[cfg(feature = "system-editor")]
+use crate::actions::OpenSystemEditor;
 use crate::actions::cpaste::PasteOverSelection;
 use crate::actions::delete::{
     DeleteBigWordForward, DeleteCharForward, DeleteToEndOfLine, DeleteToFirstCharOfLine,
@@ -10,8 +12,6 @@ use crate::actions::motion::{
     MoveHalfPageDown, MovePageDown, MovePageUp, MoveToFirstRow, MoveToLastRow,
 };
 use crate::actions::search::StartSearch;
-#[cfg(feature = "system-editor")]
-use crate::actions::OpenSystemEditor;
 use crate::actions::{
     Action, AppendCharToSearch, AppendNewline, Chainable, ChangeBigWord, ChangeFindForward,
     ChangeInnerBetween, ChangeInnerBigWord, ChangeInnerWord, ChangeSelection, ChangeTillForward,
@@ -38,6 +38,9 @@ pub struct KeyEventHandler {
     /// An action awaiting a character argument (e.g. `f`/`t`/`df`/`dt`). The
     /// next keystroke is fed to it via [`Execute::char_arg`].
     pending_char: Option<Action>,
+    /// A pending numeric count prefix (e.g. the `3` in `3j`), applied to the
+    /// next action via [`Execute::set_count`].
+    count: Option<usize>,
 }
 
 impl Default for KeyEventHandler {
@@ -55,6 +58,7 @@ impl KeyEventHandler {
             register,
             capture_on_insert,
             pending_char: None,
+            count: None,
         }
     }
 
@@ -67,6 +71,7 @@ impl KeyEventHandler {
             register,
             capture_on_insert: false,
             pending_char: None,
+            count: None,
         }
     }
 
@@ -79,6 +84,7 @@ impl KeyEventHandler {
             register,
             capture_on_insert: true,
             pending_char: None,
+            count: None,
         }
     }
 
@@ -1139,9 +1145,34 @@ impl KeyEventHandler {
                 if let Some(slot) = action.char_arg() {
                     *slot = Some(c);
                 }
+                action.set_count(self.count.take().unwrap_or(1));
                 state.execute_recorded(action);
+            } else {
+                self.count = None;
             }
             return;
+        }
+
+        // A numeric count prefix in normal/visual mode (`3` in `3j`). A bare
+        // leading `0` stays the start-of-line motion; `0` only extends a count
+        // that is already in progress. Digits mid-sequence (a non-empty lookup,
+        // e.g. after `d`) fall through so they don't shadow multi-key commands.
+        if matches!(mode, EditorMode::Normal | EditorMode::Visual)
+            && self.lookup.is_empty()
+            && key_input.modifiers == input::Modifiers::NONE
+        {
+            if let input::KeyCode::Char(c @ '0'..='9') = key_input.key {
+                if !(c == '0' && self.count.is_none()) {
+                    let digit = (c as u8 - b'0') as usize;
+                    self.count = Some(
+                        self.count
+                            .unwrap_or(0)
+                            .saturating_mul(10)
+                            .saturating_add(digit),
+                    );
+                    return;
+                }
+            }
         }
 
         // Else lookup an action from the register. Actions that still need a
@@ -1150,8 +1181,12 @@ impl KeyEventHandler {
             if action.char_arg().is_some_and(|slot| slot.is_none()) {
                 self.pending_char = Some(action);
             } else {
+                action.set_count(self.count.take().unwrap_or(1));
                 state.execute_recorded(action);
             }
+        } else if self.lookup.is_empty() {
+            // No match and not mid-sequence: drop any pending count.
+            self.count = None;
         }
     }
 }
@@ -1405,6 +1440,47 @@ mod tests {
         handler.on_event(KeyInput::new('f'), &mut state);
         handler.on_event(KeyInput::new('o'), &mut state);
         assert_eq!(state.cursor, Index2::new(0, 7));
+    }
+
+    #[test]
+    fn test_count_prefix() {
+        use crate::{EditorState, Index2, Lines};
+
+        // Count on a word motion: `2w` jumps two words forward.
+        let mut state = EditorState::new(Lines::from("one two three"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+        handler.on_event(KeyInput::new('2'), &mut state);
+        handler.on_event(KeyInput::new('w'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 8)); // start of "three"
+
+        // Multi-digit count on delete-char: `10x` removes ten chars, and the
+        // count resets afterwards so a lone `x` removes one.
+        let mut state = EditorState::new(Lines::from("abcdefghijkl"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+        handler.on_event(KeyInput::new('1'), &mut state);
+        handler.on_event(KeyInput::new('0'), &mut state);
+        handler.on_event(KeyInput::new('x'), &mut state);
+        assert_eq!(state.lines.to_string(), "kl");
+        handler.on_event(KeyInput::new('x'), &mut state);
+        assert_eq!(state.lines.to_string(), "l");
+
+        // Count on a linewise op: `2dd` deletes two lines.
+        let mut state = EditorState::new(Lines::from("l1\nl2\nl3\nl4"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 0);
+        handler.on_event(KeyInput::new('2'), &mut state);
+        handler.on_event(KeyInput::new('d'), &mut state);
+        handler.on_event(KeyInput::new('d'), &mut state);
+        assert_eq!(state.lines.to_string(), "l3\nl4");
+
+        // A bare leading `0` is still the start-of-line motion, not a count.
+        let mut state = EditorState::new(Lines::from("hello"));
+        let mut handler = KeyEventHandler::default();
+        state.cursor = Index2::new(0, 4);
+        handler.on_event(KeyInput::new('0'), &mut state);
+        assert_eq!(state.cursor, Index2::new(0, 0));
     }
 
     #[test]

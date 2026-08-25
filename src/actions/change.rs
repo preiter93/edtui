@@ -4,12 +4,12 @@
 //! command delegates to the corresponding delete primitive and then switches to
 //! insert mode, mirroring Vim's `c` operator.
 
+use super::Execute;
 use super::delete::{
-    delete_selection, DeleteBigWordEnd, DeleteFindForward, DeleteTillForward, DeleteWordEnd,
+    DeleteBigWordEnd, DeleteFindForward, DeleteTillForward, DeleteWordEnd, delete_selection,
 };
 use super::motion::find_char_forward;
 use super::select::{DeleteInnerBetween, DeleteInnerBigWord, DeleteInnerWord};
-use super::Execute;
 use crate::clipboard::ClipboardTrait;
 use crate::{EditorMode, EditorState};
 
@@ -19,6 +19,10 @@ use crate::{EditorMode, EditorState};
 pub struct ChangeWord(pub usize);
 
 impl Execute for ChangeWord {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         DeleteWordEnd(self.0).execute(state);
         state.mode = EditorMode::Insert;
@@ -35,6 +39,10 @@ impl Execute for ChangeWord {
 pub struct ChangeBigWord(pub usize);
 
 impl Execute for ChangeBigWord {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         DeleteBigWordEnd(self.0).execute(state);
         state.mode = EditorMode::Insert;

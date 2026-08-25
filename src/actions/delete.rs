@@ -2,13 +2,13 @@ use jagged::index::RowIndex;
 
 use super::Execute;
 use crate::{
-    actions::motion::{find_char_forward, CharacterClass},
+    EditorState, Index2, Lines,
+    actions::motion::{CharacterClass, find_char_forward},
     clipboard::ClipboardTrait,
     helper::{
         is_out_of_bounds, max_col_insert, max_col_normal, skip_whitespace, skip_whitespace_rev,
     },
     state::selection::Selection,
-    EditorState, Index2, Lines,
 };
 
 /// Deletes a character at the current cursor position. Does not
@@ -18,6 +18,10 @@ use crate::{
 pub struct RemoveChar(pub usize);
 
 impl Execute for RemoveChar {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         state.clamp_column();
@@ -73,6 +77,10 @@ impl Execute for ReplaceChar {
 pub struct DeleteChar(pub usize);
 
 impl Execute for DeleteChar {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         for _ in 0..self.0 {
@@ -123,6 +131,10 @@ fn delete_char(lines: &mut Lines, index: &mut Index2) {
 pub struct DeleteCharForward(pub usize);
 
 impl Execute for DeleteCharForward {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         state.clamp_column();
@@ -161,6 +173,10 @@ fn delete_char_forward(lines: &mut Lines, index: &mut Index2) {
 pub struct DeleteWordForward(pub usize);
 
 impl Execute for DeleteWordForward {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.lines.is_empty() {
             return;
@@ -237,6 +253,10 @@ fn delete_word_forward(state: &mut EditorState) {
 pub struct DeleteBigWordForward(pub usize);
 
 impl Execute for DeleteBigWordForward {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.lines.is_empty() {
             return;
@@ -271,6 +291,10 @@ fn delete_big_word_forward(state: &mut EditorState) {
 pub struct DeleteWordEnd(pub usize);
 
 impl Execute for DeleteWordEnd {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.lines.is_empty() {
             return;
@@ -297,6 +321,10 @@ fn delete_word_end(state: &mut EditorState) {
 pub struct DeleteBigWordEnd(pub usize);
 
 impl Execute for DeleteBigWordEnd {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.lines.is_empty() {
             return;
@@ -325,6 +353,10 @@ fn delete_big_word_end(state: &mut EditorState) {
 pub struct DeleteWordBackward(pub usize);
 
 impl Execute for DeleteWordBackward {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.lines.is_empty() {
             return;
@@ -399,6 +431,10 @@ fn delete_range(
 pub struct DeleteLine(pub usize);
 
 impl Execute for DeleteLine {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         state.capture();
         for _ in 0..self.0 {
@@ -591,10 +627,10 @@ impl Execute for JoinLineWithLineBelow {
 
 #[cfg(test)]
 mod tests {
-    use crate::state::selection::Selection;
     use crate::EditorMode;
     use crate::Index2;
     use crate::Lines;
+    use crate::state::selection::Selection;
 
     use super::*;
     fn test_state() -> EditorState {

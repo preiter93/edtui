@@ -2,8 +2,8 @@ use jagged::index::RowIndex;
 
 use super::Execute;
 use crate::{
-    helper::{insert_char, line_break},
     EditorState,
+    helper::{insert_char, line_break},
 };
 
 /// Inserts a single character at the current cursor position.
@@ -38,6 +38,10 @@ impl Execute for InsertChar {
 pub struct LineBreak(pub usize);
 
 impl Execute for LineBreak {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.view.single_line {
             return;
@@ -62,6 +66,10 @@ impl Execute for LineBreak {
 pub struct AppendNewline(pub usize);
 
 impl Execute for AppendNewline {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.view.single_line {
             return;
@@ -92,6 +100,10 @@ impl Execute for AppendNewline {
 pub struct InsertNewline(pub usize);
 
 impl Execute for InsertNewline {
+    fn set_count(&mut self, count: usize) {
+        self.0 = count;
+    }
+
     fn execute(&mut self, state: &mut EditorState) {
         if state.view.single_line {
             return;

@@ -218,6 +218,7 @@ falling back to a platform-specific default if neither is set.
 
 | Keybinding                | Description                                              |
 |---------------------------|----------------------------------------------------------|
+| `[count]` + command       | Repeat a motion/edit `count` times (e.g. `3j`, `2dd`, `5x`) |
 | `i`                       | Enter Insert mode                                        |
 | `v`                       | Enter Visual mode                                        |
 | `h`, `j`, `k`, `l`        | Navigate left, down, up, and right                       |
