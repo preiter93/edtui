@@ -1000,6 +1000,10 @@ fn emacs_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::i(vec![KeyInput::alt(KeyCode::Backspace)]),
             DeleteWordBackward(1).into(),
         ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('w')]),
+            DeleteWordBackward(1).into(),
+        ),
         (KeyEventRegister::i(vec![KeyInput::ctrl('u')]), Undo.into()),
         (KeyEventRegister::i(vec![KeyInput::ctrl('r')]), Redo.into()),
         (KeyEventRegister::i(vec![KeyInput::ctrl('y')]), Paste.into()),
