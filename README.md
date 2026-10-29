@@ -298,46 +298,46 @@ Emacs Mode was added in version 0.10.1.
 
 Note that Emacs Mode is less feature complete and less tested than vim mode.
 
-| Keybinding      | Description                                              |
-|-----------------|----------------------------------------------------------|
-| `Ctrl+f`        | Move forward                                             |
-| `Ctrl+b`        | Move backward                                            |
-| `Ctrl+n`        | Move to next line                                        |
-| `Ctrl+p`        | Move to previous line                                    |
-| `Ctrl+a`        | Move to start of line                                    |
-| `Ctrl+e`        | Move to end of line                                      |
-| `Ctrl+v`        | Half page down                                           |
-| `Alt+v`         | Half page up                                             |
-| `PageDown`      | Full page down                                           |
-| `PageUp`        | Full page up                                             |
-| `Alt+f`         | Forward word                                             |
-| `Alt+b`         | Backward word                                            |
-| `Alt+<`         | Beginning of buffer                                      |
-| `Alt+>`         | End of buffer                                            |
-| `Ctrl+d`        | Delete character forward                                 |
-| `Ctrl+h`        | Delete character backward                                |
-| `Alt+d`         | Delete word forward                                      |
-| `Alt+Backspace` | Delete word backward                                     |
-| `Ctrl+k`        | Delete to end of line                                    |
-| `Alt+u`         | Delete to start of line                                  |
-| `Ctrl+o`        | Open line (insert newline, stay)                         |
-| `Ctrl+j`        | Newline                                                  |
-| `Ctrl+y`        | Paste                                                    |
-| `Ctrl+u`        | Undo                                                     |
-| `Ctrl+r`        | Redo                                                     |
-| `Ctrl+g`        | Cancel search                                            |
-| `Enter`         | Insert line break                                        |
-| `Backspace`     | Delete previous character                                |
-| `Arrows`        | Navigation                                               |
-| `Home`          | Move to start of line                                    |
-| `End`           | Move to end of line                                      |
-| `Ctrl+Left`     | Move backward to the start of a word                     |
-| `Ctrl+Right`    | Move forward to the start of a word                      |
-| `Alt+e`         | Open in system editor (requires `system-editor` feature) |
-| `Ctrl+s`        | Start search                                             |
-| `Ctrl+s`        | Search mode: Go to next match                            |
-| `Ctrl+r`        | Search mode: Go to previous match                        |
-| `Enter`         | Search mode: Select current match                        |
+| Keybinding               | Description                                              |
+|--------------------------|----------------------------------------------------------|
+| `Ctrl+f`                 | Move forward                                             |
+| `Ctrl+b`                 | Move backward                                            |
+| `Ctrl+n`                 | Move to next line                                        |
+| `Ctrl+p`                 | Move to previous line                                    |
+| `Ctrl+a`                 | Move to start of line                                    |
+| `Ctrl+e`                 | Move to end of line                                      |
+| `Ctrl+v`                 | Half page down                                           |
+| `Alt+v`                  | Half page up                                             |
+| `PageDown`               | Full page down                                           |
+| `PageUp`                 | Full page up                                             |
+| `Alt+f`                  | Forward word                                             |
+| `Alt+b`                  | Backward word                                            |
+| `Alt+<`                  | Beginning of buffer                                      |
+| `Alt+>`                  | End of buffer                                            |
+| `Ctrl+d`                 | Delete character forward                                 |
+| `Ctrl+h`                 | Delete character backward                                |
+| `Alt+d`                  | Delete word forward                                      |
+| `Alt+Backspace`/`Ctrl+w` | Delete word backward                                     |
+| `Ctrl+k`                 | Delete to end of line                                    |
+| `Alt+u`                  | Delete to start of line                                  |
+| `Ctrl+o`                 | Open line (insert newline, stay)                         |
+| `Ctrl+j`                 | Newline                                                  |
+| `Ctrl+y`                 | Paste                                                    |
+| `Ctrl+u`                 | Undo                                                     |
+| `Ctrl+r`                 | Redo                                                     |
+| `Ctrl+g`                 | Cancel search                                            |
+| `Enter`                  | Insert line break                                        |
+| `Backspace`              | Delete previous character                                |
+| `Arrows`                 | Navigation                                               |
+| `Home`                   | Move to start of line                                    |
+| `End`                    | Move to end of line                                      |
+| `Ctrl+Left`              | Move backward to the start of a word                     |
+| `Ctrl+Right`             | Move forward to the start of a word                      |
+| `Alt+e`                  | Open in system editor (requires `system-editor` feature) |
+| `Ctrl+s`                 | Start search                                             |
+| `Ctrl+s`                 | Search mode: Go to next match                            |
+| `Ctrl+r`                 | Search mode: Go to previous match                        |
+| `Enter`                  | Search mode: Select current match                        |
 
 [Crate Badge]: https://img.shields.io/crates/v/edtui?logo=rust&style=flat-square&logoColor=E05D44&color=E05D44
 [License Badge]: https://img.shields.io/crates/l/edtui?style=flat-square&color=1370D3
