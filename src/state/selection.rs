@@ -61,10 +61,8 @@ impl Selection {
         } else {
             (self.end.row, self.start.row)
         };
-        if row_index >= start_row && row_index <= end_row {
-            return true;
-        }
-        false
+
+        row_index >= start_row && row_index <= end_row
     }
 
     #[must_use]
