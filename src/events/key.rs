@@ -243,6 +243,31 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
             KeyEventRegister::i(vec![KeyInput::ctrl(KeyCode::Left)]),
             MoveWordBackward(1).into(),
         ),
+        // Readline-style movement in insert mode
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('f')]),
+            MoveForward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('b')]),
+            MoveBackward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::alt('f')]),
+            MoveWordForward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::alt('b')]),
+            MoveWordBackward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('a')]),
+            MoveToStartOfLine().into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('e')]),
+            MoveToEndOfLine().into(),
+        ),
         // Move cursor up
         (
             KeyEventRegister::n(vec![KeyInput::new('k')]),
@@ -519,6 +544,20 @@ fn vim_keybindings() -> HashMap<KeyEventRegister, Action> {
         (
             KeyEventRegister::i(vec![KeyInput::new(KeyCode::Delete)]),
             DeleteCharForward(1).into(),
+        ),
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('d')]),
+            DeleteCharForward(1).into(),
+        ),
+        // Delete the previous word
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('w')]),
+            DeleteWordBackward(1).into(),
+        ),
+        // Delete from the cursor to the end of the line
+        (
+            KeyEventRegister::i(vec![KeyInput::ctrl('k')]),
+            DeleteToEndOfLine.into(),
         ),
         // Delete the current line
         (
@@ -1648,5 +1687,34 @@ mod tests {
         // Cursor should have moved to position 6 ('W'), not inserted 'f'
         assert_eq!(state.cursor.col, 6);
         assert_eq!(state.lines.to_string(), "Hello World");
+    }
+
+    #[test]
+    fn test_vim_insert_readline_keybindings() {
+        use crate::EditorState;
+        use crate::Index2;
+
+        let test_cases = [
+            ("ctrl+a", KeyInput::ctrl('a'), 0, "Hello World"),
+            ("ctrl+e", KeyInput::ctrl('e'), 11, "Hello World"),
+            ("ctrl+f", KeyInput::ctrl('f'), 7, "Hello World"),
+            ("ctrl+b", KeyInput::ctrl('b'), 5, "Hello World"),
+            ("alt+f", KeyInput::alt('f'), 11, "Hello World"),
+            ("alt+b", KeyInput::alt('b'), 0, "Hello World"),
+            ("ctrl+d", KeyInput::ctrl('d'), 6, "Hello orld"),
+            ("ctrl+w", KeyInput::ctrl('w'), 0, "World"),
+            ("ctrl+k", KeyInput::ctrl('k'), 6, "Hello "),
+        ];
+
+        for (name, key, expected_col, expected_text) in test_cases {
+            let mut state = EditorState::new(crate::Lines::from("Hello World"));
+            state.mode = EditorMode::Insert;
+            state.cursor = Index2::new(0, 6);
+
+            KeyEventHandler::vim_mode().on_event(key, &mut state);
+
+            assert_eq!(state.cursor.col, expected_col, "{name}");
+            assert_eq!(state.lines.to_string(), expected_text, "{name}");
+        }
     }
 }

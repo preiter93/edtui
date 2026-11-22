@@ -8,7 +8,7 @@ use crate::{
         is_out_of_bounds, max_col_insert, max_col_normal, skip_whitespace, skip_whitespace_rev,
     },
     state::selection::Selection,
-    EditorState, Index2, Lines,
+    EditorMode, EditorState, Index2, Lines,
 };
 
 /// Deletes a character at the current cursor position. Does not
@@ -467,7 +467,9 @@ impl Execute for DeleteToEndOfLine {
             return;
         };
         let deleted_chars = row.drain(state.cursor.col..);
-        state.cursor.col = state.cursor.col.saturating_sub(1);
+        if state.mode != EditorMode::Insert {
+            state.cursor.col = state.cursor.col.saturating_sub(1);
+        }
         state.clip.set_text(deleted_chars.collect());
     }
 
